@@ -1,5 +1,5 @@
 /** Storyboard Studio — Vite + React (GitHub/Vercel Ready) */
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 const I = ({ name, size = 16, className = '', style = {} }) => React.createElement('span', {
   className,
@@ -2217,7 +2217,7 @@ CAMERA SYSTEM: Ultra-stable static tripod shot.`;
           const n = productTotalSec <= 10 ? 2 : 3;
 
           // Dynamic dialogue based on product category
-          const productCat = (productCategory || 'General').toLowerCase();
+          const productCat = (category || 'General').toLowerCase();
           const isBeauty = /skincare|beauty|makeup|serum|moisturis|sunscreen|toner|foundation|lipstick|blush|mask/.test(productCat);
           const isFood = /food|makanan|snack|drink|minuman|supplement|vitamin|protein|beverage/.test(productCat);
           const isFashion = /fashion|clothing|baju|kasut|shoes|bag|beg|accessories|tudung|hijab|ootd/.test(productCat);
@@ -2288,7 +2288,7 @@ CAMERA SYSTEM: Ultra-stable static tripod shot.`;
             result.videoPrompt = `${targetModelHeader}\nSCENE: Single human hand holding ${productAction} against ${productBgPrompt}.`;
           }
           const singleCatKey = (() => {
-            const c = (productCategory || '').toLowerCase();
+            const c = (category || '').toLowerCase();
             if (/skincare|beauty|makeup|serum|moisturis|sunscreen|toner|foundation|lipstick/.test(c)) return 'beauty';
             if (/food|makanan|snack|drink|minuman|supplement|vitamin|protein/.test(c)) return 'food';
             if (/fashion|clothing|baju|kasut|shoes|bag|beg|accessories|tudung|hijab/.test(c)) return 'fashion';
