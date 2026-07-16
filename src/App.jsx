@@ -918,7 +918,7 @@ const GEMINI_MODELS = [
 ];
 
 const getStoredModel = () => {
-  try { return localStorage.getItem('gemini_selected_model') || 'gemini-2.5-flash-preview-09-2025'; } catch { return 'gemini-2.5-flash-preview-09-2025'; }
+  try { return localStorage.getItem('gemini_selected_model') || 'gemini-3.5-flash'; } catch { return 'gemini-3.5-flash'; }
 };
 
 const callGeminiApi = async (model, payload, isPredict = false, signal = null) => {
@@ -1084,7 +1084,13 @@ export default function App() {
   const handleSaveApiKey = (key) => {
     setApiKey(key);
     try { localStorage.setItem('gemini_api_key', key); } catch {}
-    if (key.trim()) setShowApiKeyInput(false);
+    if (key.trim()) {
+      setShowApiKeyInput(false);
+      // Auto-select latest model when API key is first saved
+      const latestModel = GEMINI_MODELS[0].v;
+      setSelectedModel(latestModel);
+      try { localStorage.setItem('gemini_selected_model', latestModel); } catch {}
+    }
   };
 
   const handleModelChange = (model) => {
