@@ -1886,27 +1886,60 @@ Be visual and specific. English only.`
     const lockedRatio = currentDisplayRatio || aspectRatio;
     const uniqueSeed = `[Variation Seed: ${Date.now() + index}]`;
     const stabilitySuffix = "[MANDATORY: KEEP THE PERSON AND FACE EXACTLY THE SAME AS THE REFERENCE].";
-
-    let basePromptForRegen = Array.isArray(editableImagePrompt) ? (editableImagePrompt[index] || editableImagePrompt[0]) : editableImagePrompt;
     const identityBible = generatedOutput?.identityBible || '';
-    const continuityDataUrl = index > 0 && imageUrls[0] ? imageUrls[0] : null;
     const allowWhite = activeTab === 'character' || (activeTab === 'fake_influencer' && String(fiFormat || '').includes('Character Sheet'));
     const envRegen = allowWhite ? '' : ' Keep the same detailed environment/location (NOT plain white background).';
-    const prompt = `${basePromptForRegen}. ${uniqueSeed} [Alternative camera angle. ${stabilitySuffix}]${envRegen}${identityBible ? `\n${identityBible}` : ''}`;
+    const topicLock = generatedOutput?.topic || productName || cinematicTopic || gfTopic || '';
 
     try {
-      const newImgUrl = await fetchSingleImage(prompt, lockedRatio, gridAbortControllers.current[index].signal, index, {
-        identityBible,
-        continuityDataUrl,
-        negative: withEnvNegative(DEFAULT_NEGATIVE, allowWhite),
-        topicLock: generatedOutput?.topic || productName || cinematicTopic || gfTopic || ''
-      });
-      if (newImgUrl) {
-        setImageUrls(prev => {
-          const newUrls = [...prev];
-          newUrls[index] = newImgUrl;
-          return newUrls;
+      // If images are combined (2 scenes per slot), regenerate both scenes and re-combine
+      if (generatedOutput?._imagesCombined && Array.isArray(editableImagePrompt) && editableImagePrompt.length >= 6) {
+        const sceneIdxA = index * 2;
+        const sceneIdxB = index * 2 + 1;
+        const promptA = editableImagePrompt[sceneIdxA] || editableImagePrompt[0];
+        const promptB = editableImagePrompt[sceneIdxB] || editableImagePrompt[1];
+        const signal = gridAbortControllers.current[index].signal;
+
+        const fullPromptA = `${promptA}. ${uniqueSeed} [Alternative angle. ${stabilitySuffix}]${envRegen}${identityBible ? `\n${identityBible}` : ''}`;
+        const fullPromptB = `${promptB}. [Variation Seed: ${Date.now() + index + 99}] [Alternative angle. ${stabilitySuffix}]${envRegen}${identityBible ? `\n${identityBible}` : ''}`;
+
+        setLoadingText(`Regenerating Scene ${sceneIdxA + 1} & ${sceneIdxB + 1}...`);
+
+        const imgA = await fetchSingleImage(fullPromptA, lockedRatio, signal, sceneIdxA, {
+          identityBible, continuityDataUrl: null,
+          negative: withEnvNegative(DEFAULT_NEGATIVE, allowWhite), topicLock
         });
+        if (signal.aborted) return;
+
+        const imgB = await fetchSingleImage(fullPromptB, lockedRatio, signal, sceneIdxB, {
+          identityBible, continuityDataUrl: imgA,
+          negative: withEnvNegative(DEFAULT_NEGATIVE, allowWhite), topicLock
+        });
+        if (signal.aborted) return;
+
+        if (imgA && imgB) {
+          const combined = await combineImagesVerticallyPair(imgA, imgB, lockedRatio);
+          setImageUrls(prev => {
+            const newUrls = [...prev];
+            newUrls[index] = combined;
+            return newUrls;
+          });
+        } else if (imgA) {
+          setImageUrls(prev => { const u = [...prev]; u[index] = imgA; return u; });
+        }
+      } else {
+        // Standard single-image regeneration
+        let basePromptForRegen = Array.isArray(editableImagePrompt) ? (editableImagePrompt[index] || editableImagePrompt[0]) : editableImagePrompt;
+        const continuityDataUrl = index > 0 && imageUrls[0] ? imageUrls[0] : null;
+        const prompt = `${basePromptForRegen}. ${uniqueSeed} [Alternative camera angle. ${stabilitySuffix}]${envRegen}${identityBible ? `\n${identityBible}` : ''}`;
+
+        const newImgUrl = await fetchSingleImage(prompt, lockedRatio, gridAbortControllers.current[index].signal, index, {
+          identityBible, continuityDataUrl,
+          negative: withEnvNegative(DEFAULT_NEGATIVE, allowWhite), topicLock
+        });
+        if (newImgUrl) {
+          setImageUrls(prev => { const u = [...prev]; u[index] = newImgUrl; return u; });
+        }
       }
     } catch (err) {
       if (err.name !== 'AbortError') {
