@@ -917,7 +917,7 @@ const GEMINI_MODELS = [
   { v: 'gemini-1.5-pro', l: 'Gemini 1.5 Pro' },
 ];
 
-const IMAGE_MODEL = 'gemini-2.0-flash';
+const IMAGE_MODEL = 'gemini-3.1-flash-image';
 
 const getStoredModel = () => {
   try { return localStorage.getItem('gemini_selected_model') || 'gemini-3.5-flash'; } catch { return 'gemini-3.5-flash'; }
