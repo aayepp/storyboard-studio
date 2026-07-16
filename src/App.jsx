@@ -1319,7 +1319,7 @@ Be visual and specific. English only.`
         : " [ENVIRONMENT LOCK: Photoreal storyboard still with a FULL detailed background matching the scene (room, city, nature, cafe, set). NO plain white background, NO empty white studio, NO blank backdrop. No watermarks.]";
       let handAnatomyLock = motionGraphicsMode
         ? " [DESIGN MODE: Prefer flat/3D motion-graphics elements, charts, kinetic type, product renders — not live-action fashion photography.]"
-        : " [MANDATORY PHYSICS: Flawless hand anatomy.]";
+        : " [MANDATORY PHYSICS: Flawless hand anatomy. ORIENTATION LOCK: All held objects, products, devices, screens, and text MUST be in correct upright orientation — NEVER mirrored, flipped, or upside down. Buttons, logos, and screens must face the viewer correctly.]";
       const bibleBlock = identityBible ? `\n${identityBible}\n` : '';
       const topicBlock = topicLock
         ? `\n[TOPIC LOCK — MANDATORY]: This image MUST visually represent: "${topicLock}". Do not replace with unrelated people or scenes.\n`
@@ -4618,11 +4618,11 @@ ${aspectStr}`;
                 return (
                   <div className="border rounded-[1.25rem] p-6 shadow-sm relative transition-all duration-300 bg-[#09151c] border-[#12313f] mt-8 max-w-4xl mx-auto">
                     <h3 className="font-extrabold text-sm flex items-center gap-2 uppercase tracking-wide mb-2 text-[#38bdf8]">
-                      <span style={{ fontSize: '16px', lineHeight: 1 }}>⚡</span> SEGMEN KESINAMBUNGAN FLOW AI (I2V)
+                      <span style={{ fontSize: '16px', lineHeight: 1 }}>⚡</span> FLOW AI CONTINUITY SEGMENTS (I2V)
                     </h3>
                     <p className="text-xs mb-2 leading-relaxed text-gray-400">
-                      Tetapan durasi teras: <span className="text-sky-300 font-bold">{totalSec}s</span>
-                      {' '}· Menyediakan {segs.length} rantaian parameter berangkai.
+                      Core duration: <span className="text-sky-300 font-bold">{totalSec}s</span>
+                      {' '}· Preparing {segs.length} chained segments.
                     </p>
                     <p className="text-[10px] mb-4 text-gray-500 uppercase tracking-widest">
                       {segs.map((s) => s.label).join('  →  ')}
@@ -4639,7 +4639,7 @@ ${aspectStr}`;
                           }`}
                         >
                           <span style={{ fontSize: '14px', lineHeight: 1 }}>{copiedSection === `flow_seg_${i}` ? '✅' : '📋'}</span>
-                          {seg.label} · KELOMPOK {seg.part}/{seg.parts}
+                          {seg.label} · SEGMENT {seg.part}/{seg.parts}
                         </button>
                       ))}
                     </div>
