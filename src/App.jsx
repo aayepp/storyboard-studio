@@ -908,6 +908,18 @@ const getStoredApiKey = () => {
   try { return localStorage.getItem('gemini_api_key') || ''; } catch { return ''; }
 };
 
+const GEMINI_MODELS = [
+  { v: 'gemini-2.5-flash-preview-09-2025', l: 'Gemini 2.5 Flash Preview (Default)' },
+  { v: 'gemini-2.0-flash', l: 'Gemini 2.0 Flash' },
+  { v: 'gemini-1.5-flash', l: 'Gemini 1.5 Flash' },
+  { v: 'gemini-2.5-flash-preview', l: 'Gemini 2.5 Flash Preview (Latest)' },
+  { v: 'gemini-1.5-pro', l: 'Gemini 1.5 Pro' },
+];
+
+const getStoredModel = () => {
+  try { return localStorage.getItem('gemini_selected_model') || 'gemini-2.5-flash-preview-09-2025'; } catch { return 'gemini-2.5-flash-preview-09-2025'; }
+};
+
 const callGeminiApi = async (model, payload, isPredict = false, signal = null) => {
   const currentKey = getStoredApiKey();
   if (!currentKey) throw new Error('API Key belum dimasukkan. Sila masukkan Gemini API Key anda di bahagian atas halaman.');
@@ -1064,6 +1076,7 @@ export default function App() {
 
   const [apiKey, setApiKey] = useState(getStoredApiKey);
   const [showApiKeyInput, setShowApiKeyInput] = useState(!getStoredApiKey());
+  const [selectedModel, setSelectedModel] = useState(getStoredModel);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
 
@@ -1071,6 +1084,11 @@ export default function App() {
     setApiKey(key);
     try { localStorage.setItem('gemini_api_key', key); } catch {}
     if (key.trim()) setShowApiKeyInput(false);
+  };
+
+  const handleModelChange = (model) => {
+    setSelectedModel(model);
+    try { localStorage.setItem('gemini_selected_model', model); } catch {}
   };
 
   const analyzeReferenceAssets = async (signal = null) => {
@@ -1115,7 +1133,7 @@ Be visual and specific. English only.`
       generationConfig: { temperature: 0.35 }
     };
 
-    const data = await callGeminiApi('gemini-2.5-flash-preview-09-2025', payload, false, signal);
+    const data = await callGeminiApi(selectedModel, payload, false, signal);
     return extractGeminiText(data).trim();
   };
 
@@ -1133,7 +1151,7 @@ Be visual and specific. English only.`
         }
       };
 
-      const data = await callGeminiApi('gemini-2.5-flash-preview-09-2025', payload, false, signal);
+      const data = await callGeminiApi(selectedModel, payload, false, signal);
       const text = extractGeminiText(data);
       let parsed = normalizeStoryboardPayload(parseModelJson(text));
       const validation = validateStoryboard(parsed, expectedCount);
@@ -1576,7 +1594,7 @@ Be visual and specific. English only.`
                 ]}],
                 generationConfig: { temperature: 0.1 }
              };
-             const data = await callGeminiApi('gemini-2.5-flash-preview-09-2025', payload, false, null);
+             const data = await callGeminiApi(selectedModel, payload, false, null);
              const detectVal = extractGeminiText(data).trim();
              if (['HUMAN_CHARACTER', 'PRODUCT_CHARACTER', 'VEHICLE_CHARACTER', 'ANIMAL_CHARACTER', 'MASCOT_CHARACTER', 'OBJECT_CHARACTER'].includes(detectVal)) {
                  setCharSubjectType(detectVal);
@@ -3354,7 +3372,19 @@ ${aspectStr}`;
           </div>
         )}
         {apiKey && !showApiKeyInput && (
-          <div className="mb-4 flex justify-end">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <span className={`text-[10px] font-bold uppercase tracking-widest ${t('text-gray-500', 'text-gray-400')}`}>🤖 Model:</span>
+              <select
+                value={selectedModel}
+                onChange={(e) => handleModelChange(e.target.value)}
+                className={`rounded-lg px-3 py-1.5 text-xs font-bold border appearance-none cursor-pointer transition-colors ${t('bg-[#0a0c10] border-gray-700 text-white', 'bg-gray-50 border-gray-200 text-gray-800')}`}
+              >
+                {GEMINI_MODELS.map((m) => (
+                  <option key={m.v} value={m.v} style={isDarkMode ? { backgroundColor: '#0a0c10', color: '#fff' } : {}}>{m.l}</option>
+                ))}
+              </select>
+            </div>
             <button onClick={() => setShowApiKeyInput(true)} className="text-[10px] text-gray-500 hover:text-pink-400 transition-colors uppercase tracking-widest font-bold">
               🔑 Change API Key
             </button>
