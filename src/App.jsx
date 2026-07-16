@@ -909,10 +909,11 @@ const getStoredApiKey = () => {
 };
 
 const GEMINI_MODELS = [
-  { v: 'gemini-2.5-flash-preview-09-2025', l: 'Gemini 2.5 Flash Preview (Default)' },
+  { v: 'gemini-3.5-flash', l: 'Gemini 3.5 Flash (Latest)' },
+  { v: 'gemini-3.1-pro', l: 'Gemini 3.1 Pro (Advanced)' },
+  { v: 'gemini-3.1-flash-lite', l: 'Gemini 3.1 Flash-Lite (Fastest)' },
+  { v: 'gemini-2.5-flash-preview-09-2025', l: 'Gemini 2.5 Flash Preview' },
   { v: 'gemini-2.0-flash', l: 'Gemini 2.0 Flash' },
-  { v: 'gemini-1.5-flash', l: 'Gemini 1.5 Flash' },
-  { v: 'gemini-2.5-flash-preview', l: 'Gemini 2.5 Flash Preview (Latest)' },
   { v: 'gemini-1.5-pro', l: 'Gemini 1.5 Pro' },
 ];
 
