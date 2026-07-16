@@ -290,6 +290,7 @@ const buildIdentityBible = ({
     assetAnalysis ? `Reference analysis: ${assetAnalysis}` : '',
     extra || '',
     `RULES: Same face, age, body type, skin tone, wardrobe colors, product packaging across scenes. Do not redesign the character or product.`,
+    `ACCESSORY BAN: Do NOT add any accessories, jewelry, gadgets, headphones, watches, glasses, bags, or props that are NOT explicitly mentioned or visible in the uploaded product reference. Only the uploaded product should appear — no AI-invented extras.`,
     `BACKGROUND RULES: Never default to plain white. Keep the environment/set strictly consistent. If the scene changes, show the EXACT SAME location from a different camera angle. Do not teleport to unrelated rooms.`
   ].filter(Boolean);
   return parts.join('\n');
@@ -1342,7 +1343,7 @@ Be visual and specific. English only.`
         if (motionGraphicsMode) {
           parts[0].text += "\n\n[BRAND / PRODUCT GRAPHIC REFERENCE]: Use attached assets for logo, packaging colors, or product look inside motion-graphics composition. Do NOT force a human model holding the product unless the topic requires it.";
         } else {
-          parts[0].text += "\n\n[MANDATORY ITEM LOCK]: The human MUST wear/hold the product from the attached REFERENCE IMAGE. [CRITICAL PHYSICAL ACCURACY]: Replicate the EXACT physical layout of the product — all buttons, joysticks, logos, ports, and controls must be in their CORRECT original positions as shown in the reference. Do NOT mirror, flip, or swap left/right button positions. The product orientation must match reality exactly as a real photograph would show it.";
+          parts[0].text += "\n\n[MANDATORY ITEM LOCK]: The human MUST wear/hold ONLY the product from the attached REFERENCE IMAGE. [CRITICAL PHYSICAL ACCURACY]: Replicate the EXACT physical layout of the product — all buttons, joysticks, logos, ports, and controls must be in their CORRECT original positions as shown in the reference. Do NOT mirror, flip, or swap left/right button positions. The product orientation must match reality exactly as a real photograph would show it. [STRICT NO-ADD RULE]: Do NOT add any accessories, items, jewelry, gadgets, bags, headphones, watches, glasses, or props that are NOT visible in the uploaded product reference image. The model should ONLY interact with the exact product shown — nothing else added by AI imagination.";
         }
         activeProducts.forEach((p, indexSlot) => {
           parts.push({ text: `=== REFERENCE IMAGE ${indexSlot + 1} ===` });
