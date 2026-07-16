@@ -1270,32 +1270,19 @@ Be visual and specific. English only.`
           contents: [{ role: 'user', parts }],
           generationConfig: { responseModalities: ['IMAGE'] }
         };
-        const data = await callGeminiApi('gemini-2.5-flash-image-preview', payload, false, signal);
+        const data = await callGeminiApi(selectedModel, payload, false, signal);
         const newBase64 = data?.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
         if (!newBase64) throw new Error('Gemini Image Model did not return an image.');
         return `data:image/jpeg;base64,${newBase64}`;
       } else {
-        const aspect = ratioToUse === '9:16' ? '9:16' : ratioToUse === '16:9' ? '16:9' : '1:1';
         const payload = {
-          instances: { prompt: fullPromptWithClean },
-          parameters: { sampleCount: 1, aspectRatio: aspect }
+          contents: [{ role: 'user', parts }],
+          generationConfig: { responseModalities: ['IMAGE'] }
         };
-        try {
-          const data = await callGeminiApi('imagen-4.0-generate-001', payload, true, signal);
-          const base64 = data?.predictions?.[0]?.bytesBase64Encoded;
-          if (!base64) throw new Error('Imagen did not return an image.');
-          return `data:image/png;base64,${base64}`;
-        } catch (err) {
-          console.warn("Imagen failed, falling back to Gemini Image Model:", err);
-          const fallbackPayload = {
-            contents: [{ role: 'user', parts }],
-            generationConfig: { responseModalities: ['IMAGE'] }
-          };
-          const data = await callGeminiApi('gemini-2.5-flash-image-preview', fallbackPayload, false, signal);
-          const newBase64 = data?.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
-          if (!newBase64) throw new Error('Gemini Image Model fallback did not return an image.');
-          return `data:image/jpeg;base64,${newBase64}`;
-        }
+        const data = await callGeminiApi(selectedModel, payload, false, signal);
+        const newBase64 = data?.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
+        if (!newBase64) throw new Error('Gemini did not return an image.');
+        return `data:image/jpeg;base64,${newBase64}`;
       }
     } catch (err) {
       if (err.name === 'AbortError') return null;
@@ -1860,7 +1847,7 @@ Keep the subject person, face reference, background layout, and clothes identica
         generationConfig: { responseModalities: ['IMAGE'] }
       };
 
-      const data = await callGeminiApi('gemini-2.5-flash-image-preview', payload, false, gridAbortControllers.current[index].signal);
+      const data = await callGeminiApi(selectedModel, payload, false, gridAbortControllers.current[index].signal);
       const partsList = data?.candidates?.[0]?.content?.parts || [];
       const newBase64 = partsList.find(p => p.inlineData && p.inlineData.data)?.inlineData?.data;
 
