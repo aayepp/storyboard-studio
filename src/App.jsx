@@ -4620,6 +4620,55 @@ ${aspectStr}`;
                                 {combiningPairIndex === pairIndex ? 'COMBINING...' : `⬇️ DOWNLOAD COMBINED SEGMENT ${pairIndex + 1}`}
                               </button>
                             )}
+
+                            {/* Editable Scene Prompt & Dialog — shown per image for storyboard tabs */}
+                            {Array.isArray(editableImagePrompt) && editableImagePrompt[index] && !['character', 'fake_influencer'].includes(activeTab) && (
+                              <div className={`mt-3 rounded-xl border overflow-hidden ${t('bg-[#0a0c10] border-gray-800', 'bg-gray-50 border-gray-200')}`}>
+                                <div className="px-3 py-2 flex items-center justify-between border-b border-gray-800/50">
+                                  <span className={`text-[9px] font-bold uppercase tracking-widest ${t('text-gray-500', 'text-gray-400')}`}>Scene {index + 1} Prompt</span>
+                                  <button
+                                    onClick={() => copyToClipboard(editableImagePrompt[index], `scene_prompt_${index}`)}
+                                    className={`px-2 py-0.5 rounded text-[9px] font-bold transition-all ${copiedSection === `scene_prompt_${index}` ? 'bg-green-500 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
+                                  >
+                                    {copiedSection === `scene_prompt_${index}` ? '✅ Copied' : '📋 Copy'}
+                                  </button>
+                                </div>
+                                <textarea
+                                  value={editableImagePrompt[index]}
+                                  onChange={(e) => {
+                                    const newPrompts = [...editableImagePrompt];
+                                    newPrompts[index] = e.target.value;
+                                    setEditableImagePrompt(newPrompts);
+                                  }}
+                                  rows={2}
+                                  className={`w-full px-3 py-2 text-[11px] font-mono resize-none focus:outline-none focus:ring-1 focus:ring-pink-400 border-0 ${t('bg-[#0a0c10] text-gray-300', 'bg-gray-50 text-gray-700')}`}
+                                />
+
+                                {/* Dialog/Script highlight */}
+                                {generatedOutput && (() => {
+                                  const scenes = generatedOutput.scenes || generatedOutput.productScenes || [];
+                                  const scene = scenes[index];
+                                  const dialogue = scene?.dialogue || scene?.script || '';
+                                  if (!dialogue) return null;
+                                  return (
+                                    <div className={`px-3 py-2 border-t ${t('border-pink-900/30 bg-pink-950/20', 'border-pink-200 bg-pink-50')}`}>
+                                      <div className="flex items-center justify-between mb-1">
+                                        <span className={`text-[9px] font-bold uppercase tracking-widest ${t('text-pink-400', 'text-pink-500')}`}>🎤 Dialog / VO</span>
+                                        <button
+                                          onClick={() => copyToClipboard(dialogue, `scene_dialog_${index}`)}
+                                          className={`px-2 py-0.5 rounded text-[9px] font-bold transition-all ${copiedSection === `scene_dialog_${index}` ? 'bg-green-500 text-white' : 'bg-pink-900/40 text-pink-400 hover:bg-pink-900/60'}`}
+                                        >
+                                          {copiedSection === `scene_dialog_${index}` ? '✅' : '📋'}
+                                        </button>
+                                      </div>
+                                      <p className={`text-[11px] font-medium leading-relaxed italic ${t('text-pink-300', 'text-pink-700')}`}>
+                                        "{dialogue}"
+                                      </p>
+                                    </div>
+                                  );
+                                })()}
+                              </div>
+                            )}
                         </div>
                       </div>
                     )})}
