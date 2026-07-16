@@ -3659,6 +3659,7 @@ ${aspectStr}`;
                 isDarkMode={isDarkMode}
               />
 
+              {renderGenderBox()}
               {renderProductUploadBox()}
               {renderIdentityBox()}
               {renderBackgroundUploadBox()}
@@ -3750,6 +3751,7 @@ ${aspectStr}`;
                 </div>
               </div>
 
+              {renderGenderBox()}
               {renderProductUploadBox()}
               {renderIdentityBox()}
               {renderBackgroundUploadBox()}
@@ -4237,6 +4239,7 @@ ${aspectStr}`;
                 </div>
               </div>
 
+              {renderGenderBox()}
               {renderProductUploadBox()}
               {renderBackgroundUploadBox()}
 
@@ -4620,55 +4623,6 @@ ${aspectStr}`;
                                 {combiningPairIndex === pairIndex ? 'COMBINING...' : `⬇️ DOWNLOAD COMBINED SEGMENT ${pairIndex + 1}`}
                               </button>
                             )}
-
-                            {/* Editable Scene Prompt & Dialog — shown per image for storyboard tabs */}
-                            {Array.isArray(editableImagePrompt) && editableImagePrompt[index] && !['character', 'fake_influencer'].includes(activeTab) && (
-                              <div className={`mt-3 rounded-xl border overflow-hidden ${t('bg-[#0a0c10] border-gray-800', 'bg-gray-50 border-gray-200')}`}>
-                                <div className="px-3 py-2 flex items-center justify-between border-b border-gray-800/50">
-                                  <span className={`text-[9px] font-bold uppercase tracking-widest ${t('text-gray-500', 'text-gray-400')}`}>Scene {index + 1} Prompt</span>
-                                  <button
-                                    onClick={() => copyToClipboard(editableImagePrompt[index], `scene_prompt_${index}`)}
-                                    className={`px-2 py-0.5 rounded text-[9px] font-bold transition-all ${copiedSection === `scene_prompt_${index}` ? 'bg-green-500 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
-                                  >
-                                    {copiedSection === `scene_prompt_${index}` ? '✅ Copied' : '📋 Copy'}
-                                  </button>
-                                </div>
-                                <textarea
-                                  value={editableImagePrompt[index]}
-                                  onChange={(e) => {
-                                    const newPrompts = [...editableImagePrompt];
-                                    newPrompts[index] = e.target.value;
-                                    setEditableImagePrompt(newPrompts);
-                                  }}
-                                  rows={2}
-                                  className={`w-full px-3 py-2 text-[11px] font-mono resize-none focus:outline-none focus:ring-1 focus:ring-pink-400 border-0 ${t('bg-[#0a0c10] text-gray-300', 'bg-gray-50 text-gray-700')}`}
-                                />
-
-                                {/* Dialog/Script highlight */}
-                                {generatedOutput && (() => {
-                                  const scenes = generatedOutput.scenes || generatedOutput.productScenes || [];
-                                  const scene = scenes[index];
-                                  const dialogue = scene?.dialogue || scene?.script || '';
-                                  if (!dialogue) return null;
-                                  return (
-                                    <div className={`px-3 py-2 border-t ${t('border-pink-900/30 bg-pink-950/20', 'border-pink-200 bg-pink-50')}`}>
-                                      <div className="flex items-center justify-between mb-1">
-                                        <span className={`text-[9px] font-bold uppercase tracking-widest ${t('text-pink-400', 'text-pink-500')}`}>🎤 Dialog / VO</span>
-                                        <button
-                                          onClick={() => copyToClipboard(dialogue, `scene_dialog_${index}`)}
-                                          className={`px-2 py-0.5 rounded text-[9px] font-bold transition-all ${copiedSection === `scene_dialog_${index}` ? 'bg-green-500 text-white' : 'bg-pink-900/40 text-pink-400 hover:bg-pink-900/60'}`}
-                                        >
-                                          {copiedSection === `scene_dialog_${index}` ? '✅' : '📋'}
-                                        </button>
-                                      </div>
-                                      <p className={`text-[11px] font-medium leading-relaxed italic ${t('text-pink-300', 'text-pink-700')}`}>
-                                        "{dialogue}"
-                                      </p>
-                                    </div>
-                                  );
-                                })()}
-                              </div>
-                            )}
                         </div>
                       </div>
                     )})}
@@ -4713,21 +4667,112 @@ ${aspectStr}`;
                     <p className="text-[10px] mb-4 text-gray-500 uppercase tracking-widest">
                       {segs.map((s) => s.label).join('  →  ')}
                     </p>
-                    <div className="flex flex-wrap gap-3">
-                      {segs.map((seg, i) => (
-                        <button
-                          key={`${seg.label}_${i}`}
-                          onClick={() => copyToClipboard(seg.prompt, `flow_seg_${i}`)}
-                          className={`px-5 py-3 rounded-xl text-xs font-black flex items-center gap-2.5 transition-all uppercase tracking-wider ${
-                            copiedSection === `flow_seg_${i}`
-                            ? 'bg-[#15803d] text-white border-[#166534]'
-                            : 'bg-[#0c1e27] border border-[#143e4f] text-[#38bdf8] hover:bg-[#112a37]'
-                          }`}
-                        >
-                          <span style={{ fontSize: '14px', lineHeight: 1 }}>{copiedSection === `flow_seg_${i}` ? '✅' : '📋'}</span>
-                          {seg.label} · SEGMENT {seg.part}/{seg.parts}
-                        </button>
-                      ))}
+                    <div className="space-y-3 mt-2">
+                      {segs.map((seg, i) => {
+                        const isSegExpanded = editModes[`flow_seg_expand_${i}`];
+                        const segPromptKey = `flow_seg_prompt_${i}`;
+                        const segDialogueKey = `flow_seg_dialogue_${i}`;
+                        const isPromptEditing = editModes[segPromptKey];
+                        const isDialogueEditing = editModes[segDialogueKey];
+                        
+                        // Extract dialogue from the segment's scenes
+                        const segScenes = normScenes.filter((sc) => {
+                          const m = String(sc.timecode || '').match(/(\d+\.?\d*)/);
+                          if (!m) return false;
+                          const start = parseFloat(m[1]);
+                          return start >= seg.start && start < seg.end;
+                        });
+                        const segDialogue = segScenes.map((sc) => sc.dialogue).filter(Boolean).join('\n');
+                        
+                        const currentPromptVal = editedValues[segPromptKey] !== undefined ? editedValues[segPromptKey] : seg.prompt;
+                        const currentDialogueVal = editedValues[segDialogueKey] !== undefined ? editedValues[segDialogueKey] : segDialogue;
+
+                        return (
+                          <div key={`${seg.label}_${i}`} className={`rounded-xl border overflow-hidden transition-all ${isSegExpanded ? 'bg-[#0c1e27] border-[#1e4d5f]' : 'bg-[#0c1e27] border-[#143e4f]'}`}>
+                            <div className="flex items-center justify-between px-4 py-3">
+                              <button
+                                onClick={() => toggleEditBoxMode(`flow_seg_expand_${i}`)}
+                                className="flex items-center gap-2.5 text-xs font-black uppercase tracking-wider text-[#38bdf8] hover:text-sky-300 transition-colors"
+                              >
+                                <I name={isSegExpanded ? "ChevronDown" : "ChevronRight"} size={12} />
+                                {seg.label} · SEGMENT {seg.part}/{seg.parts}
+                              </button>
+                              <button
+                                onClick={() => copyToClipboard(currentPromptVal, `flow_seg_${i}`)}
+                                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1.5 transition-all ${
+                                  copiedSection === `flow_seg_${i}`
+                                  ? 'bg-[#15803d] text-white'
+                                  : 'bg-[#143e4f] text-[#38bdf8] hover:bg-[#1e4d5f]'
+                                }`}
+                              >
+                                <span style={{ fontSize: '12px', lineHeight: 1 }}>{copiedSection === `flow_seg_${i}` ? '✅' : '📋'}</span>
+                                {copiedSection === `flow_seg_${i}` ? 'Copied' : 'Copy'}
+                              </button>
+                            </div>
+                            
+                            {isSegExpanded && (
+                              <div className="px-4 pb-4 space-y-3 border-t border-[#143e4f] pt-3 animate-fade-in">
+                                {/* Editable Prompt */}
+                                <div>
+                                  <div className="flex items-center justify-between mb-1.5">
+                                    <span className="text-[9px] font-bold uppercase tracking-widest text-sky-400">Segment Prompt</span>
+                                    <div className="flex gap-1.5">
+                                      {isPromptEditing ? (
+                                        <button onClick={() => saveBoxValue(segPromptKey)} className={U.c9}>Save</button>
+                                      ) : (
+                                        <button onClick={() => toggleEditBoxMode(segPromptKey)} className="px-2 py-0.5 rounded text-[10px] bg-[#143e4f] text-sky-300 font-bold hover:bg-[#1e4d5f]">Edit</button>
+                                      )}
+                                    </div>
+                                  </div>
+                                  {isPromptEditing ? (
+                                    <textarea
+                                      value={currentPromptVal}
+                                      onChange={(e) => handleBoxValueChange(segPromptKey, e.target.value)}
+                                      rows={5}
+                                      className="w-full rounded-lg px-3 py-2 text-[11px] font-mono resize-none focus:outline-none focus:ring-1 focus:ring-sky-400 border bg-[#09151c] border-[#1e4d5f] text-gray-200"
+                                    />
+                                  ) : (
+                                    <div className="whitespace-pre-wrap text-[11px] font-mono leading-relaxed text-gray-300 bg-[#09151c] border border-[#1e4d5f] rounded-lg p-3 max-h-40 overflow-y-auto custom-scrollbar">
+                                      {currentPromptVal}
+                                    </div>
+                                  )}
+                                </div>
+                                
+                                {/* Editable Dialogue */}
+                                {(currentDialogueVal || isDialogueEditing) && (
+                                  <div>
+                                    <div className="flex items-center justify-between mb-1.5">
+                                      <span className="text-[9px] font-bold uppercase tracking-widest text-pink-400">🎤 Dialog / VO (Segment)</span>
+                                      <div className="flex gap-1.5">
+                                        {isDialogueEditing ? (
+                                          <button onClick={() => saveBoxValue(segDialogueKey)} className={U.c9}>Save</button>
+                                        ) : (
+                                          <button onClick={() => toggleEditBoxMode(segDialogueKey)} className="px-2 py-0.5 rounded text-[10px] bg-pink-900/40 text-pink-400 font-bold hover:bg-pink-900/60">Edit</button>
+                                        )}
+                                        <button onClick={() => copyToClipboard(currentDialogueVal, `flow_seg_dlg_${i}`)} className={`px-2 py-0.5 rounded text-[10px] font-bold ${copiedSection === `flow_seg_dlg_${i}` ? 'bg-green-500 text-white' : 'bg-pink-900/40 text-pink-400'}`}>
+                                          {copiedSection === `flow_seg_dlg_${i}` ? '✅' : '📋'}
+                                        </button>
+                                      </div>
+                                    </div>
+                                    {isDialogueEditing ? (
+                                      <textarea
+                                        value={currentDialogueVal}
+                                        onChange={(e) => handleBoxValueChange(segDialogueKey, e.target.value)}
+                                        rows={3}
+                                        className="w-full rounded-lg px-3 py-2 text-[11px] font-mono resize-none focus:outline-none focus:ring-1 focus:ring-pink-400 border bg-pink-950/20 border-pink-900/30 text-pink-200"
+                                      />
+                                    ) : (
+                                      <div className="whitespace-pre-wrap text-[11px] font-medium leading-relaxed italic text-pink-300 bg-pink-950/20 border border-pink-900/30 rounded-lg p-3">
+                                        {currentDialogueVal || '(No dialogue for this segment)'}
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 );
