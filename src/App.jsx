@@ -904,11 +904,15 @@ const TextareaField = ({ label, value, onChange, placeholder, rows = 3, isDarkMo
   </div>
 );
 
-const apiKey = "";
+const getStoredApiKey = () => {
+  try { return localStorage.getItem('gemini_api_key') || ''; } catch { return ''; }
+};
 
 const callGeminiApi = async (model, payload, isPredict = false, signal = null) => {
+  const currentKey = getStoredApiKey();
+  if (!currentKey) throw new Error('API Key belum dimasukkan. Sila masukkan Gemini API Key anda di bahagian atas halaman.');
   const endpoint = isPredict ? 'predict' : 'generateContent';
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:${endpoint}?key=${apiKey}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:${endpoint}?key=${currentKey}`;
   const delays = [1000, 2000, 4000, 8000, 16000];
   
   for (let i = 0; i <= 5; i++) {
@@ -1058,8 +1062,16 @@ export default function App() {
   const [gfDuration, setGfDuration] = useState('30');
   const [gfStyle, setGfStyle] = useState('auto');
 
+  const [apiKey, setApiKey] = useState(getStoredApiKey);
+  const [showApiKeyInput, setShowApiKeyInput] = useState(!getStoredApiKey());
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+
+  const handleSaveApiKey = (key) => {
+    setApiKey(key);
+    try { localStorage.setItem('gemini_api_key', key); } catch {}
+    if (key.trim()) setShowApiKeyInput(false);
+  };
 
   const analyzeReferenceAssets = async (signal = null) => {
     const activeUploadData = getActiveUploadData();
@@ -3314,6 +3326,37 @@ ${aspectStr}`;
             <span>{errorMessage}</span>
             <button onClick={() => setErrorMessage('')} className="p-1 rounded-full hover:bg-red-500/20">
               <I name="X" size={16} />
+            </button>
+          </div>
+        )}
+
+        {/* API Key Input */}
+        {(showApiKeyInput || !apiKey) && (
+          <div className={`mb-6 p-4 rounded-2xl border flex flex-col sm:flex-row items-center gap-3 ${t('bg-[#11131a] border-yellow-900/50', 'bg-yellow-50 border-yellow-200')}`}>
+            <div className="flex items-center gap-2 shrink-0">
+              <span style={{ fontSize: '16px' }}>🔑</span>
+              <span className={`text-xs font-bold uppercase tracking-widest ${t('text-yellow-400', 'text-yellow-700')}`}>Gemini API Key</span>
+            </div>
+            <input
+              type="password"
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
+              placeholder="Paste your Gemini API key here..."
+              className={`flex-1 w-full rounded-xl px-4 py-2.5 text-sm border focus:outline-none focus:ring-1 focus:ring-pink-400 ${t('bg-[#0a0c10] border-gray-700 text-white placeholder-gray-600', 'bg-white border-gray-200 text-gray-800')}`}
+            />
+            <button
+              onClick={() => handleSaveApiKey(apiKey)}
+              disabled={!apiKey.trim()}
+              className="px-5 py-2.5 rounded-xl text-xs font-black bg-pink-500 text-white disabled:opacity-50 hover:bg-pink-600 transition-colors shrink-0"
+            >
+              Save Key
+            </button>
+          </div>
+        )}
+        {apiKey && !showApiKeyInput && (
+          <div className="mb-4 flex justify-end">
+            <button onClick={() => setShowApiKeyInput(true)} className="text-[10px] text-gray-500 hover:text-pink-400 transition-colors uppercase tracking-widest font-bold">
+              🔑 Change API Key
             </button>
           </div>
         )}
