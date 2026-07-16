@@ -3372,45 +3372,34 @@ ${aspectStr}`;
     );
   };
 
-  // Auto-combine images into paired segments for Flow AI (2 scenes per image = 3 outputs for 30s)
-  const [isCombiningImages, setIsCombiningImages] = useState(false);
-  useEffect(() => {
-    const shouldCombine = () => {
-      if (!generatedOutput || !imageUrls.length) return false;
-      if (isGeneratingImage || isCombiningImages) return false;
-      // Only combine when we have 6+ individual scene images and duration >= 30s
-      const totalSec = parseDurationToSeconds(generatedOutput.selectedDurationSec) || parseDurationToSeconds(generatedOutput.duration) || 0;
-      if (totalSec < 30) return false;
-      if (imageUrls.length < 6) return false;
-      // Don't combine for character/fake_influencer/stopmotion
-      const mode = generatedOutput.mode || activeTab;
-      if (['character', 'fake_influencer', 'stopmotion'].includes(mode)) return false;
-      // Check if already combined (combined images are larger data URLs due to canvas merge)
-      // Use a flag on generatedOutput to track
-      if (generatedOutput._imagesCombined) return false;
-      return true;
-    };
+  // Download combined segment (pair two images on-demand)
+  const [combiningPairIndex, setCombiningPairIndex] = useState(null);
+  const handleDownloadCombinedSegment = async (pairIndex) => {
+    const idxA = pairIndex * 2;
+    const idxB = pairIndex * 2 + 1;
+    const imgA = imageUrls[idxA];
+    const imgB = imageUrls[idxB];
+    if (!imgA || !imgB) return;
 
-    if (!shouldCombine()) return;
-
-    const doCombine = async () => {
-      setIsCombiningImages(true);
-      try {
-        const ratio = currentDisplayRatio || aspectRatio || '9:16';
-        const combined = await combineImagesToSegments(imageUrls, 2, ratio);
-        if (combined && combined.length > 0 && combined.length < imageUrls.length) {
-          setImageUrls(combined);
-          setGeneratedOutput(prev => prev ? { ...prev, _imagesCombined: true } : prev);
-        }
-      } catch (err) {
-        console.warn('Image combining failed, keeping individual images:', err);
-      } finally {
-        setIsCombiningImages(false);
-      }
-    };
-
-    doCombine();
-  }, [imageUrls.length, isGeneratingImage, generatedOutput?._imagesCombined]);
+    setCombiningPairIndex(pairIndex);
+    try {
+      const ratio = currentDisplayRatio || aspectRatio || '9:16';
+      const combined = await combineImagesVerticallyPair(imgA, imgB, ratio);
+      // Trigger download
+      const link = document.createElement('a');
+      link.href = combined;
+      link.download = `Storyboard_Segment_${pairIndex + 1}_Combined_${Date.now()}.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      setTimeout(() => document.body.removeChild(link), 100);
+    } catch (err) {
+      console.warn('Failed to combine images for download:', err);
+      setErrorMessage('Failed to combine segment images. Please try again.');
+      setTimeout(() => setErrorMessage(''), 5000);
+    } finally {
+      setCombiningPairIndex(null);
+    }
+  };
 
   const activeUploadData = getActiveUploadData();
   const displayRatio = currentDisplayRatio || aspectRatio;
@@ -4510,8 +4499,11 @@ ${aspectStr}`;
                      <p className="text-lg font-black text-pink-500 animate-pulse tracking-widest uppercase">{loadingText}</p>
                   </div>
                 ) : (
-                  <div className={`grid grid-cols-1 ${imageUrls.length === 3 ? 'md:grid-cols-3 max-w-6xl' : imageUrls.length > 1 ? 'md:grid-cols-2 max-w-4xl' : 'max-w-md'} mx-auto gap-6 lg:gap-10`}>
+                  <div className={`grid grid-cols-1 ${imageUrls.length >= 6 ? 'md:grid-cols-3 max-w-6xl' : imageUrls.length === 3 ? 'md:grid-cols-3 max-w-6xl' : imageUrls.length > 1 ? 'md:grid-cols-2 max-w-4xl' : 'max-w-md'} mx-auto gap-6 lg:gap-10`}>
                     {imageUrls.map((url, index) => {
+                       const pairIndex = Math.floor(index / 2);
+                       const isSecondInPair = index % 2 === 1;
+                       const hasPairPartner = imageUrls.length >= 4 && index % 2 === 1 && imageUrls[index - 1];
                        const slideDescs = activeTab === 'character' ? [
                          "Character reference: Structural details for scene modeling continuity.",
                          "Alternate character sheet viewpoint: Controlled ambient rendering metrics."
@@ -4615,6 +4607,18 @@ ${aspectStr}`;
                                     <I name="Send" size={12} /> Execute Parameter Updates
                                   </button>
                                </div>
+                            )}
+
+                            {/* Download Combined Segment button — shown on the 2nd image of each pair */}
+                            {hasPairPartner && (
+                              <button
+                                onClick={() => handleDownloadCombinedSegment(pairIndex)}
+                                disabled={combiningPairIndex === pairIndex}
+                                className={`w-full mt-2 py-3 rounded-xl border text-[10px] font-black flex items-center justify-center gap-2 transition-all tracking-widest uppercase shadow-sm disabled:opacity-50 ${t('bg-sky-950/30 border-sky-800/50 text-sky-400 hover:border-sky-500', 'bg-sky-50 border-sky-200 text-sky-600 hover:border-sky-400')}`}
+                              >
+                                <I name="Layers" size={14} className="text-sky-400" />
+                                {combiningPairIndex === pairIndex ? 'COMBINING...' : `⬇️ DOWNLOAD COMBINED SEGMENT ${pairIndex + 1}`}
+                              </button>
                             )}
                         </div>
                       </div>
