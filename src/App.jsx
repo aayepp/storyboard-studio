@@ -1342,7 +1342,7 @@ Be visual and specific. English only.`
         if (motionGraphicsMode) {
           parts[0].text += "\n\n[BRAND / PRODUCT GRAPHIC REFERENCE]: Use attached assets for logo, packaging colors, or product look inside motion-graphics composition. Do NOT force a human model holding the product unless the topic requires it.";
         } else {
-          parts[0].text += "\n\n[MANDATORY ITEM LOCK]: The human MUST wear/hold the product from the attached REFERENCE IMAGE.";
+          parts[0].text += "\n\n[MANDATORY ITEM LOCK]: The human MUST wear/hold the product from the attached REFERENCE IMAGE. [CRITICAL PHYSICAL ACCURACY]: Replicate the EXACT physical layout of the product — all buttons, joysticks, logos, ports, and controls must be in their CORRECT original positions as shown in the reference. Do NOT mirror, flip, or swap left/right button positions. The product orientation must match reality exactly as a real photograph would show it.";
         }
         activeProducts.forEach((p, indexSlot) => {
           parts.push({ text: `=== REFERENCE IMAGE ${indexSlot + 1} ===` });
