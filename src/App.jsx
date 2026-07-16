@@ -362,6 +362,107 @@ const mapWithConcurrency = async (items, limit, worker, onProgress) => {
   return results;
 };
 
+const combineImagesVerticallyPair = (imgUrl1, imgUrl2, aspectRatio = '9:16') => {
+  return new Promise((resolve, reject) => {
+    const img1 = new Image();
+    const img2 = new Image();
+    let loaded = 0;
+
+    const tryMerge = () => {
+      loaded++;
+      if (loaded < 2) return;
+
+      const canvas = document.createElement('canvas');
+      // Stack two scenes vertically in one combined output
+      // Each scene takes half the height
+      let canvasWidth, canvasHeight;
+      if (aspectRatio === '9:16') {
+        canvasWidth = 1080;
+        canvasHeight = 1920;
+      } else if (aspectRatio === '16:9') {
+        canvasWidth = 1920;
+        canvasHeight = 1080;
+      } else {
+        canvasWidth = 1080;
+        canvasHeight = 1080;
+      }
+
+      canvas.width = canvasWidth;
+      canvas.height = canvasHeight;
+      const ctx = canvas.getContext('2d');
+
+      // Draw a thin separator line
+      const halfH = canvasHeight / 2;
+      const gap = 4;
+
+      // Draw img1 top half
+      const drawFit = (img, x, y, w, h) => {
+        const scale = Math.max(w / img.naturalWidth, h / img.naturalHeight);
+        const dw = img.naturalWidth * scale;
+        const dh = img.naturalHeight * scale;
+        const dx = x + (w - dw) / 2;
+        const dy = y + (h - dh) / 2;
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(x, y, w, h);
+        ctx.clip();
+        ctx.drawImage(img, dx, dy, dw, dh);
+        ctx.restore();
+      };
+
+      ctx.fillStyle = '#111';
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+      drawFit(img1, 0, 0, canvasWidth, halfH - gap / 2);
+      drawFit(img2, 0, halfH + gap / 2, canvasWidth, halfH - gap / 2);
+
+      // Separator line
+      ctx.fillStyle = '#f472b6';
+      ctx.fillRect(0, halfH - gap / 2, canvasWidth, gap);
+
+      // Scene labels
+      ctx.fillStyle = 'rgba(0,0,0,0.6)';
+      ctx.fillRect(0, 0, canvasWidth, 36);
+      ctx.fillRect(0, halfH + gap / 2, canvasWidth, 36);
+      ctx.font = 'bold 20px sans-serif';
+      ctx.fillStyle = '#fff';
+      ctx.fillText('▶ SCENE A', 16, 26);
+      ctx.fillText('▶ SCENE B', 16, halfH + gap / 2 + 26);
+
+      resolve(canvas.toDataURL('image/jpeg', 0.92));
+    };
+
+    img1.onload = tryMerge;
+    img2.onload = tryMerge;
+    img1.onerror = () => reject(new Error('Failed to load image 1 for combining'));
+    img2.onerror = () => reject(new Error('Failed to load image 2 for combining'));
+    img1.src = imgUrl1;
+    img2.src = imgUrl2;
+  });
+};
+
+const combineImagesToSegments = async (imageUrlsArr, scenesPerSegment = 2, aspectRatio = '9:16') => {
+  if (!imageUrlsArr || imageUrlsArr.length <= scenesPerSegment) return imageUrlsArr;
+  const combined = [];
+  for (let i = 0; i < imageUrlsArr.length; i += scenesPerSegment) {
+    const chunk = imageUrlsArr.slice(i, i + scenesPerSegment);
+    if (chunk.length === 2 && chunk[0] && chunk[1]) {
+      try {
+        const merged = await combineImagesVerticallyPair(chunk[0], chunk[1], aspectRatio);
+        combined.push(merged);
+      } catch (e) {
+        // Fallback: keep individual images if combining fails
+        console.warn('Image combine failed, keeping individuals:', e);
+        chunk.forEach((u) => { if (u) combined.push(u); });
+      }
+    } else {
+      // Odd scene out or single — keep as-is
+      chunk.forEach((u) => { if (u) combined.push(u); });
+    }
+  }
+  return combined;
+};
+
 const compressImage = (file) => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -3237,6 +3338,46 @@ ${aspectStr}`;
       </div>
     );
   };
+
+  // Auto-combine images into paired segments for Flow AI (2 scenes per image = 3 outputs for 30s)
+  const [isCombiningImages, setIsCombiningImages] = useState(false);
+  useEffect(() => {
+    const shouldCombine = () => {
+      if (!generatedOutput || !imageUrls.length) return false;
+      if (isGeneratingImage || isCombiningImages) return false;
+      // Only combine when we have 6+ individual scene images and duration >= 30s
+      const totalSec = parseDurationToSeconds(generatedOutput.selectedDurationSec) || parseDurationToSeconds(generatedOutput.duration) || 0;
+      if (totalSec < 30) return false;
+      if (imageUrls.length < 6) return false;
+      // Don't combine for character/fake_influencer/stopmotion
+      const mode = generatedOutput.mode || activeTab;
+      if (['character', 'fake_influencer', 'stopmotion'].includes(mode)) return false;
+      // Check if already combined (combined images are larger data URLs due to canvas merge)
+      // Use a flag on generatedOutput to track
+      if (generatedOutput._imagesCombined) return false;
+      return true;
+    };
+
+    if (!shouldCombine()) return;
+
+    const doCombine = async () => {
+      setIsCombiningImages(true);
+      try {
+        const ratio = currentDisplayRatio || aspectRatio || '9:16';
+        const combined = await combineImagesToSegments(imageUrls, 2, ratio);
+        if (combined && combined.length > 0 && combined.length < imageUrls.length) {
+          setImageUrls(combined);
+          setGeneratedOutput(prev => prev ? { ...prev, _imagesCombined: true } : prev);
+        }
+      } catch (err) {
+        console.warn('Image combining failed, keeping individual images:', err);
+      } finally {
+        setIsCombiningImages(false);
+      }
+    };
+
+    doCombine();
+  }, [imageUrls.length, isGeneratingImage, generatedOutput?._imagesCombined]);
 
   const activeUploadData = getActiveUploadData();
   const displayRatio = currentDisplayRatio || aspectRatio;
