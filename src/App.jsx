@@ -917,6 +917,8 @@ const GEMINI_MODELS = [
   { v: 'gemini-1.5-pro', l: 'Gemini 1.5 Pro' },
 ];
 
+const IMAGE_MODEL = 'gemini-2.0-flash';
+
 const getStoredModel = () => {
   try { return localStorage.getItem('gemini_selected_model') || 'gemini-3.5-flash'; } catch { return 'gemini-3.5-flash'; }
 };
@@ -1270,7 +1272,7 @@ Be visual and specific. English only.`
           contents: [{ role: 'user', parts }],
           generationConfig: { responseModalities: ['IMAGE'] }
         };
-        const data = await callGeminiApi(selectedModel, payload, false, signal);
+        const data = await callGeminiApi(IMAGE_MODEL, payload, false, signal);
         const newBase64 = data?.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
         if (!newBase64) throw new Error('Gemini Image Model did not return an image.');
         return `data:image/jpeg;base64,${newBase64}`;
@@ -1279,7 +1281,7 @@ Be visual and specific. English only.`
           contents: [{ role: 'user', parts }],
           generationConfig: { responseModalities: ['IMAGE'] }
         };
-        const data = await callGeminiApi(selectedModel, payload, false, signal);
+        const data = await callGeminiApi(IMAGE_MODEL, payload, false, signal);
         const newBase64 = data?.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
         if (!newBase64) throw new Error('Gemini did not return an image.');
         return `data:image/jpeg;base64,${newBase64}`;
@@ -1847,7 +1849,7 @@ Keep the subject person, face reference, background layout, and clothes identica
         generationConfig: { responseModalities: ['IMAGE'] }
       };
 
-      const data = await callGeminiApi(selectedModel, payload, false, gridAbortControllers.current[index].signal);
+      const data = await callGeminiApi(IMAGE_MODEL, payload, false, gridAbortControllers.current[index].signal);
       const partsList = data?.candidates?.[0]?.content?.parts || [];
       const newBase64 = partsList.find(p => p.inlineData && p.inlineData.data)?.inlineData?.data;
 
