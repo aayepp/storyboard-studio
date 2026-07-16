@@ -4883,62 +4883,6 @@ ${aspectStr}`;
                         </>
                       )}
 
-                      {generatedOutput && activeTab !== 'character' && activeTab !== 'fake_influencer' && (() => {
-                            const totalSec = parseDurationToSeconds(generatedOutput.selectedDurationSec)
-                              || parseDurationToSeconds(generatedOutput.duration)
-                              || getSelectedDurationSeconds();
-                            if (!totalSec || totalSec < 1) return null;
-
-                            const normScenes = collectScenesForFlow();
-                            const fallbackScenes = normScenes.length
-                              ? normScenes
-                              : [{
-                                  scene_num: 1,
-                                  timecode: `0s–${totalSec}s`,
-                                  visual: editedValues.videoPrompt || generatedOutput.videoPrompt || editableImagePrompt || '',
-                                  dialogue: editedValues.script || generatedOutput.script || '',
-                                  i2v_prompt: ''
-                                }];
-
-                            const segs = generateFlowSegments(fallbackScenes, String(totalSec), {
-                              identityBible: generatedOutput.identityBible || editedValues.identityBible || '',
-                              aspectRatio: currentDisplayRatio || aspectRatio || '9:16',
-                              title: generatedOutput.title || generatedOutput.caption || productName || cinematicTopic || ''
-                            });
-                            if (!segs.length) return null;
-
-                            return (
-                              <div className="border rounded-[1.25rem] p-6 shadow-sm relative transition-all duration-300 bg-[#09151c] border-[#12313f] mt-6">
-                                <h3 className="font-extrabold text-sm flex items-center gap-2 uppercase tracking-wide mb-2 text-[#38bdf8]">
-                                  <span style={{ fontSize: '16px', lineHeight: 1 }}>⚡</span> SEGMEN KESINAMBUNGAN FLOW AI (I2V)
-                                </h3>
-                                <p className="text-xs mb-2 leading-relaxed text-gray-400">
-                                  Tetapan durasi teras: <span className="text-sky-300 font-bold">{totalSec}s</span>
-                                  {' '}· Menyediakan {segs.length} rantaian parameter berangkai.
-                                </p>
-                                <p className="text-[10px] mb-4 text-gray-500 uppercase tracking-widest">
-                                  {segs.map((s) => s.label).join('  →  ')}
-                                </p>
-                                <div className="flex flex-wrap gap-3">
-                                  {segs.map((seg, i) => (
-                                    <button
-                                      key={`${seg.label}_${i}`}
-                                      onClick={() => copyToClipboard(seg.prompt, `flow_seg_${i}`)}
-                                      className={`px-5 py-3 rounded-xl text-xs font-black flex items-center gap-2.5 transition-all uppercase tracking-wider ${
-                                        copiedSection === `flow_seg_${i}`
-                                        ? 'bg-[#15803d] text-white border-[#166534]'
-                                        : 'bg-[#0c1e27] border border-[#143e4f] text-[#38bdf8] hover:bg-[#112a37]'
-                                      }`}
-                                    >
-                                      <span style={{ fontSize: '14px', lineHeight: 1 }}>{copiedSection === `flow_seg_${i}` ? '✅' : '📋'}</span>
-                                      {seg.label} · KELOMPOK {seg.part}/{seg.parts}
-                                    </button>
-                                  ))}
-                                </div>
-                              </div>
-                            );
-                          })()}
-
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
                         <button
                           onClick={() => {
