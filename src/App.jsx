@@ -1222,13 +1222,15 @@ const callGeminiApi = async (model, payload, isPredict = false, signal = null) =
 const callGenfityApi = async (model, promptText, signal = null) => {
   const genfityKey = getStoredGenfityKey();
   if (!genfityKey) throw new Error('Genfity API Key belum dimasukkan. Sila masukkan Genfity API Key anda.');
-  const url = 'https://ai.genfity.com/v1/chat/completions';
+  // Route through Vercel serverless proxy to bypass CORS
+  const url = '/api/genfity';
   const delays = [1000, 2000, 4000, 8000, 16000];
 
   const body = {
     model: model,
     messages: [{ role: 'user', content: promptText }],
-    temperature: 0.7
+    temperature: 0.7,
+    apiKey: genfityKey
   };
 
   for (let i = 0; i <= 5; i++) {
@@ -1236,8 +1238,7 @@ const callGenfityApi = async (model, promptText, signal = null) => {
       const response = await fetch(url, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${genfityKey}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(body),
         signal
