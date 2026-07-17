@@ -1185,9 +1185,12 @@ const callGeminiApi = async (model, payload, isPredict = false, signal = null) =
         throw new Error(`HTTP ${response.status}: ${text}`);
       }
 
+      // For 5xx and other transient errors, retry with backoff
       throw new Error(`HTTP Error ${response.status}`);
     } catch (error) {
       if (error.name === 'AbortError') throw error;
+      // Don't retry permanent errors (400 Bad Request, 401 Unauthorized, 403 Forbidden)
+      if (error.message && /HTTP (400|401|403)/.test(error.message)) throw error;
       if (i === 5) throw error;
     }
     await new Promise((resolve) => setTimeout(resolve, delays[i]));
@@ -1650,7 +1653,7 @@ Be visual and specific. English only.`
     const elements = document.querySelectorAll('.scroll-reveal');
     elements.forEach((el) => observer.observe(el));
     return () => observer.disconnect();
-  });
+  }, []);
 
   const renderAspectRatioButtons = () => (
     <div className="flex gap-2">
@@ -3210,6 +3213,12 @@ ${aspectStr}`;
             window.URL.revokeObjectURL(blobUrl);
           }, 100);
         }, 'image/png', 1.0);
+      };
+      img.onerror = () => {
+        const newWindow = window.open();
+        if (newWindow) {
+          newWindow.document.write(`<img src="${url}" />`);
+        }
       };
       img.src = url;
     } catch (error) {
