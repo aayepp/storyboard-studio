@@ -1653,7 +1653,7 @@ Be visual and specific. English only.`
     const elements = document.querySelectorAll('.scroll-reveal');
     elements.forEach((el) => observer.observe(el));
     return () => observer.disconnect();
-  }, []);
+  });
 
   const renderAspectRatioButtons = () => (
     <div className="flex gap-2">
