@@ -1145,6 +1145,18 @@ const getStoredApiKey = () => {
   try { return localStorage.getItem('gemini_api_key') || ''; } catch { return ''; }
 };
 
+const getStoredGenfityKey = () => {
+  try { return localStorage.getItem('genfity_api_key') || ''; } catch { return ''; }
+};
+
+const getStoredTextProvider = () => {
+  try { return localStorage.getItem('text_provider') || 'gemini'; } catch { return 'gemini'; }
+};
+
+const getStoredGenerateMode = () => {
+  try { return localStorage.getItem('generate_mode') || 'text_and_images'; } catch { return 'text_and_images'; }
+};
+
 const GEMINI_MODELS = [
   { v: 'gemini-3.5-flash', l: 'Gemini 3.5 Flash (Latest)' },
   { v: 'gemini-3.1-pro', l: 'Gemini 3.1 Pro (Advanced)' },
@@ -1154,10 +1166,20 @@ const GEMINI_MODELS = [
   { v: 'gemini-1.5-pro', l: 'Gemini 1.5 Pro' },
 ];
 
+const GENFITY_MODELS = [
+  { v: 'genfity/gemini-3.5-flash', l: 'Gemini 3.5 Flash (Genfity)' },
+  { v: 'genfity/claude-opus-4.7', l: 'Claude Opus 4.7 (Genfity)' },
+  { v: 'genfity/gpt-5.5', l: 'GPT 5.5 (Genfity)' },
+];
+
 const IMAGE_MODEL = 'gemini-3.1-flash-image';
 
 const getStoredModel = () => {
   try { return localStorage.getItem('gemini_selected_model') || 'gemini-3.5-flash'; } catch { return 'gemini-3.5-flash'; }
+};
+
+const getStoredGenfityModel = () => {
+  try { return localStorage.getItem('genfity_selected_model') || 'genfity/gemini-3.5-flash'; } catch { return 'genfity/gemini-3.5-flash'; }
 };
 
 const callGeminiApi = async (model, payload, isPredict = false, signal = null) => {
@@ -1190,6 +1212,52 @@ const callGeminiApi = async (model, payload, isPredict = false, signal = null) =
     } catch (error) {
       if (error.name === 'AbortError') throw error;
       // Don't retry permanent errors (400 Bad Request, 401 Unauthorized, 403 Forbidden)
+      if (error.message && /HTTP (400|401|403)/.test(error.message)) throw error;
+      if (i === 5) throw error;
+    }
+    await new Promise((resolve) => setTimeout(resolve, delays[i]));
+  }
+};
+
+const callGenfityApi = async (model, promptText, signal = null) => {
+  const genfityKey = getStoredGenfityKey();
+  if (!genfityKey) throw new Error('Genfity API Key belum dimasukkan. Sila masukkan Genfity API Key anda.');
+  const url = 'https://ai.genfity.com/v1/chat/completions';
+  const delays = [1000, 2000, 4000, 8000, 16000];
+
+  const body = {
+    model: model,
+    messages: [{ role: 'user', content: promptText }],
+    temperature: 0.7
+  };
+
+  for (let i = 0; i <= 5; i++) {
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${genfityKey}`
+        },
+        body: JSON.stringify(body),
+        signal
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const content = data?.choices?.[0]?.message?.content || '';
+        // Return in Gemini-compatible format so downstream code works unchanged
+        return { candidates: [{ content: { parts: [{ text: content }] } }] };
+      }
+
+      if (response.status === 400 || response.status === 401 || response.status === 403) {
+        const text = await response.text();
+        throw new Error(`Genfity HTTP ${response.status}: ${text}`);
+      }
+
+      throw new Error(`Genfity HTTP Error ${response.status}`);
+    } catch (error) {
+      if (error.name === 'AbortError') throw error;
       if (error.message && /HTTP (400|401|403)/.test(error.message)) throw error;
       if (i === 5) throw error;
     }
@@ -1318,6 +1386,10 @@ export default function App() {
   const [gfStyle, setGfStyle] = useState('auto');
 
   const [apiKey, setApiKey] = useState(getStoredApiKey);
+  const [genfityKey, setGenfityKey] = useState(getStoredGenfityKey);
+  const [textProvider, setTextProvider] = useState(getStoredTextProvider);
+  const [generateMode, setGenerateMode] = useState(getStoredGenerateMode);
+  const [genfityModel, setGenfityModel] = useState(getStoredGenfityModel);
   const [showApiKeyInput, setShowApiKeyInput] = useState(!getStoredApiKey());
   const [selectedModel, setSelectedModel] = useState(getStoredModel);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
@@ -1336,9 +1408,48 @@ export default function App() {
     }
   };
 
+  const handleSaveGenfityKey = (key) => {
+    setGenfityKey(key);
+    try { localStorage.setItem('genfity_api_key', key); } catch {}
+  };
+
+  const handleTextProviderChange = (provider) => {
+    setTextProvider(provider);
+    try { localStorage.setItem('text_provider', provider); } catch {}
+  };
+
+  const handleGenerateModeChange = (mode) => {
+    setGenerateMode(mode);
+    try { localStorage.setItem('generate_mode', mode); } catch {}
+  };
+
+  const handleGenfityModelChange = (model) => {
+    setGenfityModel(model);
+    try { localStorage.setItem('genfity_selected_model', model); } catch {}
+  };
+
   const handleModelChange = (model) => {
     setSelectedModel(model);
     try { localStorage.setItem('gemini_selected_model', model); } catch {}
+  };
+
+  // Unified text API call — routes to Gemini or Genfity based on textProvider
+  const callTextApi = async (promptText, signal = null, options = {}) => {
+    const { temperature = 0.7, responseMimeType = null } = options;
+    if (textProvider === 'genfity') {
+      // Genfity doesn't support responseMimeType, but we still request JSON in prompt
+      return await callGenfityApi(genfityModel, promptText, signal);
+    } else {
+      // Gemini path (default)
+      const payload = {
+        contents: [{ parts: [{ text: promptText }] }],
+        generationConfig: {
+          temperature,
+          ...(responseMimeType ? { responseMimeType } : {})
+        }
+      };
+      return await callGeminiApi(selectedModel, payload, false, signal);
+    }
   };
 
   const analyzeReferenceAssets = async (signal = null) => {
@@ -1393,15 +1504,10 @@ Be visual and specific. English only.`
         ? `${promptText}\n\nCORRECTION REQUIRED: ${repairNote}\nReturn ONLY valid JSON. You MUST generate exactly ${expectedCount} scenes, do not summarize into fewer scenes.`
         : `${promptText}\n\nCRITICAL INSTRUCTION: You MUST generate EXACTLY ${expectedCount} scenes in the "scenes" JSON array. Do not return just 1 scene.`;
       
-      const payload = {
-        contents: [{ parts: [{ text: fullPrompt }] }],
-        generationConfig: {
-          responseMimeType: 'application/json',
-          temperature: repairNote ? 0.45 : 0.7
-        }
-      };
-
-      const data = await callGeminiApi(selectedModel, payload, false, signal);
+      const data = await callTextApi(fullPrompt, signal, {
+        temperature: repairNote ? 0.45 : 0.7,
+        responseMimeType: textProvider === 'gemini' ? 'application/json' : null
+      });
       const text = extractGeminiText(data);
       let parsed = normalizeStoryboardPayload(parseModelJson(text));
       const validation = validateStoryboard(parsed, expectedCount);
@@ -1860,6 +1966,12 @@ Be visual and specific. English only.`
   };
 
   const generateVisual = async (promptInput, isRegenerate = false, overrideRatio = null, forcedLimit = 2, options = {}) => {
+    // Skip image generation entirely in text-only mode
+    if (generateMode === 'text_only' && !isRegenerate) {
+      setShowSuccessPopup(true);
+      setTimeout(() => setShowSuccessPopup(false), 3500);
+      return;
+    }
     setIsGeneratingImage(true);
     setImageUrls([]);
     setZoomedImages({});
@@ -3709,22 +3821,92 @@ ${aspectStr}`;
           </div>
         )}
         {apiKey && !showApiKeyInput && (
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <span className={`text-[10px] font-bold uppercase tracking-widest ${t('text-gray-500', 'text-gray-400')}`}>🤖 Model:</span>
-              <select
-                value={selectedModel}
-                onChange={(e) => handleModelChange(e.target.value)}
-                className={`rounded-lg px-3 py-1.5 text-xs font-bold border appearance-none cursor-pointer transition-colors ${t('bg-[#0a0c10] border-gray-700 text-white', 'bg-gray-50 border-gray-200 text-gray-800')}`}
-              >
-                {GEMINI_MODELS.map((m) => (
-                  <option key={m.v} value={m.v} style={isDarkMode ? { backgroundColor: '#0a0c10', color: '#fff' } : {}}>{m.l}</option>
-                ))}
-              </select>
+          <div className="mb-4 space-y-3">
+            {/* Row 1: Gemini Model + Change Key */}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <span className={`text-[10px] font-bold uppercase tracking-widest ${t('text-gray-500', 'text-gray-400')}`}>🤖 Model:</span>
+                <select
+                  value={selectedModel}
+                  onChange={(e) => handleModelChange(e.target.value)}
+                  className={`rounded-lg px-3 py-1.5 text-xs font-bold border appearance-none cursor-pointer transition-colors ${t('bg-[#0a0c10] border-gray-700 text-white', 'bg-gray-50 border-gray-200 text-gray-800')}`}
+                >
+                  {GEMINI_MODELS.map((m) => (
+                    <option key={m.v} value={m.v} style={isDarkMode ? { backgroundColor: '#0a0c10', color: '#fff' } : {}}>{m.l}</option>
+                  ))}
+                </select>
+              </div>
+              <button onClick={() => setShowApiKeyInput(true)} className="text-[10px] text-gray-500 hover:text-pink-400 transition-colors uppercase tracking-widest font-bold">
+                🔑 Change API Key
+              </button>
             </div>
-            <button onClick={() => setShowApiKeyInput(true)} className="text-[10px] text-gray-500 hover:text-pink-400 transition-colors uppercase tracking-widest font-bold">
-              🔑 Change API Key
-            </button>
+
+            {/* Row 2: Text Provider Config + Genfity */}
+            <div className={`p-4 rounded-2xl border ${t('bg-[#11131a] border-gray-800', 'bg-gray-50 border-gray-200')}`}>
+              <div className="flex flex-wrap items-center gap-3 mb-3">
+                <span className={`text-[10px] font-bold uppercase tracking-widest ${t('text-gray-500', 'text-gray-400')}`}>📝 Text Provider:</span>
+                <select
+                  value={textProvider}
+                  onChange={(e) => handleTextProviderChange(e.target.value)}
+                  className={`rounded-lg px-3 py-1.5 text-xs font-bold border appearance-none cursor-pointer transition-colors ${t('bg-[#0a0c10] border-gray-700 text-white', 'bg-white border-gray-200 text-gray-800')}`}
+                >
+                  <option value="gemini" style={isDarkMode ? { backgroundColor: '#0a0c10', color: '#fff' } : {}}>Gemini (Direct)</option>
+                  <option value="genfity" style={isDarkMode ? { backgroundColor: '#0a0c10', color: '#fff' } : {}}>Genfity Gateway</option>
+                </select>
+
+                {textProvider === 'genfity' && (
+                  <>
+                    <span className={`text-[10px] font-bold uppercase tracking-widest ${t('text-gray-500', 'text-gray-400')}`}>Model:</span>
+                    <select
+                      value={genfityModel}
+                      onChange={(e) => handleGenfityModelChange(e.target.value)}
+                      className={`rounded-lg px-3 py-1.5 text-xs font-bold border appearance-none cursor-pointer transition-colors ${t('bg-[#0a0c10] border-gray-700 text-white', 'bg-white border-gray-200 text-gray-800')}`}
+                    >
+                      {GENFITY_MODELS.map((m) => (
+                        <option key={m.v} value={m.v} style={isDarkMode ? { backgroundColor: '#0a0c10', color: '#fff' } : {}}>{m.l}</option>
+                      ))}
+                    </select>
+                  </>
+                )}
+              </div>
+
+              {textProvider === 'genfity' && (
+                <div className="flex items-center gap-2 mb-3">
+                  <span className={`text-[10px] font-bold uppercase tracking-widest shrink-0 ${t('text-purple-400', 'text-purple-600')}`}>🔑 Genfity Key:</span>
+                  <input
+                    type="password"
+                    value={genfityKey}
+                    onChange={(e) => setGenfityKey(e.target.value)}
+                    onBlur={(e) => handleSaveGenfityKey(e.target.value)}
+                    placeholder="genfity_xxxxxxxxxxxx"
+                    className={`flex-1 rounded-lg px-3 py-1.5 text-xs border focus:outline-none focus:ring-1 focus:ring-purple-400 ${t('bg-[#0a0c10] border-gray-700 text-white placeholder-gray-600', 'bg-white border-gray-200 text-gray-800')}`}
+                  />
+                  {genfityKey && <span className="text-[10px] text-green-400 font-bold">✓</span>}
+                </div>
+              )}
+
+              {/* Generate Mode Toggle */}
+              <div className="flex items-center gap-3">
+                <span className={`text-[10px] font-bold uppercase tracking-widest ${t('text-gray-500', 'text-gray-400')}`}>🎯 Output:</span>
+                <div className={`flex rounded-xl p-1 border ${t('bg-[#0a0c10] border-gray-700', 'bg-white border-gray-200')}`}>
+                  <button
+                    onClick={() => handleGenerateModeChange('text_and_images')}
+                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${generateMode === 'text_and_images' ? 'bg-pink-500 text-white shadow-sm' : t('text-gray-400', 'text-gray-500')}`}
+                  >
+                    📝 + 🖼️ Text + Images
+                  </button>
+                  <button
+                    onClick={() => handleGenerateModeChange('text_only')}
+                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${generateMode === 'text_only' ? 'bg-purple-500 text-white shadow-sm' : t('text-gray-400', 'text-gray-500')}`}
+                  >
+                    📝 Text Only
+                  </button>
+                </div>
+                {generateMode === 'text_only' && (
+                  <span className={`text-[10px] font-medium ${t('text-purple-400', 'text-purple-600')}`}>(Gemini Key tak perlu)</span>
+                )}
+              </div>
+            </div>
           </div>
         )}
 
