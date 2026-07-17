@@ -3750,7 +3750,25 @@ ${aspectStr}`;
     <div className={`min-h-screen font-sans pb-20 transition-colors duration-300 relative ${t('bg-[#0a0c10]', 'bg-[#f8fafc]')}`}>
       <header className={`backdrop-blur-xl border-b sticky top-0 z-40 transition-colors duration-300 ${t('bg-[#11131a]/90 border-gray-800', 'bg-white/80 border-gray-100')}`}>
         <div className="max-w-[1200px] mx-auto px-5 sm:px-8 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
+          <button
+            onClick={() => {
+              cancelAllGenerations();
+              setActiveTab('cinematic_pro');
+              setGeneratedOutput(null);
+              setImageUrls([]);
+              setEditableImagePrompt('');
+              setEditModes({});
+              setBoxEdits({});
+              setZoomedImages({});
+              setShowMagicBox({});
+              setMagicPrompts({});
+              setErrorMessage('');
+              setShowApiKeyInput(!getStoredApiKey());
+              setCurrentDisplayRatio(null);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            className="flex items-center gap-3 text-left"
+          >
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-sky-500/20 shrink-0 overflow-hidden relative border border-sky-500/30">
               {!logoError ? (
                 <img
@@ -3773,7 +3791,7 @@ ${aspectStr}`;
                 PRO CONTENT & VISUAL ENGINE
               </p>
             </div>
-          </div>
+          </button>
 
           <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
             <div className="flex items-center gap-2 px-3.5 py-2 rounded-full border text-xs font-bold bg-emerald-500/10 border-emerald-500/30 text-emerald-400">
