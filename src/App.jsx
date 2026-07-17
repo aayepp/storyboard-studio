@@ -759,14 +759,149 @@ const FI_VIBE_OPTIONS_MALE = ['Malaysia Local Influencer (main)', 'Abang Affilia
 const FI_FORMAT_OPTIONS = ['9:16 TikTok / Reels MY Pose', '9:16 Full Body OOTD', '1:1 Instagram Feed Portrait', 'Product Review Pose (hold box)', 'Beauty Close Up / GRWM', '4 Pose Character Sheet', 'Shopee Live Talking Head'];
 
 const buildSheetPrompt = (subjectType, name, charGenderLabel, hijabModifier, characterDescription, charShotType, cleanImageInstruction) => {
-  return `You are a PROFESSIONAL CHARACTER SHEET GENERATOR. Generate a SINGLE production-ready visual reference sheet.
+  const category = subjectType || 'HUMAN_CHARACTER';
+
+  // Category-specific layout definitions
+  const CATEGORY_LAYOUTS = {
+    HUMAN_CHARACTER: {
+      topRow: 'TOP ROW — TURNAROUND VIEWS: Front View, 3/4 Left View, Side View, Back View, 3/4 Right View. Requirements: Same person, same outfit, same hairstyle, same body proportions, same scale, consistent camera height, consistent studio lighting, clear separation between panels.',
+      middleRow: 'MIDDLE ROW — EXPRESSIONS: Neutral Expression, Smile Expression, Serious Expression, Thinking Expression. Requirements: Preserve facial identity, preserve hairstyle, preserve skin tone, change only expression and natural expression-related muscle movement, avoid identity drift.',
+      bottomRow: 'BOTTOM ROW — REFERENCE DETAILS: Full Body Reference, Close-Up Face Reference, Hair Reference, Outfit Reference, Accessories Reference. Use a professional visual-development sheet layout.'
+    },
+    PRODUCT_CHARACTER: {
+      topRow: 'TOP ROW — PRIMARY VIEWS: Front View, 3/4 Front View, Left Side View, Right Side View, Back View.',
+      middleRow: 'MIDDLE ROW — TECHNICAL VIEWS: Top View, Bottom View, 3/4 Rear View, Packaging View.',
+      bottomRow: 'BOTTOM ROW — DETAIL REFERENCES: Label Close-Up, Material Close-Up, Texture Reference, Logo Detail, Scale Reference. Requirements: Preserve exact product identity, proportions, brand colors, visible logo design, label hierarchy, packaging geometry, consistent material rendering.'
+    },
+    VEHICLE_CHARACTER: {
+      topRow: 'PRIMARY VIEWS: Front View, Rear View, Left Side View, Right Side View, Top View, 3/4 Front View, 3/4 Rear View.',
+      middleRow: 'DETAIL VIEWS: Interior View, Dashboard View, Wheel Detail, Headlight Detail.',
+      bottomRow: 'Requirements: Same vehicle, same paint, same wheels, same trim, same configuration, consistent geometry, professional automotive design presentation.'
+    },
+    ANIMAL_CHARACTER: {
+      topRow: 'PRIMARY VIEWS: Front View, Side View, Back View, 3/4 View.',
+      middleRow: 'EXPRESSIONS: Neutral, Happy, Alert, Curious.',
+      bottomRow: 'DETAIL REFERENCES: Full Body, Face Close-Up, Fur Detail, Paw Detail. Requirements: Same individual animal, same markings, same proportions, same fur pattern, same accessories, natural anatomy.'
+    },
+    MASCOT_CHARACTER: {
+      topRow: 'PRIMARY VIEWS: Front View, Side View, Back View, 3/4 View.',
+      middleRow: 'EXPRESSIONS: Happy, Angry, Surprised, Thinking.',
+      bottomRow: 'DETAIL REFERENCES: Costume Detail, Accessory Detail, Branding Detail. Requirements: Preserve exact mascot identity, costume, brand colors, logos, proportions, maintain commercial brand consistency.'
+    },
+    OBJECT_CHARACTER: {
+      topRow: 'PRIMARY VIEWS: Front View, 3/4 Front View, Left Side View, Right Side View, Back View, Top View, Bottom View.',
+      middleRow: 'DETAIL REFERENCES: Material Detail, Texture Detail, Functional Detail, Construction Detail, Scale Reference.',
+      bottomRow: 'Requirements: Preserve exact object geometry, color, material, texture, surface finish, functional components, avoid unsupported redesign.'
+    }
+  };
+
+  // Category-specific identity preservation rules
+  const IDENTITY_RULES = {
+    HUMAN_CHARACTER: `HUMAN IDENTITY CONSISTENCY — Preserve ALL of the following across every panel:
+- Facial identity: face shape, head proportions, eye shape, eye spacing, eye color, eyebrow shape, nose structure, lip shape, jawline, chin shape, ear shape, skin tone
+- Hair: hairline, hairstyle, hair length, hair texture, hair color
+- Body: apparent age range, body proportions
+- Appearance: facial hair, distinctive marks, makeup
+- Clothing: clothing colors, clothing patterns, footwear, jewelry, accessories
+Never create visibly different people across panels. All views must represent the same individual.`,
+    PRODUCT_CHARACTER: `PRODUCT CONSISTENCY — Preserve ALL of the following across every panel:
+- Product silhouette, dimensions and proportions, geometry, packaging structure
+- Brand colors, product colors, logo placement, label placement, typography appearance
+- Cap/lid/handle shape, material, surface finish, transparency, reflectivity, texture
+- Structural details: visible seams, buttons, ports, decorative elements
+Never invent a materially different product across panels.`,
+    VEHICLE_CHARACTER: `VEHICLE CONSISTENCY — Preserve ALL of the following across every panel:
+- Vehicle type, body silhouette, proportions, paint color, trim
+- Grille, windows, mirrors, wheels, tires, lights, badges, decals
+- Doors, roof structure, body panels, aerodynamic components, visible interior design cues
+All views must depict the same vehicle configuration.`,
+    ANIMAL_CHARACTER: `ANIMAL CONSISTENCY — Preserve ALL of the following across every panel:
+- Species, breed when visually identifiable, body proportions
+- Fur color, fur pattern, markings, eye color, ear shape, muzzle shape, tail shape, paw appearance
+- Distinctive features, collar, harness, visible accessories
+All panels must depict the same individual animal.`,
+    MASCOT_CHARACTER: `MASCOT CONSISTENCY — Preserve ALL of the following across every panel:
+- Head shape, face design, eye design, mouth design, body proportions
+- Costume, brand colors, logo, accessories, gloves, shoes, surface material, character silhouette
+Do not redesign branding.`,
+    OBJECT_CHARACTER: `OBJECT CONSISTENCY — Preserve ALL of the following across every panel:
+- Shape, scale relationships, geometry, color, material, texture, surface finish
+- Functional components, decorative details, construction details`
+  };
+
+  const layout = CATEGORY_LAYOUTS[category] || CATEGORY_LAYOUTS.HUMAN_CHARACTER;
+  const identityRule = IDENTITY_RULES[category] || IDENTITY_RULES.HUMAN_CHARACTER;
+
+  const genderLine = (category === 'HUMAN_CHARACTER' || category === 'MASCOT_CHARACTER')
+    ? `\nGENDER / PRESENTATION: ${charGenderLabel}, ${hijabModifier}natural appearance`
+    : '';
+
+  const shotLine = (category === 'HUMAN_CHARACTER')
+    ? `\nSHOT TYPE: ${charShotType || 'Full Body (Head to Toe)'}`
+    : '';
+
+  return `You are a PROFESSIONAL CHARACTER SHEET GENERATOR. Your function is to generate a production-ready professional Character Sheet for use in AI Video, Animation, Storyboarding, Game Design, Comic Production, Product Design, Brand Asset Creation, and Visual Development.
+
 SUBJECT: ${name}
-TYPE: ${subjectType}
-GENDER / PRESENTATION: ${charGenderLabel}, ${hijabModifier}natural appearance
-DESCRIPTION: ${characterDescription || 'No extra description provided.'}
-SHOT TYPE: ${charShotType || 'Half Body (Portrait)'}
-LAYOUT: Front View, 3/4 Left, Side View, Back View, 3/4 Right (same identity in every panel).
-COMPOSITION: Clean white background, vertical composition, highly detailed portrait matching the shot type. No text overlays. ${cleanImageInstruction}`;
+CATEGORY: ${category}${genderLine}
+DESCRIPTION: ${characterDescription || 'No extra description provided.'}${shotLine}
+
+=== AUTOMATIC CATEGORY: ${category} ===
+
+=== MULTI-ROW LAYOUT (Professional Grid) ===
+${layout.topRow}
+
+${layout.middleRow}
+
+${layout.bottomRow}
+
+=== IDENTITY PRESERVATION RULES ===
+${identityRule}
+
+GLOBAL IDENTITY RULE: The uploaded reference image (if provided) is the source of truth. Preserve all visible identity-defining characteristics. Do not redesign, arbitrarily beautify, simplify, replace, modernize, exaggerate, or reinterpret distinctive features. Maintain maximum cross-view consistency.
+
+=== VIEW ACCURACY RULES ===
+Each requested view must be visually distinct and geometrically plausible.
+Do not duplicate the same image and relabel it as another angle.
+Front View must read as front-facing. Side View must read as a true profile. Back View must show the rear. 3/4 views must clearly show three-quarter rotation.
+Maintain continuity between all angles.
+
+=== EXPRESSION RULES ===
+For expression panels: preserve identity, facial proportions, age, hairstyle, costume, species or mascot design. Only modify features necessary to communicate the requested expression. Avoid extreme deformation unless the original style requires it.
+
+=== COMPOSITION & OUTPUT FORMAT ===
+Canvas: Portrait 9:16 aspect ratio (vertical).
+Background: Clean white studio background.
+Layout: Professional production-ready symmetrical grid with balanced margins, clear row hierarchy, consistent panel spacing, consistent subject scale.
+Quality: Photorealistic, ultra-detailed, commercial quality, production-ready, studio lighting, sharp focus, premium presentation, 8K-quality aesthetic.
+No overlapping views, no decorative clutter, no environmental background, no unnecessary props, no cinematic scenery, no random graphic elements.
+The final image must resemble a professional studio reference board used in animation, games, industrial design, branding, or production.
+
+=== REFERENCE UNCERTAINTY RULE ===
+When a requested view contains information not visible in the uploaded image: infer conservatively, use the visible design language, maintain symmetry where reasonable, avoid adding distinctive unsupported features, keep inferred regions visually simple, prioritize consistency over novelty.
+
+=== TEXT & LABELS ===
+If labels are used: keep labels minimal, use clean professional typography, use short view names, place labels consistently, avoid large titles. Where text rendering quality is unreliable, prioritize clean visual layout over excessive labels.
+
+=== FAILURE PREVENTION ===
+Avoid: identity drift, different faces/hairstyles/clothing between views, random accessories, extra or missing limbs, anatomical distortion, duplicate angles, incorrect rear views, mirrored logos, corrupted branding, random product redesign, color drift, material drift, scale inconsistency, perspective inconsistency, background clutter, cropped critical details, unreadable composition, unnecessary text, watermarks, fake signatures.
+
+=== PRIORITY ORDER ===
+1. Visual identity consistency
+2. Reference-image fidelity
+3. Cross-panel continuity
+4. Correct view differentiation
+5. Professional Character Sheet layout
+6. High image quality
+7. Production usability
+8. Aesthetic polish
+
+If visual beauty conflicts with identity accuracy, choose identity accuracy.
+If creative interpretation conflicts with reference fidelity, choose reference fidelity.
+If complexity conflicts with consistency, choose consistency.
+
+${cleanImageInstruction}
+Generate the Character Sheet now. Output a single 9:16 portrait professional Character Sheet image.`;
 };
 
 const parseDurationToSeconds = (value) => {
