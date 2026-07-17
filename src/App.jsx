@@ -1876,6 +1876,8 @@ Be visual and specific. English only.`
       topicLock = ''
     } = options;
 
+    let generationSucceeded = false;
+
     try {
       const stabilitySuffix = motionGraphicsMode
         ? "[MANDATORY: Keep the same motion-graphics style, palette, and topic branding.]"
@@ -1993,6 +1995,7 @@ Be visual and specific. English only.`
       const byIndex = [];
       for (let i = 0; i < runLimit; i++) if (results[i]) byIndex.push(results[i]);
       if (byIndex.length > 0) {
+        generationSucceeded = true;
         setImageUrls(byIndex);
         if (lastImageError && byIndex.length < runLimit) {
           setErrorMessage(`Partial visual failure (${byIndex.length}/${runLimit}). ${String(lastImageError.message || '')}`);
@@ -2014,8 +2017,7 @@ Be visual and specific. English only.`
     } finally {
       if (!mainAbortController.current?.signal.aborted) {
         setIsGeneratingImage(false);
-        // Show success popup if images were generated
-        if (imageUrls.length > 0 || results?.some(r => r)) {
+        if (generationSucceeded) {
           setShowSuccessPopup(true);
           setTimeout(() => setShowSuccessPopup(false), 3500);
         }
