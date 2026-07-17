@@ -1475,8 +1475,10 @@ Be visual and specific. English only.`
         parts.push({ inlineData: { mimeType: activeUploadData.uploadedFaceMimeType || "image/jpeg", data: activeUploadData.uploadedFaceBase64 } });
       }
 
-      if (activeTab !== 'character' && activeProducts.length > 0) {
-        if (motionGraphicsMode) {
+      if (activeProducts.length > 0) {
+        if (activeTab === 'character') {
+          parts[0].text += "\n\n[CHARACTER SHEET REFERENCE — ABSOLUTE SOURCE OF TRUTH]: The attached REFERENCE IMAGE is the DEFINITIVE visual identity source. You MUST replicate every visible detail: face structure, hair, clothing, colors, proportions, accessories, and distinguishing features EXACTLY as shown. Do NOT redesign, reinterpret, beautify, or deviate from this reference. Every panel in the character sheet must depict THIS EXACT subject.";
+        } else if (motionGraphicsMode) {
           parts[0].text += "\n\n[BRAND / PRODUCT GRAPHIC REFERENCE]: Use attached assets for logo, packaging colors, or product look inside motion-graphics composition. Do NOT force a human model holding the product unless the topic requires it.";
         } else {
           parts[0].text += "\n\n[MANDATORY ITEM LOCK]: The human MUST wear/hold ONLY the product from the attached REFERENCE IMAGE. [CRITICAL PHYSICAL ACCURACY]: Replicate the EXACT physical layout of the product — all buttons, joysticks, logos, ports, and controls must be in their CORRECT original positions as shown in the reference. Do NOT mirror, flip, or swap left/right button positions. The product orientation must match reality exactly as a real photograph would show it. [STRICT NO-ADD RULE]: Do NOT add any accessories, items, jewelry, gadgets, bags, headphones, watches, glasses, or props that are NOT visible in the uploaded product reference image. The model should ONLY interact with the exact product shown — nothing else added by AI imagination.";
