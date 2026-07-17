@@ -1,4 +1,4 @@
-/** Storyboard Studio — Vite + React (GitHub/Vercel Ready) */
+﻿/** Storyboard Studio — Vite + React (GitHub/Vercel Ready) */
 import React, { useState, useRef, useEffect } from 'react';
 
 const I = ({ name, size = 16, className = '', style = {} }) => React.createElement('span', {
@@ -35,7 +35,7 @@ const TAB_UPLOAD_KEYS = ['cinematic_pro', 'microimpact', 'narrativearc', 'talkin
 const makeEmptyTabUploads = () => Object.fromEntries(TAB_UPLOAD_KEYS.map((k) => [k, { ...EMPTY_UPLOAD, products: [{ name: '', base64: null, mimeType: null }], backgrounds: [] }]));
 
 const _baseCard = 'border rounded-[32px] p-6 sm:p-10 shadow-sm relative overflow-hidden transition-colors duration-300 card-hover scroll-reveal';
-const _baseIn = 'w-full rounded-2xl px-5 py-4 text-sm focus:outline-none focus:ring-1 focus:ring-pink-300 border';
+const _baseIn = 'w-full rounded-2xl px-5 py-4 text-sm focus:outline-none focus:ring-1 focus:ring-sky-300 border';
 const C = {
   card: (d, mb = 'mb-8') => `${_baseCard} ${mb} ${d ? 'bg-[#11131a] border-gray-800' : 'bg-white border-gray-100'}`,
   label: 'block text-[10px] font-bold mb-2.5 uppercase tracking-widest text-gray-400',
@@ -49,19 +49,19 @@ const C = {
   p2: (d) => (d ? 'bg-gray-900 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-800'),
   p3: (d) => (d ? 'bg-[#11131a] border-gray-800' : 'bg-white border-gray-100'),
 };
-const PINK_GRAD = 'bg-gradient-to-r from-pink-500 to-rose-400 text-white';
+const PINK_GRAD = 'bg-gradient-to-r from-blue-500 to-cyan-400 text-white';
 
 const U = {
   c1: 'absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none',
-  c2: 'w-full bg-gradient-to-r from-pink-500 to-rose-400 text-white font-black py-4 rounded-2xl text-lg disabled:opacity-70',
-  c3: 'w-10 h-10 rounded-full bg-pink-500 flex items-center justify-center text-white font-bold',
+  c2: 'w-full bg-gradient-to-r from-blue-500 to-cyan-400 text-white font-black py-4 rounded-2xl text-lg disabled:opacity-70',
+  c3: 'w-10 h-10 rounded-full bg-sky-500 flex items-center justify-center text-white font-bold',
   c4: 'block text-[10px] font-bold mb-2.5 uppercase tracking-widest flex items-center gap-1.5 text-gray-400',
-  c5: 'text-sm font-bold uppercase tracking-widest text-pink-500 mb-6 flex items-center gap-2',
+  c5: 'text-sm font-bold uppercase tracking-widest text-sky-500 mb-6 flex items-center gap-2',
   c6: 'block text-[10px] font-bold mb-2.5 uppercase tracking-widest text-sky-400',
-  c7: 'px-2 py-0.5 rounded text-[10px] bg-pink-900/40 text-pink-400 font-bold',
+  c7: 'px-2 py-0.5 rounded text-[10px] bg-sky-900/40 text-sky-400 font-bold',
   c8: 'px-2 py-0.5 rounded text-[10px] bg-gray-700 text-gray-300 font-bold',
   c9: 'px-2 py-0.5 rounded text-[10px] bg-green-500 text-white font-bold',
-  c10: 'font-bold text-base text-pink-500 mb-2 flex items-center gap-1.5',
+  c10: 'font-bold text-base text-sky-500 mb-2 flex items-center gap-1.5',
   c11: 'absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10',
   c12: 'flex justify-between items-center mb-1',
   c13: 'grid grid-cols-1 sm:grid-cols-2 gap-4',
@@ -501,7 +501,7 @@ const compressImage = (file) => {
 };
 
 const StepBadge = ({ number }) => (
-  <div className="w-10 h-10 shrink-0 rounded-full bg-pink-500 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-pink-500/20">
+  <div className="w-10 h-10 shrink-0 rounded-full bg-sky-500 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-sky-500/20">
     {number}
   </div>
 );
@@ -1769,7 +1769,7 @@ Be visual and specific. English only.`
         <button
           key={r.v}
           onClick={() => handleRatioChange(r.v)}
-          className={`py-2.5 px-5 rounded-xl text-xs font-bold ${aspectRatio === r.v ? 'bg-pink-500 text-white' : (t('bg-[#0a0c10] text-gray-400', 'bg-gray-100 text-gray-500'))}`}
+          className={`py-2.5 px-5 rounded-xl text-xs font-bold ${aspectRatio === r.v ? 'bg-sky-500 text-white' : (t('bg-[#0a0c10] text-gray-400', 'bg-gray-100 text-gray-500'))}`}
         >
           {r.l}
         </button>
@@ -3371,14 +3371,14 @@ ${aspectStr}`;
     return (
       <div className={`border rounded-2xl p-5 mb-4 relative shadow-sm group transition-all duration-300 ${t('bg-gray-800/50 border-gray-700', 'bg-gray-50 border-gray-200')}`}>
         <div className="flex items-center justify-between mb-3 border-b pb-2 border-gray-700/30">
-          <h3 className="font-bold text-sm flex items-center gap-2 uppercase tracking-wider text-pink-500">
+          <h3 className="font-bold text-sm flex items-center gap-2 uppercase tracking-wider text-sky-500">
             {icon} {title}
           </h3>
           <div className="flex items-center gap-1.5">
             {onRegenerate && (
               <button
                 onClick={onRegenerate}
-                className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all uppercase tracking-widest ${t('bg-pink-900/30 text-pink-400 hover:bg-pink-900/50 border border-pink-900/50', 'bg-pink-50 text-pink-600 hover:bg-pink-100 border border-pink-200')}`}
+                className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all uppercase tracking-widest ${t('bg-sky-900/30 text-sky-400 hover:bg-sky-900/50 border border-pink-900/50', 'bg-sky-50 text-sky-600 hover:bg-sky-100 border border-sky-200')}`}
               >
                 <I name="RefreshCw" size={12} /> Re-Gen
               </button>
@@ -3405,7 +3405,7 @@ ${aspectStr}`;
               className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all opacity-0 group-hover:opacity-100 uppercase tracking-widest ${
                 copiedSection === sectionId
                 ? 'bg-green-100 text-green-600 border-green-200 opacity-100'
-                : (t('bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white border border-gray-600', 'bg-white text-gray-500 hover:bg-pink-50 hover:text-pink-500 border border-gray-200'))
+                : (t('bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white border border-gray-600', 'bg-white text-gray-500 hover:bg-sky-50 hover:text-sky-500 border border-gray-200'))
               }`}
             >
               {copiedSection === sectionId ? <I name="Check" size={12} /> : <I name="Copy" size={12} />}
@@ -3420,12 +3420,12 @@ ${aspectStr}`;
               value={value}
               onChange={(e) => handleBoxValueChange(sectionId, e.target.value)}
               rows={6}
-              className={`w-full rounded-xl p-3 font-mono text-[13px] border focus:outline-none focus:ring-1 focus:ring-pink-400 ${C.p2(isDarkMode)}`}
+              className={`w-full rounded-xl p-3 font-mono text-[13px] border focus:outline-none focus:ring-1 focus:ring-sky-400 ${C.p2(isDarkMode)}`}
             />
             {customRegenerateWithPrompt && (
               <button
                 onClick={() => regenerateWithEditedPrompt(value)}
-                className="py-2 px-4 rounded-xl text-xs font-bold bg-pink-500 text-white flex items-center gap-2 hover:bg-pink-600 transition-colors shadow-md shadow-pink-500/10"
+                className="py-2 px-4 rounded-xl text-xs font-bold bg-sky-500 text-white flex items-center gap-2 hover:bg-sky-600 transition-colors shadow-md shadow-sky-500/10"
               >
                 <I name="Sparkles" size={14} /> Re-render New Visual Concept
               </button>
@@ -3439,7 +3439,7 @@ ${aspectStr}`;
             {String(value || '').length > 300 && !editModes[`${sectionId}_expanded`] && (
               <button
                 onClick={() => setEditModes(prev => ({ ...prev, [`${sectionId}_expanded`]: true }))}
-                className={`mt-2 text-[10px] font-bold uppercase tracking-widest ${t('text-pink-400 hover:text-pink-300', 'text-pink-500 hover:text-pink-600')} transition-colors`}
+                className={`mt-2 text-[10px] font-bold uppercase tracking-widest ${t('text-sky-400 hover:text-sky-300', 'text-sky-500 hover:text-sky-600')} transition-colors`}
               >
                 ▼ Show Full Prompt
               </button>
@@ -3462,8 +3462,8 @@ ${aspectStr}`;
     <div>
       <label className="block text-[10px] font-bold mb-2.5 uppercase tracking-wider text-gray-400">Model Gender</label>
       <div className={`flex rounded-2xl p-1.5 border ${t('bg-gray-800/50 border-gray-700', 'bg-white border-gray-200')}`}>
-        <button onClick={() => setGender('Wanita')} className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all ${gender === 'Wanita' ? 'bg-gradient-to-r from-pink-400 to-pink-500 text-white shadow-md' : (t('bg-transparent text-gray-400', 'bg-transparent text-gray-500'))}`}>Female</button>
-        <button onClick={() => setGender('Pria')} className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all ${gender === 'Pria' ? 'bg-gradient-to-r from-pink-400 to-pink-500 text-white shadow-md' : (t('bg-transparent text-gray-400', 'bg-transparent text-gray-500'))}`}>Male</button>
+        <button onClick={() => setGender('Wanita')} className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all ${gender === 'Wanita' ? 'bg-gradient-to-r from-blue-400 to-blue-500 text-white shadow-md' : (t('bg-transparent text-gray-400', 'bg-transparent text-gray-500'))}`}>Female</button>
+        <button onClick={() => setGender('Pria')} className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all ${gender === 'Pria' ? 'bg-gradient-to-r from-blue-400 to-blue-500 text-white shadow-md' : (t('bg-transparent text-gray-400', 'bg-transparent text-gray-500'))}`}>Male</button>
       </div>
     </div>
   );
@@ -3482,11 +3482,11 @@ ${aspectStr}`;
         />
         <div className={`w-full border border-dashed rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between transition-all duration-300 relative ${
           activeProduct.name
-          ? (t('border-pink-500/50 bg-pink-900/10', 'border-pink-300 bg-pink-50'))
-          : (t('border-gray-700 hover:border-pink-500/50 bg-gray-800/30', 'border-gray-300 hover:border-pink-300 bg-gray-50'))
+          ? (t('border-sky-500/50 bg-sky-900/10', 'border-sky-300 bg-sky-50'))
+          : (t('border-gray-700 hover:border-sky-500/50 bg-gray-800/30', 'border-gray-300 hover:border-sky-300 bg-gray-50'))
         }`}>
           <div className="flex items-center gap-5 overflow-hidden w-full sm:w-auto mb-4 sm:mb-0">
-            <div className={`w-16 h-16 rounded-full flex items-center justify-center shrink-0 border shadow-sm ${activeProduct.base64 ? 'border-pink-500/50' : 'border-gray-700'}`}>
+            <div className={`w-16 h-16 rounded-full flex items-center justify-center shrink-0 border shadow-sm ${activeProduct.base64 ? 'border-sky-500/50' : 'border-gray-700'}`}>
               {activeProduct.base64 ? (
                 <img src={`data:${activeProduct.mimeType};base64,${activeProduct.base64}`} alt="preview" className="w-full h-full object-cover rounded-full p-1" />
               ) : (
@@ -3500,7 +3500,7 @@ ${aspectStr}`;
               {!activeProduct.name && <span className="text-xs mt-1 text-gray-400 font-bold">Locks consistency metric automatically inside active tab</span>}
             </div>
           </div>
-          <span className={`text-[10px] font-black tracking-widest uppercase px-4 py-2 rounded-full border shadow-sm whitespace-nowrap ${isDarkMode ? 'bg-pink-900/30 border-pink-800/50 text-pink-400' : 'bg-pink-100 border-pink-200 text-pink-600'}`}>
+          <span className={`text-[10px] font-black tracking-widest uppercase px-4 py-2 rounded-full border shadow-sm whitespace-nowrap ${isDarkMode ? 'bg-sky-900/30 border-pink-800/50 text-sky-400' : 'bg-sky-100 border-sky-200 text-sky-600'}`}>
             Aset Rujukan
           </span>
           {activeProduct.name && (
@@ -3572,12 +3572,12 @@ ${aspectStr}`;
 
     return (
       <div className={`border p-5 rounded-2xl shadow-sm relative overflow-hidden group transition-colors mt-4 ${t('bg-[#1a1c23]', 'bg-white border-gray-200')}`}>
-        <div className="absolute top-0 left-0 w-1 h-full bg-pink-500"></div>
+        <div className="absolute top-0 left-0 w-1 h-full bg-sky-500"></div>
 
         {!activeUploadData.useCustomFace && (
           <div className="flex items-center justify-between pl-2">
               <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg ${t('bg-pink-500/10 text-pink-400', 'bg-pink-50 text-pink-500')}`}>
+                <div className={`p-2 rounded-lg ${t('bg-sky-500/10 text-sky-400', 'bg-sky-50 text-sky-500')}`}>
                   <I name="ShieldAlert" size={20} />
                 </div>
                 <div>
@@ -3603,21 +3603,21 @@ ${aspectStr}`;
           <>
           <div className="flex items-center justify-between mb-4 pl-2">
             <div className="flex items-center gap-3">
-                <div className="p-2 bg-pink-500 rounded-lg text-white shadow-sm shadow-pink-500/30">
+                <div className="p-2 bg-sky-500 rounded-lg text-white shadow-sm shadow-sky-500/30">
                   <I name="ShieldAlert" size={20} />
                 </div>
                 <div>
-                  <label className={`block text-sm font-black ${t('text-pink-400', 'text-pink-700')}`}>
+                  <label className={`block text-sm font-black ${t('text-sky-400', 'text-sky-700')}`}>
                     Biometric Face Lock Engine
                   </label>
-                  <p className={`text-[10px] mt-0.5 ${t('text-pink-500/80', 'text-pink-600')}`}>System maps physical proportions from reference facial source.</p>
+                  <p className={`text-[10px] mt-0.5 ${t('text-sky-500/80', 'text-sky-600')}`}>System maps physical proportions from reference facial source.</p>
                 </div>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-[9px] font-bold uppercase tracking-widest text-pink-500">Enabled</span>
+              <span className="text-[9px] font-bold uppercase tracking-widest text-sky-500">Enabled</span>
               <button
                 onClick={() => { updateTabUpload('useCustomFace', false); handleRemoveFace(); }}
-                className="w-12 h-6 rounded-full relative transition-colors border bg-pink-500 border-pink-500"
+                className="w-12 h-6 rounded-full relative transition-colors border bg-sky-500 border-sky-500"
               >
                 <div className="w-4 h-4 bg-white rounded-full shadow-sm absolute top-[3px] left-1 transition-transform translate-x-6" />
               </button>
@@ -3631,18 +3631,18 @@ ${aspectStr}`;
               onChange={handleFaceUpload}
               className={U.c11}
             />
-            <div className={`w-full border-2 border-dashed rounded-xl px-5 py-6 flex flex-col items-center justify-center text-center transition-all relative ${isDarkMode ? (activeUploadData.faceFileName ? 'border-pink-500/50 bg-pink-900/10' : 'border-gray-700 hover:border-pink-500/30 bg-gray-800/30') : (activeUploadData.faceFileName ? 'border-pink-400 bg-white' : 'border-pink-200 hover:border-pink-300 bg-white')}`}>
+            <div className={`w-full border-2 border-dashed rounded-xl px-5 py-6 flex flex-col items-center justify-center text-center transition-all relative ${isDarkMode ? (activeUploadData.faceFileName ? 'border-sky-500/50 bg-sky-900/10' : 'border-gray-700 hover:border-sky-500/30 bg-gray-800/30') : (activeUploadData.faceFileName ? 'border-sky-400 bg-white' : 'border-sky-200 hover:border-sky-300 bg-white')}`}>
 
               {activeUploadData.uploadedFaceBase64 ? (
                 <div className="relative">
                    <img
                      src={`data:${activeUploadData.uploadedFaceMimeType};base64,${activeUploadData.uploadedFaceBase64}`}
                      alt="Face Preview"
-                     className="w-14 h-14 object-cover rounded-full shadow-md border-2 border-pink-400 mb-3 relative z-10"
+                     className="w-14 h-14 object-cover rounded-full shadow-md border-2 border-sky-400 mb-3 relative z-10"
                    />
                 </div>
               ) : (
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 ${t('bg-pink-500/10 text-pink-400', 'bg-pink-50 text-pink-400')}`}>
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 ${t('bg-sky-500/10 text-sky-400', 'bg-sky-50 text-sky-400')}`}>
                   <I name="User" size={24} />
                 </div>
               )}
@@ -3729,7 +3729,7 @@ ${aspectStr}`;
             </div>
 
             <p>By confirming access below, you agree to the following terms:</p>
-            <ul className="list-disc pl-6 space-y-3 marker:text-pink-500 text-gray-500">
+            <ul className="list-disc pl-6 space-y-3 marker:text-sky-500 text-gray-500">
               <li>Respect the developer's exclusive rights of Storyboard Studio by Ayep.</li>
               <li>Remain morally responsible for the advertising materials created and processed.</li>
             </ul>
@@ -3737,7 +3737,7 @@ ${aspectStr}`;
 
           <button
             onClick={() => setHasAgreed(true)}
-            className="w-full bg-gradient-to-r from-pink-500 to-rose-400 hover:from-pink-600 hover:to-rose-500 text-white font-black py-5 rounded-2xl shadow-xl shadow-pink-500/20 transition-all transform hover:-translate-y-1 text-lg tracking-widest uppercase border-0"
+            className="w-full bg-gradient-to-r from-blue-500 to-cyan-400 hover:from-pink-600 hover:to-cyan-500 text-white font-black py-5 rounded-2xl shadow-xl shadow-sky-500/20 transition-all transform hover:-translate-y-1 text-lg tracking-widest uppercase border-0"
           >
             I AGREE & CONTINUE
           </button>
@@ -3751,7 +3751,7 @@ ${aspectStr}`;
       <header className={`backdrop-blur-xl border-b sticky top-0 z-40 transition-colors duration-300 ${t('bg-[#11131a]/90 border-gray-800', 'bg-white/80 border-gray-100')}`}>
         <div className="max-w-[1200px] mx-auto px-5 sm:px-8 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center shadow-lg shadow-pink-500/20 shrink-0 overflow-hidden relative border border-pink-500/30">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-sky-500/20 shrink-0 overflow-hidden relative border border-sky-500/30">
               {!logoError ? (
                 <img
                   src="https://i.ibb.co.com/4gtSWzX5/file-000000006b24720b89e81d697978230b.png"
@@ -3760,7 +3760,7 @@ ${aspectStr}`;
                   onError={() => setLogoError(true)}
                 />
               ) : (
-                <div className="absolute inset-0 bg-gradient-to-br from-pink-600 to-rose-500 flex items-center justify-center text-white font-black text-sm">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center text-white font-black text-sm">
                   ND
                 </div>
               )}
@@ -3814,12 +3814,12 @@ ${aspectStr}`;
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
               placeholder="Paste your Gemini API key here..."
-              className={`flex-1 w-full rounded-xl px-4 py-2.5 text-sm border focus:outline-none focus:ring-1 focus:ring-pink-400 ${t('bg-[#0a0c10] border-gray-700 text-white placeholder-gray-600', 'bg-white border-gray-200 text-gray-800')}`}
+              className={`flex-1 w-full rounded-xl px-4 py-2.5 text-sm border focus:outline-none focus:ring-1 focus:ring-sky-400 ${t('bg-[#0a0c10] border-gray-700 text-white placeholder-gray-600', 'bg-white border-gray-200 text-gray-800')}`}
             />
             <button
               onClick={() => handleSaveApiKey(apiKey)}
               disabled={!apiKey.trim()}
-              className="px-5 py-2.5 rounded-xl text-xs font-black bg-pink-500 text-white disabled:opacity-50 hover:bg-pink-600 transition-colors shrink-0"
+              className="px-5 py-2.5 rounded-xl text-xs font-black bg-sky-500 text-white disabled:opacity-50 hover:bg-sky-600 transition-colors shrink-0"
             >
               Save Key
             </button>
@@ -3831,9 +3831,9 @@ ${aspectStr}`;
           <div className={`mb-6 p-5 rounded-2xl border ${t('bg-[#11131a] border-gray-800', 'bg-gray-50 border-gray-200')}`}>
             <p className={`text-xs font-bold uppercase tracking-widest mb-3 ${t('text-gray-400', 'text-gray-500')}`}>📖 Cara Dapatkan Gemini API Key</p>
             <ol className={`text-sm space-y-2 list-decimal list-inside leading-relaxed ${t('text-gray-300', 'text-gray-600')}`}>
-              <li>Pergi ke <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" className="text-pink-400 underline hover:text-pink-300 font-bold">Google AI Studio → API Keys</a></li>
+              <li>Pergi ke <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" className="text-sky-400 underline hover:text-sky-300 font-bold">Google AI Studio → API Keys</a></li>
               <li>Log masuk dengan akaun Google anda.</li>
-              <li>Klik butang <span className="font-bold text-pink-400">"Create API Key"</span>.</li>
+              <li>Klik butang <span className="font-bold text-sky-400">"Create API Key"</span>.</li>
               <li>Pilih mana-mana Google Cloud project (atau buat baru jika tiada).</li>
               <li>Copy API key yang dipaparkan dan paste di ruangan atas. ☝️</li>
             </ol>
@@ -3854,7 +3854,7 @@ ${aspectStr}`;
                 ))}
               </select>
             </div>
-            <button onClick={() => setShowApiKeyInput(true)} className="text-[10px] text-gray-500 hover:text-pink-400 transition-colors uppercase tracking-widest font-bold">
+            <button onClick={() => setShowApiKeyInput(true)} className="text-[10px] text-gray-500 hover:text-sky-400 transition-colors uppercase tracking-widest font-bold">
               🔑 Change API Key
             </button>
           </div>
@@ -3872,7 +3872,7 @@ ${aspectStr}`;
                 <span className={textProvider === 'genfity' ? 'text-purple-400' : 'text-emerald-400'}>{textProvider === 'genfity' ? 'Genfity' : 'Gemini'}</span>
                 <span className={t('text-gray-600', 'text-gray-400')}>·</span>
                 <span className={t('text-gray-500', 'text-gray-400')}>Mode:</span>
-                <span className={generateMode === 'text_only' ? 'text-purple-400' : 'text-pink-400'}>{generateMode === 'text_only' ? 'Text Only' : 'Text + Img'}</span>
+                <span className={generateMode === 'text_only' ? 'text-purple-400' : 'text-sky-400'}>{generateMode === 'text_only' ? 'Text Only' : 'Text + Img'}</span>
               </div>
               <span className={`text-[10px] ${t('text-gray-500', 'text-gray-400')}`}>{showProviderPanel ? '▲' : '▼'}</span>
             </button>
@@ -3925,7 +3925,7 @@ ${aspectStr}`;
                   <div className={`flex rounded-xl p-1 border ${t('bg-[#0a0c10] border-gray-700', 'bg-white border-gray-200')}`}>
                     <button
                       onClick={() => handleGenerateModeChange('text_and_images')}
-                      className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${generateMode === 'text_and_images' ? 'bg-pink-500 text-white shadow-sm' : t('text-gray-400', 'text-gray-500')}`}
+                      className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${generateMode === 'text_and_images' ? 'bg-sky-500 text-white shadow-sm' : t('text-gray-400', 'text-gray-500')}`}
                     >
                       📝 + 🖼️ Text + Images
                     </button>
@@ -3949,7 +3949,7 @@ ${aspectStr}`;
           <div className="flex items-center">
             <button
               onClick={() => scrollTabs('left')}
-              className={`p-2 rounded-full mr-2 transition-all shrink-0 hover:bg-pink-500/10 ${t('text-pink-400 hover:text-pink-300', 'text-pink-500 hover:text-pink-600')}`}
+              className={`p-2 rounded-full mr-2 transition-all shrink-0 hover:bg-sky-500/10 ${t('text-sky-400 hover:text-sky-300', 'text-sky-500 hover:text-sky-600')}`}
             >
               <I name="ChevronLeft" className="w-5 h-5" />
             </button>
@@ -3977,7 +3977,7 @@ ${aspectStr}`;
                   key={tab.id}
                   data-active={activeTab === tab.id ? "true" : "false"}
                   onClick={() => handleTabChange(tab.id)}
-                  className={`flex-shrink-0 flex items-center justify-center gap-2 py-3 px-5 rounded-full font-bold text-xs transition-all whitespace-nowrap ${activeTab === tab.id ? 'bg-pink-500 text-white shadow-lg shadow-pink-500/20' : (t('text-gray-400 hover:text-white bg-transparent', 'text-gray-500 hover:text-gray-800 bg-transparent'))}`}
+                  className={`flex-shrink-0 flex items-center justify-center gap-2 py-3 px-5 rounded-full font-bold text-xs transition-all whitespace-nowrap ${activeTab === tab.id ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/20' : (t('text-gray-400 hover:text-white bg-transparent', 'text-gray-500 hover:text-gray-800 bg-transparent'))}`}
                 >
                   {tab.icon} <span className="hidden sm:inline">{tab.label}</span>
                 </button>
@@ -3986,7 +3986,7 @@ ${aspectStr}`;
 
             <button
               onClick={() => scrollTabs('right')}
-              className={`p-2 rounded-full ml-2 transition-all shrink-0 hover:bg-pink-500/10 ${t('text-pink-400 hover:text-pink-300', 'text-pink-500 hover:text-pink-600')}`}
+              className={`p-2 rounded-full ml-2 transition-all shrink-0 hover:bg-sky-500/10 ${t('text-sky-400 hover:text-sky-300', 'text-sky-500 hover:text-sky-600')}`}
             >
               <I name="ChevronRight" className="w-5 h-5" />
             </button>
@@ -3994,7 +3994,7 @@ ${aspectStr}`;
 
           <div className={`h-1.5 rounded-full mx-10 mt-3 relative overflow-hidden flex items-center ${t('bg-gray-800/60', 'bg-gray-200/60')}`}>
             <div
-              className="absolute h-full rounded-full bg-gradient-to-r from-pink-500 to-rose-400 transition-all duration-150"
+              className="absolute h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-400 transition-all duration-150"
               style={{
                 width: '25%',
                 left: `${scrollPercent * 0.75}%`
@@ -4849,7 +4849,7 @@ ${aspectStr}`;
                     { key: 'realSkin', label: 'Skin Pore Texture Details' }
                   ].map(rule => (
                     <label key={rule.key} className="flex items-center gap-2 cursor-pointer group" onClick={() => setFiRules(prev => ({ ...prev, [rule.key]: !prev[rule.key] }))}>
-                      <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all ${fiRules[rule.key] ? 'bg-pink-500 border-pink-500' : (t('bg-[#0a0c10] border-gray-700 group-hover:border-pink-500', 'bg-white border-gray-300 group-hover:border-pink-400'))}`}>
+                      <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all ${fiRules[rule.key] ? 'bg-sky-500 border-sky-500' : (t('bg-[#0a0c10] border-gray-700 group-hover:border-sky-500', 'bg-white border-gray-300 group-hover:border-sky-400'))}`}>
                          {fiRules[rule.key] && <I name="Check" size={12} className="text-white" />}
                       </div>
                       <span className="text-xs text-gray-400 select-none group-hover:text-gray-300">{rule.label}</span>
@@ -4886,15 +4886,15 @@ ${aspectStr}`;
                <h2 className={`text-4xl font-black tracking-wide mb-4 ${U.c14}`}>
                  {activeTab === 'character' ? 'Character Blueprint Reference' : activeTab === 'cinematic_pro' ? 'Cinematic Storyboard Details' : activeTab === 'microimpact' ? '10s Micro-Impact Suite' : activeTab === 'narrativearc' ? '30s Narrative Arc Pipeline' : activeTab === 'talkinghead' ? 'Talking Head Board Mapping' : activeTab === 'stopmotion' ? 'Stop Motion Frame Sequencing' : activeTab === 'grafix' ? 'Motion Graphics Deck' : 'Unified Workspace Canvas'}
                </h2>
-               <div className="w-16 h-1.5 bg-gradient-to-r from-pink-500 to-rose-400 mx-auto rounded-full"></div>
+               <div className="w-16 h-1.5 bg-gradient-to-r from-blue-500 to-cyan-400 mx-auto rounded-full"></div>
             </div>
 
             <div className="space-y-16">
               <div>
                 {isGeneratingImage && imageUrls.length === 0 ? (
-                  <div className={`w-full max-w-lg mx-auto border rounded-[3rem] p-10 flex flex-col items-center justify-center text-center aspect-[9/16] shadow-2xl ${t('bg-[#11131a] border-gray-800 shadow-black/50', 'bg-white border-pink-100')}`}>
-                     <div className="w-16 h-16 border-4 border-pink-100 border-t-pink-500 rounded-full animate-spin mb-6"></div>
-                     <p className="text-lg font-black text-pink-500 animate-pulse tracking-widest uppercase">{loadingText}</p>
+                  <div className={`w-full max-w-lg mx-auto border rounded-[3rem] p-10 flex flex-col items-center justify-center text-center aspect-[9/16] shadow-2xl ${t('bg-[#11131a] border-gray-800 shadow-black/50', 'bg-white border-sky-100')}`}>
+                     <div className="w-16 h-16 border-4 border-sky-100 border-t-pink-500 rounded-full animate-spin mb-6"></div>
+                     <p className="text-lg font-black text-sky-500 animate-pulse tracking-widest uppercase">{loadingText}</p>
                   </div>
                 ) : (
                   <div className={`grid grid-cols-1 ${imageUrls.length >= 6 ? 'md:grid-cols-3 max-w-6xl' : imageUrls.length === 3 ? 'md:grid-cols-3 max-w-6xl' : imageUrls.length > 1 ? 'md:grid-cols-2 max-w-4xl' : 'max-w-md'} mx-auto gap-6 lg:gap-10`}>
@@ -4917,7 +4917,7 @@ ${aspectStr}`;
                        return (
                       <div key={index} className="flex flex-col group animate-fade-in-up" style={{ animationDelay: `${index * 150}ms` }}>
                         <div className="flex gap-4 mb-6 px-2">
-                           <div className="w-12 h-12 shrink-0 rounded-full bg-gradient-to-br from-pink-500 to-rose-400 flex items-center justify-center text-white font-black text-lg shadow-lg">
+                           <div className="w-12 h-12 shrink-0 rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center text-white font-black text-lg shadow-lg">
                              0{index + 1}
                            </div>
                            <div className="flex items-center">
@@ -4938,7 +4938,7 @@ ${aspectStr}`;
                           >
                             {(regeneratingIndexes[index] || isMagicEditing[index]) && (
                                <div className="absolute inset-0 backdrop-blur-xl z-30 flex flex-col items-center justify-center text-center p-4 bg-black/80">
-                                   <I name="RefreshCw" className="animate-spin text-pink-500 mb-4" size={32} />
+                                   <I name="RefreshCw" className="animate-spin text-sky-500 mb-4" size={32} />
                                    <span className="text-[10px] text-white font-black tracking-widest mb-6 animate-pulse">
                                      {isMagicEditing[index] ? 'APPLYING MAGIC BOX ADJUSTMENTS...' : 'RE-SCHEDULING VISUAL GENERATION...'}
                                    </span>
@@ -4962,31 +4962,31 @@ ${aspectStr}`;
                               <button
                                 onClick={() => handleDownloadHD(url, index)}
                                 disabled={!url || regeneratingIndexes[index]}
-                                className={`flex-1 py-3.5 rounded-xl border text-[10px] font-black flex items-center justify-center gap-2 transition-all tracking-widest uppercase shadow-sm disabled:opacity-50 ${t('bg-[#11131a] border-gray-800 text-white hover:border-pink-500', 'bg-white border-gray-200 text-gray-700 hover:border-pink-400')}`}
+                                className={`flex-1 py-3.5 rounded-xl border text-[10px] font-black flex items-center justify-center gap-2 transition-all tracking-widest uppercase shadow-sm disabled:opacity-50 ${t('bg-[#11131a] border-gray-800 text-white hover:border-sky-500', 'bg-white border-gray-200 text-gray-700 hover:border-sky-400')}`}
                               >
-                                <I name="Download" size={14} className="text-pink-500" /> DOWNLOAD HD
+                                <I name="Download" size={14} className="text-sky-500" /> DOWNLOAD HD
                               </button>
                               <button
                                 onClick={() => regenerateSingleVisual(index)}
                                 disabled={!url || regeneratingIndexes[index]}
-                                className={`flex-1 py-3.5 rounded-xl border text-[10px] font-black flex items-center justify-center gap-2 transition-all tracking-widest uppercase shadow-sm disabled:opacity-50 ${t('bg-[#11131a] border-gray-800 text-white hover:border-rose-400', 'bg-white border-gray-200 text-gray-700 hover:border-rose-400')}`}
+                                className={`flex-1 py-3.5 rounded-xl border text-[10px] font-black flex items-center justify-center gap-2 transition-all tracking-widest uppercase shadow-sm disabled:opacity-50 ${t('bg-[#11131a] border-gray-800 text-white hover:border-cyan-400', 'bg-white border-gray-200 text-gray-700 hover:border-cyan-400')}`}
                               >
-                                <I name="RefreshCw" size={14} className={`${regeneratingIndexes[index] ? "animate-spin text-pink-500" : "text-gray-400"}`} /> ALTERNATIVE
+                                <I name="RefreshCw" size={14} className={`${regeneratingIndexes[index] ? "animate-spin text-sky-500" : "text-gray-400"}`} /> ALTERNATIVE
                               </button>
                             </div>
 
                             <button
                               onClick={() => toggleMagicBox(index)}
                               disabled={!url || regeneratingIndexes[index]}
-                              className={`w-full py-3.5 rounded-xl border text-[10px] font-black flex items-center justify-center gap-2 transition-all tracking-widest uppercase shadow-sm disabled:opacity-50 ${showMagicBox[index] ? (PINK_GRAD + ' border-transparent') : (t('bg-[#11131a] border-gray-800 text-pink-400 hover:border-pink-500', 'bg-pink-50 border-pink-200 text-pink-600'))}`}
+                              className={`w-full py-3.5 rounded-xl border text-[10px] font-black flex items-center justify-center gap-2 transition-all tracking-widest uppercase shadow-sm disabled:opacity-50 ${showMagicBox[index] ? (PINK_GRAD + ' border-transparent') : (t('bg-[#11131a] border-gray-800 text-sky-400 hover:border-sky-500', 'bg-sky-50 border-sky-200 text-sky-600'))}`}
                             >
-                              <I name="Wand2" size={14} className={showMagicBox[index] ? "text-white" : "text-pink-500"} />
+                              <I name="Wand2" size={14} className={showMagicBox[index] ? "text-white" : "text-sky-500"} />
                               {showMagicBox[index] ? 'CLOSE MAGIC BOX' : 'MAGIC BOX TUNER 🪄'}
                             </button>
 
                             {showMagicBox[index] && (
-                               <div className={`mt-2 p-4 rounded-xl border shadow-inner animate-fade-in ${t('bg-[#0a0c10] border-pink-500/30', 'bg-pink-50/50 border-pink-200')}`}>
-                                  <label className={`block text-[9px] font-bold mb-2 uppercase tracking-widest ${t('text-pink-400', 'text-pink-500')}`}>
+                               <div className={`mt-2 p-4 rounded-xl border shadow-inner animate-fade-in ${t('bg-[#0a0c10] border-sky-500/30', 'bg-sky-50/50 border-sky-200')}`}>
+                                  <label className={`block text-[9px] font-bold mb-2 uppercase tracking-widest ${t('text-sky-400', 'text-sky-500')}`}>
                                     Fine-Tune Visual Architecture
                                   </label>
                                   <textarea
@@ -4994,7 +4994,7 @@ ${aspectStr}`;
                                     onChange={(e) => setMagicPrompts({ ...magicPrompts, [index]: e.target.value })}
                                     placeholder="e.g., Swap outfit color to elegant white, apply heavy cinematic shadow details..."
                                     rows={2}
-                                    className={`w-full rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-pink-400 transition-all border resize-none ${t('bg-[#11131a] border-gray-700 text-white placeholder-gray-600', 'bg-white border-pink-100 text-gray-800')}`}
+                                    className={`w-full rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-sky-400 transition-all border resize-none ${t('bg-[#11131a] border-gray-700 text-white placeholder-gray-600', 'bg-white border-sky-100 text-gray-800')}`}
                                     style={isDarkMode ? { backgroundColor: '#11131a', color: '#ffffff', borderColor: '#374151' } : {}}
                                   />
                                   <button
@@ -5137,14 +5137,14 @@ ${aspectStr}`;
                                 {(currentDialogueVal || isDialogueEditing) && (
                                   <div>
                                     <div className="flex items-center justify-between mb-1.5">
-                                      <span className="text-[9px] font-bold uppercase tracking-widest text-pink-400">🎤 Dialog / VO (Segment)</span>
+                                      <span className="text-[9px] font-bold uppercase tracking-widest text-sky-400">🎤 Dialog / VO (Segment)</span>
                                       <div className="flex gap-1.5">
                                         {isDialogueEditing ? (
                                           <button onClick={() => saveBoxValue(segDialogueKey)} className={U.c9}>Save</button>
                                         ) : (
-                                          <button onClick={() => toggleEditBoxMode(segDialogueKey)} className="px-2 py-0.5 rounded text-[10px] bg-pink-900/40 text-pink-400 font-bold hover:bg-pink-900/60">Edit</button>
+                                          <button onClick={() => toggleEditBoxMode(segDialogueKey)} className="px-2 py-0.5 rounded text-[10px] bg-sky-900/40 text-sky-400 font-bold hover:bg-sky-900/60">Edit</button>
                                         )}
-                                        <button onClick={() => copyToClipboard(currentDialogueVal, `flow_seg_dlg_${i}`)} className={`px-2 py-0.5 rounded text-[10px] font-bold ${copiedSection === `flow_seg_dlg_${i}` ? 'bg-green-500 text-white' : 'bg-pink-900/40 text-pink-400'}`}>
+                                        <button onClick={() => copyToClipboard(currentDialogueVal, `flow_seg_dlg_${i}`)} className={`px-2 py-0.5 rounded text-[10px] font-bold ${copiedSection === `flow_seg_dlg_${i}` ? 'bg-green-500 text-white' : 'bg-sky-900/40 text-sky-400'}`}>
                                           {copiedSection === `flow_seg_dlg_${i}` ? '✅' : '📋'}
                                         </button>
                                       </div>
@@ -5154,10 +5154,10 @@ ${aspectStr}`;
                                         value={currentDialogueVal}
                                         onChange={(e) => handleBoxValueChange(segDialogueKey, e.target.value)}
                                         rows={3}
-                                        className="w-full rounded-lg px-3 py-2 text-[11px] font-mono resize-none focus:outline-none focus:ring-1 focus:ring-pink-400 border bg-pink-950/20 border-pink-900/30 text-pink-200"
+                                        className="w-full rounded-lg px-3 py-2 text-[11px] font-mono resize-none focus:outline-none focus:ring-1 focus:ring-sky-400 border bg-sky-950/20 border-pink-900/30 text-pink-200"
                                       />
                                     ) : (
-                                      <div className="whitespace-pre-wrap text-[11px] font-medium leading-relaxed italic text-pink-300 bg-pink-950/20 border border-pink-900/30 rounded-lg p-3">
+                                      <div className="whitespace-pre-wrap text-[11px] font-medium leading-relaxed italic text-sky-300 bg-sky-950/20 border border-pink-900/30 rounded-lg p-3">
                                         {currentDialogueVal || '(No dialogue for this segment)'}
                                       </div>
                                     )}
@@ -5175,12 +5175,12 @@ ${aspectStr}`;
 
               {generatedOutput && (
                 <div className={`rounded-3xl p-8 sm:p-12 relative overflow-hidden shadow-xl border transition-all duration-300 ${t('bg-[#11131a] border-gray-800', 'bg-white border-pink-50')}`}>
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-pink-500 rounded-full blur-[100px] opacity-10 pointer-events-none"></div>
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-sky-500 rounded-full blur-[100px] opacity-10 pointer-events-none"></div>
 
                   <div className={`flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 gap-4 border-b pb-6 relative z-10 ${U.c15}`}>
                     <div>
                       <h3 className={`text-2xl font-black flex items-center gap-3 ${U.c14}`}>
-                        {activeTab === 'fake_influencer' ? <I name="UserPlus" className="text-pink-500" size={28} /> : (activeTab === 'character') ? <I name="Camera" className="text-pink-500" size={28} /> : <I name="Video" className="text-pink-500" size={28} />}
+                        {activeTab === 'fake_influencer' ? <I name="UserPlus" className="text-sky-500" size={28} /> : (activeTab === 'character') ? <I name="Camera" className="text-sky-500" size={28} /> : <I name="Video" className="text-sky-500" size={28} />}
                         {['fake_influencer'].includes(activeTab) ? "Synthetic Persona Vault" : activeTab === 'character' ? "Identity Blueprint Matrix" : "Sequence & Script Console"}
                       </h3>
                       <p className="text-xs mt-2 tracking-widest uppercase text-gray-400">
@@ -5222,7 +5222,7 @@ ${aspectStr}`;
                             return (
                               <div key={idx} className="border rounded-2xl p-5 shadow-sm relative transition-all duration-300 bg-gray-800/20 border-gray-700 animate-fade-in-up">
                                 <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-700/50">
-                                  <h3 className="font-bold text-sm flex items-center gap-2 uppercase tracking-wider text-pink-400">
+                                  <h3 className="font-bold text-sm flex items-center gap-2 uppercase tracking-wider text-sky-400">
                                     <I name="Video" size={16} /> Scene 0{scene.sceneNumber} ({scene.timecode})
                                   </h3>
                                 </div>
@@ -5246,7 +5246,7 @@ ${aspectStr}`;
                                           value={visualVal}
                                           onChange={(e) => handleBoxValueChange(`ugc_scene_${idx}_visual`, e.target.value)}
                                           rows={4}
-                                          className={`w-full rounded-xl p-3 font-mono text-[13px] border focus:outline-none focus:ring-1 focus:ring-pink-400 ${C.p2(isDarkMode)}`}
+                                          className={`w-full rounded-xl p-3 font-mono text-[13px] border focus:outline-none focus:ring-1 focus:ring-sky-400 ${C.p2(isDarkMode)}`}
                                         />
                                       </div>
                                     ) : (
@@ -5258,7 +5258,7 @@ ${aspectStr}`;
 
                                   <div className="space-y-1">
                                     <div className={U.c12}>
-                                      <span className="text-[10px] text-pink-400 font-bold uppercase tracking-widest">Skrip Penyampaian / Voiceover (Malay):</span>
+                                      <span className="text-[10px] text-sky-400 font-bold uppercase tracking-widest">Skrip Penyampaian / Voiceover (Malay):</span>
                                       <div className="flex gap-1.5">
                                         {isDialogueEditing ? (
                                           <button onClick={() => saveBoxValue(`ugc_scene_${idx}_dialogue`)} className={U.c9}>Save</button>
@@ -5274,10 +5274,10 @@ ${aspectStr}`;
                                         value={dialogueVal}
                                         onChange={(e) => handleBoxValueChange(`ugc_scene_${idx}_dialogue`, e.target.value)}
                                         rows={3}
-                                        className={`w-full rounded-xl p-3 font-mono text-[13px] border focus:outline-none focus:ring-1 focus:ring-pink-400 ${C.p2(isDarkMode)}`}
+                                        className={`w-full rounded-xl p-3 font-mono text-[13px] border focus:outline-none focus:ring-1 focus:ring-sky-400 ${C.p2(isDarkMode)}`}
                                       />
                                     ) : (
-                                      <div className={`whitespace-pre-wrap leading-relaxed font-sans text-sm p-4 rounded-xl border min-h-[50px] ${isDarkMode ? 'text-gray-200 bg-pink-950/20 border-pink-900/30' : 'text-gray-700 bg-pink-50 border-pink-200'}`}>
+                                      <div className={`whitespace-pre-wrap leading-relaxed font-sans text-sm p-4 rounded-xl border min-h-[50px] ${isDarkMode ? 'text-gray-200 bg-sky-950/20 border-pink-900/30' : 'text-gray-700 bg-sky-50 border-sky-200'}`}>
                                         {dialogueVal}
                                       </div>
                                     )}
@@ -5298,7 +5298,7 @@ ${aspectStr}`;
                             return (
                             <div key={idx} className="border rounded-2xl p-5 shadow-sm relative transition-all duration-300 bg-gray-800/20 border-gray-700">
                               <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-700/50">
-                                <h3 className="font-bold text-sm flex items-center gap-2 uppercase tracking-wider text-pink-400">
+                                <h3 className="font-bold text-sm flex items-center gap-2 uppercase tracking-wider text-sky-400">
                                   <I name="Video" size={16} /> Adegan Visual 0{scene.sceneNumber}
                                 </h3>
                               </div>
@@ -5322,7 +5322,7 @@ ${aspectStr}`;
                                         value={visualVal}
                                         onChange={(e) => handleBoxValueChange(`ootd_scene_${idx}_visual`, e.target.value)}
                                         rows={4}
-                                        className={`w-full rounded-xl p-3 font-mono text-[13px] border focus:outline-none focus:ring-1 focus:ring-pink-400 ${C.p2(isDarkMode)}`}
+                                        className={`w-full rounded-xl p-3 font-mono text-[13px] border focus:outline-none focus:ring-1 focus:ring-sky-400 ${C.p2(isDarkMode)}`}
                                       />
                                     </div>
                                   ) : (
@@ -5335,7 +5335,7 @@ ${aspectStr}`;
                                 {!scene.isMute && (
                                   <div className="space-y-1">
                                     <div className={U.c12}>
-                                      <span className="text-[10px] text-pink-400 font-bold uppercase tracking-widest">Skrip Penyampaian (Bahasa Melayu):</span>
+                                      <span className="text-[10px] text-sky-400 font-bold uppercase tracking-widest">Skrip Penyampaian (Bahasa Melayu):</span>
                                       <div className="flex gap-1.5">
                                         {isDialogueEditing ? (
                                           <button onClick={() => saveBoxValue(`ootd_scene_${idx}_dialogue`)} className={U.c9}>Save</button>
@@ -5351,10 +5351,10 @@ ${aspectStr}`;
                                         value={dialogueVal}
                                         onChange={(e) => handleBoxValueChange(`ootd_scene_${idx}_dialogue`, e.target.value)}
                                         rows={3}
-                                        className={`w-full rounded-xl p-3 font-mono text-[13px] border focus:outline-none focus:ring-1 focus:ring-pink-400 ${C.p2(isDarkMode)}`}
+                                        className={`w-full rounded-xl p-3 font-mono text-[13px] border focus:outline-none focus:ring-1 focus:ring-sky-400 ${C.p2(isDarkMode)}`}
                                       />
                                     ) : (
-                                      <div className={`whitespace-pre-wrap leading-relaxed font-sans text-sm p-4 rounded-xl border min-h-[60px] ${isDarkMode ? 'text-gray-200 bg-pink-950/20 border-pink-900/30' : 'text-gray-700 bg-pink-50 border-pink-200'}`}>
+                                      <div className={`whitespace-pre-wrap leading-relaxed font-sans text-sm p-4 rounded-xl border min-h-[60px] ${isDarkMode ? 'text-gray-200 bg-sky-950/20 border-pink-900/30' : 'text-gray-700 bg-sky-50 border-sky-200'}`}>
                                         {dialogueVal}
                                       </div>
                                     )}
@@ -5390,7 +5390,7 @@ ${aspectStr}`;
                           className={`flex items-center justify-center gap-2 border py-4 rounded-2xl text-[10px] font-black transition-all shadow-sm group relative overflow-hidden uppercase tracking-widest ${
                             copiedSection === 'copyPromptOnly'
                             ? 'bg-green-100 text-green-600 border-green-200 opacity-100'
-                            : (t('bg-[#0a0c10] border-gray-800 text-white hover:border-pink-500', 'bg-white border-gray-200 text-gray-800 hover:border-pink-400'))
+                            : (t('bg-[#0a0c10] border-gray-800 text-white hover:border-sky-500', 'bg-white border-gray-200 text-gray-800 hover:border-sky-400'))
                           }`}
                         >
                           {copiedSection === 'copyPromptOnly' ? <I name="Check" size={16} /> : <I name="Copy" size={16} />}
@@ -5442,7 +5442,7 @@ ${aspectStr}`;
                           className={`flex items-center justify-center gap-2 border py-4 rounded-2xl text-[10px] font-black transition-all shadow-sm group relative overflow-hidden uppercase tracking-widest ${
                             copiedSection === 'copyPromptJson'
                             ? 'bg-green-100 text-green-600 border-green-200 opacity-100'
-                            : (t('bg-[#0a0c10] border-gray-800 text-white hover:border-pink-500', 'bg-white border-gray-200 text-gray-800 hover:border-pink-400'))
+                            : (t('bg-[#0a0c10] border-gray-800 text-white hover:border-sky-500', 'bg-white border-gray-200 text-gray-800 hover:border-sky-400'))
                           }`}
                         >
                           {copiedSection === 'copyPromptJson' ? <I name="Check" size={16} /> : <I name="Code" size={16} />}
@@ -5468,8 +5468,8 @@ ${aspectStr}`;
       <footer className={`max-w-7xl mx-auto px-5 sm:px-8 mt-10 pt-10 pb-12 border-t text-center relative z-10 transition-colors duration-300 ${t('border-gray-800', 'border-gray-200')}`}>
         <p className="text-sm font-medium mb-4 tracking-wide text-gray-500">© 2026 Storyboard Studio Architecture.</p>
         <div className="flex items-center justify-center gap-6">
-          <button onClick={() => setIsAboutOpen(true)} className="text-sm font-medium text-gray-500 hover:text-pink-500 transition-colors duration-200">View Ecosystem Documentation</button>
-          <button onClick={() => setIsHelpOpen(true)} className="text-sm font-medium text-gray-500 hover:text-pink-500 transition-colors duration-200">Terminal Access Guideline</button>
+          <button onClick={() => setIsAboutOpen(true)} className="text-sm font-medium text-gray-500 hover:text-sky-500 transition-colors duration-200">View Ecosystem Documentation</button>
+          <button onClick={() => setIsHelpOpen(true)} className="text-sm font-medium text-gray-500 hover:text-sky-500 transition-colors duration-200">Terminal Access Guideline</button>
         </div>
       </footer>
 
@@ -5479,7 +5479,7 @@ ${aspectStr}`;
             <button onClick={() => setIsAboutOpen(false)} className={`absolute top-5 right-5 p-2 rounded-full transition-colors z-10 ${t('bg-gray-800 hover:bg-gray-700 text-gray-400', 'bg-gray-50 hover:bg-gray-100')}`}>
               <I name="X" size={20} />
             </button>
-            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 ${t('bg-pink-900/30 text-pink-400', 'bg-pink-50')}`}>
+            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 ${t('bg-sky-900/30 text-sky-400', 'bg-sky-50')}`}>
               <I name="Sparkles" size={28} />
             </div>
             <h2 className={`text-2xl font-black mb-4 ${U.c14}`}>System Engineering Data</h2>
@@ -5497,7 +5497,7 @@ ${aspectStr}`;
               <I name="X" size={20} />
             </button>
             <div className={`flex items-center gap-4 mb-8 border-b pb-5 ${U.c15}`}>
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-pink-900/30 text-pink-400">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-sky-900/30 text-sky-400">
                 <I name="HelpCircle" size={24} />
               </div>
               <h2 className={`text-2xl font-black tracking-wide ${U.c14}`}>System Core Operating Manual</h2>
@@ -5535,7 +5535,7 @@ ${aspectStr}`;
             <div className="mt-8 pt-4 border-t border-gray-800 flex justify-end">
               <button
                 onClick={() => setIsHelpOpen(false)}
-                className="py-2.5 px-6 rounded-xl bg-pink-500 text-white font-bold text-xs"
+                className="py-2.5 px-6 rounded-xl bg-sky-500 text-white font-bold text-xs"
               >
                 Acknowledge Parameters
               </button>
