@@ -1444,8 +1444,8 @@ Be visual and specific. English only.`
 
     let targetScroll = container.scrollLeft;
     let animating = false;
-    const SPEED = 2.2; // multiplier for faster scroll
-    const EASE = 0.18; // smoothing factor (higher = snappier)
+    const SPEED = 5.0; // multiplier for faster scroll
+    const EASE = 0.28; // smoothing factor (higher = snappier)
 
     const animate = () => {
       const current = container.scrollLeft;
