@@ -1272,7 +1272,7 @@ export default function App() {
   const [characterName, setCharacterName] = useState('');
   const [characterDescription, setCharacterDescription] = useState('A warm professional portrait style, modern smart outfit, beautiful facial symmetric features.');
   const [charShotType, setCharShotType] = useState('Half Body (Portrait)');
-  const [charSubjectType, setCharSubjectType] = useState('HUMAN_CHARACTER');
+  const [charSubjectType, setCharSubjectType] = useState('AUTO_DETECT');
 
   const [fiName, setFiName] = useState('');
   const [fiGender, setFiGender] = useState('Female');
@@ -2919,9 +2919,10 @@ CAMERA SYSTEM: Ultra-stable static tripod shot.`;
         return;
       }
       else if (activeTab === 'character') {
-        const charGenderLabel = gender === 'Wanita' || gender === 'Female' ? 'female' : 'male';
-        const hijabModifier = ((gender === 'Wanita' || gender === 'Female') && hijabMode === 'Hijab') ? 'wearing a stylish simple modern hijab, ' : 'stylish hair style, ';
         const subjectType = charSubjectType || 'HUMAN_CHARACTER';
+        const isHumanType = subjectType === 'HUMAN_CHARACTER' || subjectType === 'MASCOT_CHARACTER';
+        const charGenderLabel = isHumanType ? (gender === 'Wanita' || gender === 'Female' ? 'female' : 'male') : '';
+        const hijabModifier = isHumanType ? (((gender === 'Wanita' || gender === 'Female') && hijabMode === 'Hijab') ? 'wearing a stylish simple modern hijab, ' : 'stylish hair style, ') : '';
         setLoadingText('Engineering Character Sheet Blueprint...');
 
         promptInputForAI = buildSheetPrompt(
