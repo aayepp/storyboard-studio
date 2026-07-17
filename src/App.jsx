@@ -1438,6 +1438,7 @@ Be visual and specific. English only.`
   };
 
   useEffect(() => {
+    if (!hasAgreed) return;
     const container = tabsContainerRef.current;
     if (!container) return;
 
@@ -1452,7 +1453,7 @@ Be visual and specific. English only.`
 
     container.addEventListener('wheel', handleWheel, { passive: false });
     return () => container.removeEventListener('wheel', handleWheel);
-  }, []);
+  }, [hasAgreed]);
 
   useEffect(() => {
     if (tabsContainerRef.current) {
