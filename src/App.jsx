@@ -1438,45 +1438,6 @@ Be visual and specific. English only.`
   };
 
   useEffect(() => {
-    if (!hasAgreed) return;
-    const container = tabsContainerRef.current;
-    if (!container) return;
-
-    let targetScroll = container.scrollLeft;
-    let animating = false;
-    const SPEED = 5.0; // multiplier for faster scroll
-    const EASE = 0.28; // smoothing factor (higher = snappier)
-
-    const animate = () => {
-      const current = container.scrollLeft;
-      const diff = targetScroll - current;
-      if (Math.abs(diff) < 0.5) {
-        container.scrollLeft = targetScroll;
-        animating = false;
-        return;
-      }
-      container.scrollLeft = current + diff * EASE;
-      requestAnimationFrame(animate);
-    };
-
-    const handleWheel = (e) => {
-      const delta = e.deltaY !== 0 ? e.deltaY : e.deltaX;
-      if (delta === 0) return;
-      e.preventDefault();
-      e.stopPropagation();
-      const maxScroll = container.scrollWidth - container.clientWidth;
-      targetScroll = Math.max(0, Math.min(maxScroll, targetScroll + delta * SPEED));
-      if (!animating) {
-        animating = true;
-        requestAnimationFrame(animate);
-      }
-    };
-
-    container.addEventListener('wheel', handleWheel, { passive: false });
-    return () => container.removeEventListener('wheel', handleWheel);
-  }, [hasAgreed]);
-
-  useEffect(() => {
     if (tabsContainerRef.current) {
       const activeBtn = tabsContainerRef.current.querySelector('[data-active="true"]');
       if (activeBtn) {
