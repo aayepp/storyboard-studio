@@ -1446,10 +1446,7 @@ Be visual and specific. English only.`
       if (delta !== 0) {
         e.preventDefault();
         e.stopPropagation();
-        container.scrollBy({
-          left: delta,
-          behavior: 'smooth'
-        });
+        container.scrollLeft += delta;
       }
     };
 
