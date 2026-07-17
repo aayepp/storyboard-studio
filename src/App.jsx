@@ -1848,6 +1848,8 @@ Be visual and specific. English only.`
     setZoomedImages(prev => ({ ...prev, [index]: !prev[index] }));
   };
 
+  const [fullscreenImage, setFullscreenImage] = useState(null);
+
   const toggleMagicBox = (index) => {
     setShowMagicBox(prev => ({ ...prev, [index]: !prev[index] }));
   };
@@ -4696,7 +4698,7 @@ ${aspectStr}`;
 
                           <div
                             className={`relative w-full ${containerAspectClass} bg-black overflow-hidden cursor-zoom-in`}
-                            onClick={() => toggleImageZoom(index)}
+                            onClick={() => setFullscreenImage(url)}
                           >
                             {(regeneratingIndexes[index] || isMagicEditing[index]) && (
                                <div className="absolute inset-0 backdrop-blur-xl z-30 flex flex-col items-center justify-center text-center p-4 bg-black/80">
@@ -5303,6 +5305,28 @@ ${aspectStr}`;
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Fullscreen Image Lightbox */}
+      {fullscreenImage && (
+        <div
+          className="fixed inset-0 z-[70] bg-black/90 backdrop-blur-sm flex items-start justify-center overflow-auto animate-fade-in"
+          onClick={() => setFullscreenImage(null)}
+        >
+          <button
+            onClick={() => setFullscreenImage(null)}
+            className="fixed top-5 right-5 z-[80] w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors border border-white/20"
+          >
+            <I name="X" size={20} />
+          </button>
+          <img
+            src={fullscreenImage}
+            alt="Fullscreen preview"
+            className="max-w-[95vw] w-auto my-6 rounded-xl shadow-2xl"
+            style={{ maxHeight: 'none' }}
+            onClick={(e) => e.stopPropagation()}
+          />
         </div>
       )}
 
