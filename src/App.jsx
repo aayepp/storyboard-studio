@@ -2931,6 +2931,12 @@ CAMERA SYSTEM: Ultra-stable static tripod shot.`;
         const hijabModifier = isHumanType ? (((gender === 'Wanita' || gender === 'Female') && hijabMode === 'Hijab') ? 'wearing a stylish simple modern hijab, ' : 'stylish hair style, ') : '';
         setLoadingText('Engineering Character Sheet Blueprint...');
 
+        // If no reference image uploaded, add real-world product knowledge instruction
+        const hasUploadedRef = activeProducts.length > 0 || (activeUploadData.useCustomFace && activeUploadData.uploadedFaceBase64);
+        const realWorldKnowledgeLock = (!hasUploadedRef && characterName.trim())
+          ? `\n\n[REAL-WORLD PRODUCT KNOWLEDGE LOCK]: No reference image was uploaded. You MUST use your training knowledge of the REAL "${characterName.trim()}" to generate an accurate character sheet. Research your knowledge base for the exact real-world appearance of "${characterName.trim()}" — correct colors, shape, proportions, buttons, ports, logos, materials, and design language. Generate the sheet as if you are looking at the real product/subject. Do NOT invent a generic or fictional version. Accuracy to the REAL product is mandatory.`
+          : '';
+
         promptInputForAI = buildSheetPrompt(
           subjectType,
           characterName.trim() || 'Subjek',
@@ -2938,7 +2944,7 @@ CAMERA SYSTEM: Ultra-stable static tripod shot.`;
           hijabModifier,
           characterDescription,
           charShotType,
-          cleanImageInstruction
+          cleanImageInstruction + realWorldKnowledgeLock
         );
 
         result.videoPrompt = promptInputForAI;
