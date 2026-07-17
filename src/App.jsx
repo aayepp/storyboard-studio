@@ -3511,6 +3511,21 @@ ${aspectStr}`;
             </button>
           </div>
         )}
+
+        {/* Arahan cara dapatkan Gemini API Key */}
+        {(showApiKeyInput || !apiKey) && (
+          <div className={`mb-6 p-5 rounded-2xl border ${t('bg-[#11131a] border-gray-800', 'bg-gray-50 border-gray-200')}`}>
+            <p className={`text-xs font-bold uppercase tracking-widest mb-3 ${t('text-gray-400', 'text-gray-500')}`}>📖 Cara Dapatkan Gemini API Key</p>
+            <ol className={`text-sm space-y-2 list-decimal list-inside leading-relaxed ${t('text-gray-300', 'text-gray-600')}`}>
+              <li>Pergi ke <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" className="text-pink-400 underline hover:text-pink-300 font-bold">Google AI Studio → API Keys</a></li>
+              <li>Log masuk dengan akaun Google anda.</li>
+              <li>Klik butang <span className="font-bold text-pink-400">"Create API Key"</span>.</li>
+              <li>Pilih mana-mana Google Cloud project (atau buat baru jika tiada).</li>
+              <li>Copy API key yang dipaparkan dan paste di ruangan atas. ☝️</li>
+            </ol>
+            <p className={`text-[11px] mt-3 ${t('text-gray-500', 'text-gray-400')}`}>💡 API key ini percuma (free tier). Pastikan jangan kongsi key anda dengan orang lain.</p>
+          </div>
+        )}
         {apiKey && !showApiKeyInput && (
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
