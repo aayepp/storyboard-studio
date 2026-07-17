@@ -1184,6 +1184,7 @@ export default function App() {
   const [selectedModel, setSelectedModel] = useState(getStoredModel);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
 
   const handleSaveApiKey = (key) => {
     setApiKey(key);
@@ -1872,7 +1873,14 @@ Be visual and specific. English only.`
         setTimeout(() => setErrorMessage(''), 6000);
       }
     } finally {
-      if (!mainAbortController.current?.signal.aborted) setIsGeneratingImage(false);
+      if (!mainAbortController.current?.signal.aborted) {
+        setIsGeneratingImage(false);
+        // Show success popup if images were generated
+        if (imageUrls.length > 0 || results?.some(r => r)) {
+          setShowSuccessPopup(true);
+          setTimeout(() => setShowSuccessPopup(false), 3500);
+        }
+      }
       mainAbortController.current = null;
     }
   };
@@ -5158,6 +5166,24 @@ ${aspectStr}`;
                 Acknowledge Parameters
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Popup */}
+      {showSuccessPopup && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] animate-fade-in-down">
+          <div className="flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl border bg-gradient-to-r from-emerald-500 to-green-500 border-emerald-400/50 text-white">
+            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+              <I name="CheckCircle" size={22} />
+            </div>
+            <div>
+              <p className="font-black text-sm tracking-wide">Generation Complete!</p>
+              <p className="text-[11px] opacity-90 mt-0.5">Storyboard & visuals berjaya dihasilkan.</p>
+            </div>
+            <button onClick={() => setShowSuccessPopup(false)} className="ml-4 p-1 rounded-full hover:bg-white/20 transition-colors">
+              <I name="X" size={14} />
+            </button>
           </div>
         </div>
       )}
