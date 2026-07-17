@@ -3431,9 +3431,27 @@ ${aspectStr}`;
             )}
           </div>
         ) : (
-          <p className={`whitespace-pre-wrap leading-relaxed font-mono text-[13px] ${U.c16}`}>
-            {value}
-          </p>
+          <div>
+            <p className={`whitespace-pre-wrap leading-relaxed font-mono text-[13px] ${U.c16} ${String(value || '').length > 300 && !editModes[`${sectionId}_expanded`] ? 'max-h-[120px] overflow-hidden relative' : ''}`}>
+              {value}
+            </p>
+            {String(value || '').length > 300 && !editModes[`${sectionId}_expanded`] && (
+              <button
+                onClick={() => setEditModes(prev => ({ ...prev, [`${sectionId}_expanded`]: true }))}
+                className={`mt-2 text-[10px] font-bold uppercase tracking-widest ${t('text-pink-400 hover:text-pink-300', 'text-pink-500 hover:text-pink-600')} transition-colors`}
+              >
+                ▼ Show Full Prompt
+              </button>
+            )}
+            {String(value || '').length > 300 && editModes[`${sectionId}_expanded`] && (
+              <button
+                onClick={() => setEditModes(prev => ({ ...prev, [`${sectionId}_expanded`]: false }))}
+                className={`mt-2 text-[10px] font-bold uppercase tracking-widest ${t('text-gray-500 hover:text-gray-400', 'text-gray-400 hover:text-gray-500')} transition-colors`}
+              >
+                ▲ Collapse
+              </button>
+            )}
+          </div>
         )}
       </div>
     );
