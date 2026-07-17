@@ -1392,6 +1392,7 @@ export default function App() {
   const [generateMode, setGenerateMode] = useState(getStoredGenerateMode);
   const [genfityModel, setGenfityModel] = useState(getStoredGenfityModel);
   const [showApiKeyInput, setShowApiKeyInput] = useState(!getStoredApiKey());
+  const [showProviderPanel, setShowProviderPanel] = useState(false);
   const [selectedModel, setSelectedModel] = useState(getStoredModel);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
@@ -3860,69 +3861,87 @@ ${aspectStr}`;
         )}
 
         {apiKey && !showApiKeyInput && (
-          <div className={`mb-4 p-4 rounded-2xl border ${t('bg-[#11131a] border-gray-800', 'bg-gray-50 border-gray-200')}`}>
-            <div className="flex flex-wrap items-center gap-3 mb-3">
-              <span className={`text-[10px] font-bold uppercase tracking-widest ${t('text-gray-500', 'text-gray-400')}`}>📝 Text Provider:</span>
-              <select
-                value={textProvider}
-                onChange={(e) => handleTextProviderChange(e.target.value)}
-                className={`rounded-lg px-3 py-1.5 text-xs font-bold border appearance-none cursor-pointer transition-colors ${t('bg-[#0a0c10] border-gray-700 text-white', 'bg-white border-gray-200 text-gray-800')}`}
-              >
-                <option value="gemini" style={isDarkMode ? { backgroundColor: '#0a0c10', color: '#fff' } : {}}>Gemini (Direct)</option>
-                <option value="genfity" style={isDarkMode ? { backgroundColor: '#0a0c10', color: '#fff' } : {}}>Genfity Gateway</option>
-              </select>
-
-              {textProvider === 'genfity' && (
-                <>
-                  <span className={`text-[10px] font-bold uppercase tracking-widest ${t('text-gray-500', 'text-gray-400')}`}>Model:</span>
+          <div className={`mb-4 rounded-2xl border overflow-hidden ${t('bg-[#11131a] border-gray-800', 'bg-gray-50 border-gray-200')}`}>
+            <button
+              onClick={() => setShowProviderPanel(!showProviderPanel)}
+              className={`w-full px-4 py-3 flex items-center justify-between text-left ${t('hover:bg-gray-800/50', 'hover:bg-gray-100')} transition-colors`}
+            >
+              <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest">
+                <span>⚙️</span>
+                <span className={t('text-gray-500', 'text-gray-400')}>Provider:</span>
+                <span className={textProvider === 'genfity' ? 'text-purple-400' : 'text-emerald-400'}>{textProvider === 'genfity' ? 'Genfity' : 'Gemini'}</span>
+                <span className={t('text-gray-600', 'text-gray-400')}>·</span>
+                <span className={t('text-gray-500', 'text-gray-400')}>Mode:</span>
+                <span className={generateMode === 'text_only' ? 'text-purple-400' : 'text-pink-400'}>{generateMode === 'text_only' ? 'Text Only' : 'Text + Img'}</span>
+              </div>
+              <span className={`text-[10px] ${t('text-gray-500', 'text-gray-400')}`}>{showProviderPanel ? '▲' : '▼'}</span>
+            </button>
+            {showProviderPanel && (
+              <div className="px-4 pb-4 pt-2 border-t border-gray-800/50 space-y-3">
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className={`text-[10px] font-bold uppercase tracking-widest ${t('text-gray-500', 'text-gray-400')}`}>📝 Text Provider:</span>
                   <select
-                    value={genfityModel}
-                    onChange={(e) => handleGenfityModelChange(e.target.value)}
+                    value={textProvider}
+                    onChange={(e) => handleTextProviderChange(e.target.value)}
                     className={`rounded-lg px-3 py-1.5 text-xs font-bold border appearance-none cursor-pointer transition-colors ${t('bg-[#0a0c10] border-gray-700 text-white', 'bg-white border-gray-200 text-gray-800')}`}
                   >
-                    {GENFITY_MODELS.map((m) => (
-                      <option key={m.v} value={m.v} style={isDarkMode ? { backgroundColor: '#0a0c10', color: '#fff' } : {}}>{m.l}</option>
-                    ))}
+                    <option value="gemini" style={isDarkMode ? { backgroundColor: '#0a0c10', color: '#fff' } : {}}>Gemini (Direct)</option>
+                    <option value="genfity" style={isDarkMode ? { backgroundColor: '#0a0c10', color: '#fff' } : {}}>Genfity Gateway</option>
                   </select>
-                </>
-              )}
-            </div>
 
-            {textProvider === 'genfity' && (
-              <div className="flex items-center gap-2 mb-3">
-                <span className={`text-[10px] font-bold uppercase tracking-widest shrink-0 ${t('text-purple-400', 'text-purple-600')}`}>🔑 Genfity Key:</span>
-                <input
-                  type="password"
-                  value={genfityKey}
-                  onChange={(e) => setGenfityKey(e.target.value)}
-                  onBlur={(e) => handleSaveGenfityKey(e.target.value)}
-                  placeholder="genfity_xxxxxxxxxxxx"
-                  className={`flex-1 rounded-lg px-3 py-1.5 text-xs border focus:outline-none focus:ring-1 focus:ring-purple-400 ${t('bg-[#0a0c10] border-gray-700 text-white placeholder-gray-600', 'bg-white border-gray-200 text-gray-800')}`}
-                />
-                {genfityKey && <span className="text-[10px] text-green-400 font-bold">✓</span>}
+                  {textProvider === 'genfity' && (
+                    <>
+                      <span className={`text-[10px] font-bold uppercase tracking-widest ${t('text-gray-500', 'text-gray-400')}`}>Model:</span>
+                      <select
+                        value={genfityModel}
+                        onChange={(e) => handleGenfityModelChange(e.target.value)}
+                        className={`rounded-lg px-3 py-1.5 text-xs font-bold border appearance-none cursor-pointer transition-colors ${t('bg-[#0a0c10] border-gray-700 text-white', 'bg-white border-gray-200 text-gray-800')}`}
+                      >
+                        {GENFITY_MODELS.map((m) => (
+                          <option key={m.v} value={m.v} style={isDarkMode ? { backgroundColor: '#0a0c10', color: '#fff' } : {}}>{m.l}</option>
+                        ))}
+                      </select>
+                    </>
+                  )}
+                </div>
+
+                {textProvider === 'genfity' && (
+                  <div className="flex items-center gap-2">
+                    <span className={`text-[10px] font-bold uppercase tracking-widest shrink-0 ${t('text-purple-400', 'text-purple-600')}`}>🔑 Genfity Key:</span>
+                    <input
+                      type="password"
+                      value={genfityKey}
+                      onChange={(e) => setGenfityKey(e.target.value)}
+                      onBlur={(e) => handleSaveGenfityKey(e.target.value)}
+                      placeholder="genfity_xxxxxxxxxxxx"
+                      className={`flex-1 rounded-lg px-3 py-1.5 text-xs border focus:outline-none focus:ring-1 focus:ring-purple-400 ${t('bg-[#0a0c10] border-gray-700 text-white placeholder-gray-600', 'bg-white border-gray-200 text-gray-800')}`}
+                    />
+                    {genfityKey && <span className="text-[10px] text-green-400 font-bold">✓</span>}
+                  </div>
+                )}
+
+                <div className="flex items-center gap-3">
+                  <span className={`text-[10px] font-bold uppercase tracking-widest ${t('text-gray-500', 'text-gray-400')}`}>🎯 Output:</span>
+                  <div className={`flex rounded-xl p-1 border ${t('bg-[#0a0c10] border-gray-700', 'bg-white border-gray-200')}`}>
+                    <button
+                      onClick={() => handleGenerateModeChange('text_and_images')}
+                      className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${generateMode === 'text_and_images' ? 'bg-pink-500 text-white shadow-sm' : t('text-gray-400', 'text-gray-500')}`}
+                    >
+                      📝 + 🖼️ Text + Images
+                    </button>
+                    <button
+                      onClick={() => handleGenerateModeChange('text_only')}
+                      className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${generateMode === 'text_only' ? 'bg-purple-500 text-white shadow-sm' : t('text-gray-400', 'text-gray-500')}`}
+                    >
+                      📝 Text Only
+                    </button>
+                  </div>
+                  {generateMode === 'text_only' && (
+                    <span className={`text-[10px] font-medium ${t('text-purple-400', 'text-purple-600')}`}>(Gemini Key tak perlu)</span>
+                  )}
+                </div>
               </div>
             )}
-
-            <div className="flex items-center gap-3">
-              <span className={`text-[10px] font-bold uppercase tracking-widest ${t('text-gray-500', 'text-gray-400')}`}>🎯 Output:</span>
-              <div className={`flex rounded-xl p-1 border ${t('bg-[#0a0c10] border-gray-700', 'bg-white border-gray-200')}`}>
-                <button
-                  onClick={() => handleGenerateModeChange('text_and_images')}
-                  className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${generateMode === 'text_and_images' ? 'bg-pink-500 text-white shadow-sm' : t('text-gray-400', 'text-gray-500')}`}
-                >
-                  📝 + 🖼️ Text + Images
-                </button>
-                <button
-                  onClick={() => handleGenerateModeChange('text_only')}
-                  className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${generateMode === 'text_only' ? 'bg-purple-500 text-white shadow-sm' : t('text-gray-400', 'text-gray-500')}`}
-                >
-                  📝 Text Only
-                </button>
-              </div>
-              {generateMode === 'text_only' && (
-                <span className={`text-[10px] font-medium ${t('text-purple-400', 'text-purple-600')}`}>(Gemini Key tak perlu)</span>
-              )}
-            </div>
           </div>
         )}
 
