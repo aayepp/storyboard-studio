@@ -1504,13 +1504,13 @@ export default function App() {
   const [fiAge, setFiAge] = useState('23-27');
   const [fiNiche, setFiNiche] = useState('TikTok Malaysia Affiliate');
   const [fiVibe, setFiVibe] = useState('Malaysia Local Influencer (main)');
-  const [fiFaceShape, setFiFaceShape] = useState('Soft oval face');
+  const [fiFaceShape, setFiFaceShape] = useState('Slim V-shape face');
   const [fiSkinTone, setFiSkinTone] = useState('Malaysian Chinese fair porcelain');
-  const [fiHair, setFiHair] = useState('Long straight black hair (Raya sleek)');
+  const [fiHair, setFiHair] = useState('Inner + shawl hijab modern');
   const [fiBodyType, setFiBodyType] = useState('Slim natural');
   const [fiSignature, setFiSignature] = useState('Soft smile');
   const [fiRealism, setFiRealism] = useState('TikTok UGC Natural MY');
-  const [fiOutfit, setFiOutfit] = useState('Casual MY OOTD (cotton tee + jeans)');
+  const [fiOutfit, setFiOutfit] = useState('Hijab modest pastel set');
   const [fiBackground, setFiBackground] = useState('Cafe aesthetic Malaysia (natural light)');
   const [fiFormat, setFiFormat] = useState('9:16 TikTok / Reels MY Pose');
   const [fiRules, setFiRules] = useState({
