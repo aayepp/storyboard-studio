@@ -99,6 +99,14 @@ DIALOGUE STYLE RULES (MANDATORY):
 - Dialogue must feel spontaneous, imperfect, and relatable — like real person talking, not AI-generated ad copy.
 - Use incomplete thoughts, self-corrections, and rhetorical questions naturally.
 
+ZERO DIALOGUE REPETITION RULES (CRITICAL FOR FLOW AI):
+- Every sentence of dialogue across ALL scenes must be UNIQUE. NEVER reuse the same phrase, sentence structure, or wording pattern in any two scenes.
+- Each scene's dialogue must communicate a DIFFERENT piece of information — do NOT rephrase the same message across multiple scenes.
+- If Scene 1 talks about a problem, Scene 2 must talk about discovery, Scene 3 about experience, Scene 4 about result — NOT all scenes saying "product ni bagus" in different ways.
+- Think of dialogue as a story staircase: each scene climbs to a NEW step. Never stay on the same step repeating the same idea.
+- Before writing, scan all dialogue you've written and VERIFY no two scenes share the same core message. Delete duplicates.
+- Every scene MUST add NEW value/insight that wasn't mentioned before. If a scene adds nothing new, delete it or merge it.
+
 PACING & FLOW RULES (CRITICAL FOR VIDEO GENERATION):
 - Each scene's dialogue MUST be short enough to speak naturally within its timecode duration. Calculate ~3 words per second for natural BM speech pace.
 - Do NOT cram long paragraphs into short scenes. A 3-second scene = max 8-10 words of dialogue. A 5-second scene = max 12-15 words.
