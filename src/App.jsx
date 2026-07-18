@@ -3366,8 +3366,32 @@ ${aspectStr}`;
     }
   };
 
+  const getDownloadName = () => {
+    // Try to get a meaningful name from generated output or active tab fields
+    const fromOutput = generatedOutput?.topic || generatedOutput?.title || '';
+    if (fromOutput) return fromOutput.replace(/[^a-zA-Z0-9\s\-_]/g, '').trim().slice(0, 60);
+    
+    const nameByTab = {
+      cinematic_pro: cinematicTopic,
+      microimpact: microImpactTopic,
+      narrativearc: narrativeArcTopic,
+      talkinghead: thTopic,
+      product: productName,
+      ootd: productName,
+      ugc: productName,
+      stopmotion: smProduct,
+      grafix: gfTopic,
+      character: characterName,
+      fake_influencer: fiName
+    };
+    const name = nameByTab[activeTab] || '';
+    return name.replace(/[^a-zA-Z0-9\s\-_]/g, '').trim().slice(0, 60);
+  };
+
   const handleDownloadHD = async (url, index) => {
     if (!url) return;
+    const baseName = getDownloadName() || 'Storyboard_Studio';
+    const safeName = baseName.replace(/\s+/g, '_').toLowerCase();
     try {
       const img = new Image();
       img.crossOrigin = "anonymous";
@@ -3406,7 +3430,7 @@ ${aspectStr}`;
           const blobUrl = window.URL.createObjectURL(blob);
           const link = document.createElement('a');
           link.href = blobUrl;
-          link.download = `Storyboard_Studio_HD_${index + 1}_${Date.now()}.png`;
+          link.download = `${safeName}_${index + 1}.png`;
           document.body.appendChild(link);
           link.click();
 
@@ -3430,6 +3454,7 @@ ${aspectStr}`;
       }
     }
   };
+
 
   const toggleEditBoxMode = (sectionId) => {
     setEditModes(prev => ({ ...prev, [sectionId]: !prev[sectionId] }));
