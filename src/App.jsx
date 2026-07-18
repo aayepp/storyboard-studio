@@ -98,6 +98,16 @@ DIALOGUE STYLE RULES (MANDATORY):
 - Never repeat the same sentence structure or opening word in consecutive scenes.
 - Dialogue must feel spontaneous, imperfect, and relatable — like real person talking, not AI-generated ad copy.
 - Use incomplete thoughts, self-corrections, and rhetorical questions naturally.
+
+PACING & FLOW RULES (CRITICAL FOR VIDEO GENERATION):
+- Each scene's dialogue MUST be short enough to speak naturally within its timecode duration. Calculate ~3 words per second for natural BM speech pace.
+- Do NOT cram long paragraphs into short scenes. A 3-second scene = max 8-10 words of dialogue. A 5-second scene = max 12-15 words.
+- Leave BREATHING ROOM — not every scene needs dialogue. Some scenes work better with just visual storytelling and silence.
+- Dialogue across scenes must form ONE continuous conversation/story — Scene 2's dialogue must feel like a direct continuation of Scene 1, not a random jump.
+- Use BRIDGING WORDS between scenes: "lepas tu kan...", "so...", "tapi yang best nya...", "then...", "pastu..." to connect dialogue across scene cuts.
+- The emotional arc must ESCALATE gradually — don't peak at Scene 1. Build tension: calm → curious → excited → peak → resolve.
+- NEVER repeat the same information in different words across scenes. Each scene must ADD new information to the story.
+- For segments (10s chunks): the dialogue within each segment must feel like ONE complete mini-thought that connects to the next segment's opening.
 `;
 
 const DEFAULT_NEGATIVE = 'no text overlay, no watermark, no logo text, no extra fingers, no deformed hands, no plastic skin, no blurry face, no cropped head, plain pure white background, empty white void, featureless white studio cyclorama, blank white backdrop, solid white wall only';
@@ -604,6 +614,13 @@ ${actMap.map((act, i) => `Scene ${i+1}: ${act}`).join('\n')}
 5. Emotional journey: Curiosity → Engagement → Satisfaction/FOMO
 6. Each scene MUST push the story forward — zero filler.
 7. Visual/image fields in English. Dialogue in natural BM.
+
+DIALOG PACING & SEGMENT CONTINUITY (CRITICAL FOR AI VIDEO GENERATION):
+8. Each scene's dialogue must be SHORT enough to speak naturally within ${perScene}s. Max ~${Math.round(parseFloat(perScene) * 3)} words per scene at natural BM speech pace (~3 words/sec).
+9. NOT every scene needs dialogue. Leave 1-2 scenes as VISUAL-ONLY (dialogue: "") for breathing room — let the visuals tell the story.
+10. Scene N's dialogue must CONNECT to Scene N+1. Use bridging: "lepas tu kan...", "tapi...", "so...", "pastu..." at scene transitions.
+11. The full dialogue across all scenes must read as ONE continuous conversation — not isolated random sentences.
+12. For videos >${sec > 15 ? '15s' : '10s'}: group every 2-3 scenes into a mini-thought that resolves before the next group begins. This ensures each 10s segment feels complete when cut.
 
 ${refCount > 0 ? 'Reference assets loaded — lock product/identity consistency across ALL scenes.' : ''}
 ${assetAnalysis ? `ASSET ANALYSIS for visual consistency:\n${assetAnalysis}\n` : ''}
