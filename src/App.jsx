@@ -5286,7 +5286,6 @@ ${aspectStr}`;
                             >
                               <I name="RefreshCw" size={14} className={`${regeneratingIndexes[index] ? "animate-spin text-sky-500" : "text-gray-400"}`} /> ALT 2K
                             </button>
-                          </div>
 
                             <button
                               onClick={() => toggleMagicBox(index)}
