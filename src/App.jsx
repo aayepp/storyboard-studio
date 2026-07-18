@@ -2595,7 +2595,7 @@ Keep the subject person, face reference, background layout, and clothes identica
       await generateVisual(imagePrompts, false, aspectRatio, imagePrompts.length, {
         identityBible: finalBible,
         useContinuity: true,
-        concurrency: 3,
+        concurrency: 2,
         negatives,
         motionGraphicsMode: isGrafix,
         topicLock: topicText || ''
@@ -3041,9 +3041,9 @@ CAMERA SYSTEM: Ultra-stable static tripod shot.`;
           setCurrentDisplayRatio(aspectRatio);
           await generateVisual(promptInputForAI, false, aspectRatio, result.scenes.length, {
             identityBible,
-            useContinuity: true,
-            concurrency: 3,
-            topicLock: safeProductName,
+          useContinuity: true,
+          concurrency: 2,
+          topicLock: safeProductName,
             negatives: result.scenes.map((s) => withEnvNegative(s.negative || DEFAULT_NEGATIVE, false))
           });
           setIsGeneratingAll(false);
@@ -3796,7 +3796,9 @@ ${aspectStr}`;
       // Trigger download
       const link = document.createElement('a');
       link.href = combined;
-      link.download = `Storyboard_Segment_${pairIndex + 1}_Combined_${Date.now()}.jpg`;
+      const segBaseName = getDownloadName() || 'Storyboard_Studio';
+      const segSafeName = segBaseName.replace(/\s+/g, '_').toLowerCase();
+      link.download = `${segSafeName}_segment_${pairIndex + 1}.jpg`;
       document.body.appendChild(link);
       link.click();
       setTimeout(() => document.body.removeChild(link), 100);
