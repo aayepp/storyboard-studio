@@ -74,6 +74,42 @@ const U = {
 
 const getRandomElement = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
+const COMMON_FILLERS = ['weh', 'sumpah', 'gila', 'serious', 'ah', 'eh', 'kan', 'tau tak', 'best', 'lepastu', 'macam', 'yang'];
+
+const countRepeatedFillers = (dialogues) => {
+  const counts = {};
+  dialogues.forEach((d) => {
+    const lower = String(d).toLowerCase();
+    COMMON_FILLERS.forEach((f) => {
+      if (!lower.includes(f)) return;
+      const matches = lower.match(new RegExp(f.replace(/\s+/g, '\\s+'), 'g')) || [];
+      counts[f] = (counts[f] || 0) + matches.length;
+    });
+  });
+  return counts;
+};
+
+const deduplicateDialogue = (scenes) => {
+  if (!Array.isArray(scenes)) return scenes;
+  const used = new Set();
+  const result = scenes.map((s, i) => {
+    let d = String(s.dialogue || '').trim();
+    if (!d) return s;
+    COMMON_FILLERS.forEach((f) => {
+      const lower = d.toLowerCase();
+      const regex = new RegExp(`\\b${f.replace(/\s+/g, '\\s+')}\\b`, 'gi');
+      if (lower.split(f).length - 1 > 0 && used.has(f)) {
+        d = d.replace(regex, '').replace(/\s{2,}/g, ' ').trim();
+      } else if (lower.split(f).length - 1 > 0) {
+        used.add(f);
+      }
+    });
+    if (!d) d = s.dialogue;
+    return { ...s, dialogue: d };
+  });
+  return result;
+};
+
 const HOOK_ANGLES = [
   'QUESTION HOOK: Open with a bold provocative question that makes the viewer unable to scroll away.',
   'CONTROVERSY HOOK: Start with a contrarian opinion or unexpected take that challenges common belief.',
@@ -1648,6 +1684,15 @@ Be visual and specific. English only.`
         style: parsed.style || '',
         allowWhiteStudio: activeTab === 'character'
       }));
+      // Deduplicate repeated fillers in dialogue
+      parsed.scenes = deduplicateDialogue(parsed.scenes);
+      // Log repeated filler warning
+      const allDialogue = parsed.scenes.map((s) => s.dialogue).filter(Boolean);
+      const fillerCounts = countRepeatedFillers(allDialogue);
+      const overused = Object.entries(fillerCounts).filter(([, c]) => c > Math.max(2, parsed.scenes.length));
+      if (overused.length) {
+        console.warn('⚠️ Dialogue fillers overused:', overused.map(([f, c]) => `${f}(${c})`).join(', '));
+      }
       return parsed;
     };
 
