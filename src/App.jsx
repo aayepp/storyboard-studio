@@ -822,6 +822,13 @@ ${SCENE_ENVIRONMENT_RULES}
 ${SCENE_JSON_CONTRACT}
 Scenes must feel continuous (action carries over). Dialogue BM, visuals English with location detail. No plain white backgrounds.
 
+CAMERA VARIETY (MANDATORY):
+- NEVER repeat the same camera angle in consecutive scenes.
+- Use at least 4 different camera types across the 6 scenes.
+- Available: Extreme Close Up, Close Up, Medium Shot, Wide Shot, POV, Tracking Shot, Dolly In, Low Angle, High Angle, Macro, Handheld.
+
+${DIALOGUE_AUTHENTICITY_RULES}
+
 Return ONLY valid JSON:
 {"title": "🎬 30s Narrative: [Topic]", "duration": "30s", "style": "Flow AI Optimized", "identity_bible":"[lock]", "scenes": [{"scene_num":1,"timecode":"0s–5s","visual":"[English + location/lighting]","camera":"[movement]","action":"[continuous action]","emotion":"[emotion]","dialogue":"[BM]","image_prompt":"[still with full environment]","i2v_prompt":"[motion]","negative":"${DEFAULT_NEGATIVE}"}]}`;
 };
