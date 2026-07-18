@@ -2815,15 +2815,15 @@ CAMERA SYSTEM: Ultra-stable static tripod shot.`;
             fashion: `POV: kau jumpa benda yang buat outfit kau naik level 10x. Ni dia — ${safeProductName}.`,
             gadget: `Aku dah cuba banyak produk dalam kategori ni, tapi ${safeProductName} je yang betul-betul buat aku terkejut.`,
             home: `Rumah aku rasa lagi neat and organized lepas guna ${safeProductName} ni. Korang pun boleh.`,
-            general: `Weh! Aku kena bagitau korang pasal ${safeProductName} ni — first impression memang susah nak lupa.`
+            general: `Tau tak pasal ${safeProductName} ni — first impression memang susah nak lupa.`
           } : {};
           const demoDialogues = isSpeakingProduct ? {
             beauty: `Tengok — tekstur dia ringan, terus absorb. No greasy feel langsung. Kulit aku rasa macam kena upgrade.`,
-            food: `Tengok ingredients dia — clean, no artificial stuff. Rasa dia pun natural. Memang worth it.`,
+            food: `Ingredients dia clean, no artificial stuff. Rasa dia pun natural. Memang worth it.`,
             fashion: `Material dia quality — tak cepat kedut, comfortable nak pakai seharian. Best part? Harga dia accessible.`,
-            gadget: `Performance dia stable, build quality solid. Bukan murah tapi memang berbaloi untuk investment jangka panjang.`,
-            home: `Guna je terus nampak result. Senang, practical, dan jimat masa. Exactly macam yang aku cari.`,
-            general: `Tengok detail dia — quality memang nampak. Bukan sekadar cantik tapi functional betul-betul.`
+            gadget: `Performance dia stable, build quality solid. Berbaloi untuk investment jangka panjang.`,
+            home: `Guna je terus nampak result. Senang, practical, dan jimat masa.`,
+            general: `Tengok detail dia — bukan sekadar cantik tapi functional betul-betul.`
           } : {};
           const ctaDialogues = isSpeakingProduct ? {
             beauty: `Kalau kau serius nak result, ${safeProductName} ni memang kena ada dalam routine. Klik beg kuning sekarang! 🛒`,
@@ -2831,8 +2831,9 @@ CAMERA SYSTEM: Ultra-stable static tripod shot.`;
             fashion: `Limited stock. Kalau kau suka apa yang kau nampak, jangan tunggu lagi — klik beg kuning! 🛒`,
             gadget: `Investment yang betul-betul berbaloi. Grab sekarang sebelum harga naik — beg kuning bawah! 🛒`,
             home: `Upgrade rumah kau sekarang. Harga special masih ada — klik beg kuning sebelum sold out! 🛒`,
-            general: `Berbaloi gila. Grab cepat sebelum stock habis — klik beg kuning sekarang! 🛒`
+            general: `Grab cepat sebelum stock habis — beg kuning bawah ni! 🛒`
           } : {};
+
 
           const catKey = isBeauty ? 'beauty' : isFood ? 'food' : isFashion ? 'fashion' : isGadget ? 'gadget' : isHome ? 'home' : 'general';
 
@@ -2970,7 +2971,7 @@ CAMERA SYSTEM: Ultra-stable static tripod shot.`;
               dialogueText = `Saja nak spill sikit detail ootd pasal baju ${safeProductName} ni sebab sumpah bila pakai terus rasa auto terpaling stylish! Material dia kain premium gila. Korang kena dapatkan cepat dengan tekan beg kuning okay!`;
           } else {
               if (i === 0) {
-                  dialogueText = `Weh, harini I nak spill detail ootd ${safeProductName} ni sebab design dia sumpah up-to-date and boost keyakinan korang gila-gila!`;
+              dialogueText = `Harini I nak spill detail ootd ${safeProductName} ni — design dia up-to-date dan boost keyakinan korang gila-gila!`;
               } else if (i === sceneCountInt - 1) {
                   dialogueText = `Nampak mahal tapi harga dia sumpah marhaen habis. Jangan fikir lama-lama weh, grab cepat dengan klik beg kuning kat bawah!`;
               } else if (i === 1) {
