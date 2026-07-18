@@ -1505,7 +1505,7 @@ export default function App() {
   const [fiNiche, setFiNiche] = useState('TikTok Malaysia Affiliate');
   const [fiVibe, setFiVibe] = useState('Malaysia Local Influencer (main)');
   const [fiFaceShape, setFiFaceShape] = useState('Soft oval face');
-  const [fiSkinTone, setFiSkinTone] = useState('Malay natural medium (sawo matang)');
+  const [fiSkinTone, setFiSkinTone] = useState('Malaysian Chinese fair porcelain');
   const [fiHair, setFiHair] = useState('Long straight black hair (Raya sleek)');
   const [fiBodyType, setFiBodyType] = useState('Slim natural');
   const [fiSignature, setFiSignature] = useState('Soft smile');
