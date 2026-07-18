@@ -308,6 +308,7 @@ const buildIdentityBible = ({
     assetAnalysis ? `Reference analysis: ${assetAnalysis}` : '',
     extra || '',
     `RULES: Same face, age, body type, skin tone, wardrobe colors, product packaging across scenes. Do not redesign the character or product.`,
+    `PRODUCT SIZE & PROPORTIONS LOCK (CRITICAL): The product MUST appear in REAL-WORLD ACCURATE SIZE and proportions in every scene. Do NOT make the product look larger, smaller, wider, or narrower than it actually is. If the product is palm-sized, show it palm-sized. If it's a large box, frame the shot to include its full real-world scale. NEVER stretch, warp, resize, or distort the product to fit the frame. Use correct scale relationships between the product and human hands/body/face. Reference the uploaded images for exact size ratio. If no reference is uploaded, use widely known real-world proportions for that product type.`,
     `ACCESSORY BAN: Do NOT add any accessories, jewelry, gadgets, headphones, watches, glasses, bags, or props that are NOT explicitly mentioned or visible in the uploaded product reference. Only the uploaded product should appear — no AI-invented extras.`,
     `BACKGROUND RULES: Never default to plain white. Keep the environment/set strictly consistent. If the scene changes, show the EXACT SAME location from a different camera angle. Do not teleport to unrelated rooms.`
   ].filter(Boolean);
