@@ -330,12 +330,12 @@ const expectedSceneCountForDuration = (duration, mode = 'default') => {
     if (sec <= 20) return 4;
     return 6;
   }
-  if (sec <= 10) return 3;
-  if (sec <= 15) return 4;
-  if (sec <= 20) return 4;
-  if (sec <= 30) return 6;
-  if (sec <= 45) return 9;
-  return 12;
+  if (sec <= 10) return 4;
+  if (sec <= 15) return 5;
+  if (sec <= 20) return 6;
+  if (sec <= 30) return 8;
+  if (sec <= 45) return 12;
+  return 16;
 };
 
 const buildGrafixStyleBible = (topic, style, aspect, assetAnalysis = '') => {
