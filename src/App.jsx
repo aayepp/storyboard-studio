@@ -1240,6 +1240,10 @@ const getStoredGenerateMode = () => {
   try { return localStorage.getItem('generate_mode') || 'text_and_images'; } catch { return 'text_and_images'; }
 };
 
+const getStoredKeyframeMode = () => {
+  try { return localStorage.getItem('keyframe_mode') || 'off'; } catch { return 'off'; }
+};
+
 const GEMINI_MODELS = [
   { v: 'gemini-3.5-flash', l: 'Gemini 3.5 Flash (Latest)' },
   { v: 'gemini-3.1-pro', l: 'Gemini 3.1 Pro (Advanced)' },
@@ -1485,6 +1489,7 @@ export default function App() {
   const [genfityKey, setGenfityKey] = useState(getStoredGenfityKey);
   const [textProvider, setTextProvider] = useState(getStoredTextProvider);
   const [generateMode, setGenerateMode] = useState(getStoredGenerateMode);
+  const [keyframeMode, setKeyframeMode] = useState(getStoredKeyframeMode);
   const [genfityModel, setGenfityModel] = useState(getStoredGenfityModel);
   const [showApiKeyInput, setShowApiKeyInput] = useState(!getStoredApiKey());
   const [showProviderPanel, setShowProviderPanel] = useState(false);
@@ -1520,6 +1525,11 @@ export default function App() {
   const handleGenerateModeChange = (mode) => {
     setGenerateMode(mode);
     try { localStorage.setItem('generate_mode', mode); } catch {}
+  };
+
+  const handleKeyframeModeChange = (mode) => {
+    setKeyframeMode(mode);
+    try { localStorage.setItem('keyframe_mode', mode); } catch {}
   };
 
   const handleGenfityModelChange = (model) => {
@@ -4088,7 +4098,7 @@ ${aspectStr}`;
                   </div>
                 )}
 
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3">
                   <span className={`text-[10px] font-bold uppercase tracking-widest ${t('text-gray-500', 'text-gray-400')}`}>🎯 Output:</span>
                   <div className={`flex rounded-xl p-1 border ${t('bg-[#0a0c10] border-gray-700', 'bg-white border-gray-200')}`}>
                     <button
@@ -4108,6 +4118,22 @@ ${aspectStr}`;
                     <span className={`text-[10px] font-medium ${t('text-purple-400', 'text-purple-600')}`}>(Gemini Key tak perlu)</span>
                   )}
                 </div>
+                {generateMode === 'text_and_images' && (
+                  <div className="flex items-center gap-3 pt-2 border-t border-gray-800/30">
+                    <span className={`text-[10px] font-bold uppercase tracking-widest ${t('text-gray-500', 'text-gray-400')}`}>⚡ Smart Keyframe:</span>
+                    <button
+                      onClick={() => handleKeyframeModeChange(keyframeMode === 'on' ? 'off' : 'on')}
+                      className={`px-3 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all ${keyframeMode === 'on' ? 'bg-amber-500 text-white shadow-sm' : t('bg-gray-800 text-gray-400 hover:text-white', 'bg-gray-100 text-gray-500')}`}
+                    >
+                      {keyframeMode === 'on' ? '🔑 ON (1 img)' : '🔑 OFF'}
+                    </button>
+                    {keyframeMode === 'on' && (
+                      <span className={`text-[10px] font-medium ${t('text-amber-400', 'text-amber-600')}`}>
+                        Jimat token: generate 1 keyframe je, selebihnya text prompt
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </div>
