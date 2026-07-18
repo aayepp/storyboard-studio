@@ -116,6 +116,15 @@ PACING & FLOW RULES (CRITICAL FOR VIDEO GENERATION):
 - The emotional arc must ESCALATE gradually — don't peak at Scene 1. Build tension: calm → curious → excited → peak → resolve.
 - NEVER repeat the same information in different words across scenes. Each scene must ADD new information to the story.
 - For segments (10s chunks): the dialogue within each segment must feel like ONE complete mini-thought that connects to the next segment's opening.
+
+SEGMENT-TO-SEGMENT DIALOGUE BRIDGE RULES (MANDATORY):
+- The LAST line of dialogue in segment N MUST logically flow into the FIRST line of dialogue in segment N+1. No segment should end with a dangling question or unfinished thought that the next segment ignores.
+- Use BRIDGING TRANSITIONS between segments: "so...", "lepas tu...", "tapi yang best nya...", "then...", "pastu...", "dan yang paling penting...", "korang kena tahu...", "ok so...", "right so..."
+- If segment N ends with a question, segment N+1 MUST start with an answer or reaction to that question.
+- If segment N ends with a claim/statement, segment N+1 MUST build on it or show proof/reaction.
+- NEVER end a segment with "ok tu je" or "so yeah" — every segment ending must create a natural bridge to the next segment's opening.
+- Think of it as a single continuous conversation that's been cut into pieces — the conversation must be seamless across ALL cuts.
+- When rewriting dialogue for any segment, always check: "Does the last line here naturally connect to the next segment's first line?" If not, rewrite the last line to bridge.
 `;
 
 const DEFAULT_NEGATIVE = 'no text overlay, no watermark, no logo text, no extra fingers, no deformed hands, no plastic skin, no blurry face, no cropped head, plain pure white background, empty white void, featureless white studio cyclorama, blank white backdrop, solid white wall only';
