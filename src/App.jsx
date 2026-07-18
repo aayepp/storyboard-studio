@@ -5260,6 +5260,49 @@ ${aspectStr}`;
                                     <div className="flex items-center justify-between mb-1.5">
                                       <span className="text-[9px] font-bold uppercase tracking-widest text-sky-400">🎤 Dialog / VO (Segment)</span>
                                       <div className="flex gap-1.5">
+                                        <button
+                                          onClick={async () => {
+                                            const segKey = `flow_seg_dialogue_${i}`;
+                                            setEditModes(prev => ({ ...prev, [segKey + '_loading']: true }));
+                                            try {
+                                              const storyContext = generatedOutput?.videoPrompt || '';
+                                              const segVisual = currentPromptVal || '';
+                                              const prevDialogue = currentDialogueVal || '';
+                                              const regenPrompt = `You are a Malaysian TikTok/Reels scriptwriter. Rewrite the DIALOGUE below in fresh, natural, trendy Bahasa Melayu (BM). Keep the same story beat and emotional arc — just make the words different, more engaging, and more human.
+
+STORY CONTEXT (for continuity — do NOT change the story):
+${storyContext.slice(0, 800)}
+
+SEGMENT VISUAL (what's happening in this segment):
+${segVisual.slice(0, 400)}
+
+CURRENT DIALOGUE TO REWRITE:
+${prevDialogue}
+
+RULES:
+- Output ONLY the new dialogue lines in BM (no JSON, no labels, no explanation)
+- Keep same number of lines/scenes
+- Must feel like kawan sembang — natural fillers (eh, kan, tau tak, sumpah, weh)
+- Each line max 15 words for natural speech pace
+- Must connect logically to the visual described above
+- Different word choices from original but same story beat`;
+
+                                              const data = await callTextApi(regenPrompt, null, { temperature: 0.85 });
+                                              const newDialogue = extractGeminiText(data).trim();
+                                              if (newDialogue) {
+                                                handleBoxValueChange(segKey, newDialogue);
+                                              }
+                                            } catch (err) {
+                                              console.warn('Dialogue regen failed:', err);
+                                            } finally {
+                                              setEditModes(prev => ({ ...prev, [`flow_seg_dialogue_${i}_loading`]: false }));
+                                            }
+                                          }}
+                                          disabled={editModes[`flow_seg_dialogue_${i}_loading`]}
+                                          className="px-2 py-0.5 rounded text-[10px] bg-sky-500/20 text-sky-300 font-bold hover:bg-sky-500/40 disabled:opacity-50 flex items-center gap-1"
+                                        >
+                                          <I name="RefreshCw" size={10} className={editModes[`flow_seg_dialogue_${i}_loading`] ? 'animate-spin' : ''} /> Re-Gen
+                                        </button>
                                         {isDialogueEditing ? (
                                           <button onClick={() => saveBoxValue(segDialogueKey)} className={U.c9}>Save</button>
                                         ) : (
