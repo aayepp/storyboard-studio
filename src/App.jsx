@@ -1960,19 +1960,20 @@ Be visual and specific. English only.`
         imageUrls,
         editableImagePrompt,
         currentDisplayRatio,
-        aspectRatio
+        aspectRatio,
+        editedValues,
+        editModes,
+        zoomedImages,
+        showMagicBox,
+        magicPrompts
       }
     }));
 
     cancelAllGenerations();
     setActiveTab(tab);
 
-    setZoomedImages({});
     setCopiedSection('');
-    setShowMagicBox({});
-    setMagicPrompts({});
     setErrorMessage('');
-    setEditModes({});
 
     const cached = tabCache[tab];
     if (cached) {
@@ -1981,11 +1982,21 @@ Be visual and specific. English only.`
       setEditableImagePrompt(cached.editableImagePrompt);
       setCurrentDisplayRatio(cached.currentDisplayRatio);
       setAspectRatio(cached.aspectRatio);
+      setBoxEdits(cached.editedValues || {});
+      setEditModes(cached.editModes || {});
+      setZoomedImages(cached.zoomedImages || {});
+      setShowMagicBox(cached.showMagicBox || {});
+      setMagicPrompts(cached.magicPrompts || {});
     } else {
       setGeneratedOutput(null);
       setImageUrls([]);
       setEditableImagePrompt('');
       setCurrentDisplayRatio(null);
+      setBoxEdits({});
+      setEditModes({});
+      setZoomedImages({});
+      setShowMagicBox({});
+      setMagicPrompts({});
 
       if (tab === 'character') {
         setAspectRatio('16:9');
@@ -1996,6 +2007,24 @@ Be visual and specific. English only.`
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  const handleResetTab = () => {
+    setGeneratedOutput(null);
+    setImageUrls([]);
+    setEditableImagePrompt('');
+    setCurrentDisplayRatio(null);
+    setBoxEdits({});
+    setEditModes({});
+    setZoomedImages({});
+    setShowMagicBox({});
+    setMagicPrompts({});
+    setTabCache(prev => {
+      const next = { ...prev };
+      delete next[activeTab];
+      return next;
+    });
+  };
+
 
   const handleRatioChange = (newRatio) => {
     if (newRatio === aspectRatio) return;
@@ -5105,8 +5134,17 @@ ${aspectStr}`;
                <h2 className={`text-4xl font-black tracking-wide mb-4 ${U.c14}`}>
                  {activeTab === 'character' ? 'Character Blueprint Reference' : activeTab === 'cinematic_pro' ? 'Cinematic Storyboard Details' : activeTab === 'microimpact' ? '10s Micro-Impact Suite' : activeTab === 'narrativearc' ? '30s Narrative Arc Pipeline' : activeTab === 'talkinghead' ? 'Talking Head Board Mapping' : activeTab === 'stopmotion' ? 'Stop Motion Frame Sequencing' : activeTab === 'grafix' ? 'Motion Graphics Deck' : 'Unified Workspace Canvas'}
                </h2>
-               <div className="w-16 h-1.5 bg-gradient-to-r from-blue-500 to-cyan-400 mx-auto rounded-full"></div>
+               <div className="w-16 h-1.5 bg-gradient-to-r from-blue-500 to-cyan-400 mx-auto rounded-full mb-6"></div>
+               {generatedOutput && (
+                 <button
+                   onClick={handleResetTab}
+                   className="px-5 py-2.5 rounded-xl border border-red-500/30 bg-red-500/10 text-red-500 text-[10px] font-bold uppercase tracking-widest hover:bg-red-500/20 transition-all flex items-center gap-2 mx-auto"
+                 >
+                   <I name="Trash" size={14} /> Reset Tab {activeTab.replace('_', ' ').toUpperCase()}
+                 </button>
+               )}
             </div>
+
 
             <div className="space-y-16">
               <div>
