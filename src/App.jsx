@@ -558,35 +558,61 @@ const getCinematicStoryboardPrompt = (topic, duration, style, aspect, audience, 
   const sec = parseInt(duration) || 30;
   const sceneCount = sec <= 10 ? 3 : sec <= 20 ? 4 : sec <= 30 ? 6 : sec <= 45 ? 9 : 12;
   const perScene = (sec / sceneCount).toFixed(1);
-  const actMap = sceneCount <= 3
-    ? ['ACT 1 — HOOK (grab attention instantly)', 'ACT 2 — BUILD (conflict/tension/demo)', 'ACT 3 — PAYOFF (resolution/CTA)']
-    : sceneCount <= 4
-    ? ['ACT 1 — HOOK', 'ACT 2 — BUILD', 'ACT 2 — ESCALATE', 'ACT 3 — PAYOFF']
-    : sceneCount <= 6
-    ? ['ACT 1 — HOOK (pattern interrupt, stop scroll)', 'ACT 1 — SETUP (establish world/character)', 'ACT 2 — CONFLICT (problem/tension/challenge)', 'ACT 2 — BUILD (demo/deepen stakes)', 'ACT 3 — RESOLUTION (transformation/solution)', 'ACT 3 — PAYOFF (CTA/emotional peak)']
-    : Array.from({ length: sceneCount }, (_, i) => {
-        const third = Math.floor(sceneCount / 3);
-        if (i < third) return `ACT 1 — HOOK/SETUP (scene ${i+1})`;
-        if (i < third * 2) return `ACT 2 — BUILD/CONFLICT (scene ${i+1})`;
-        return `ACT 3 — RESOLUTION/PAYOFF (scene ${i+1})`;
-      });
 
-  return `You are a VIRAL STORYBOARD DIRECTOR. Create a ${sec}s ${aspect} storyboard about: ${topic}${style !== 'auto' ? ` in ${style} style` : ''}${audience ? `. Target: ${audience}` : ''}.
-Exactly ${sceneCount} scenes, ~${perScene}s each, continuous story.
-${refCount > 0 ? 'Reference assets loaded — lock product/identity consistency.' : ''}
-${assetAnalysis ? `ASSET ANALYSIS:\n${assetAnalysis}\n` : ''}
-${identityBible ? `${identityBible}\n` : ''}
+  // Natural 3-Act structure per duration: HOOK → CONTENT → CTA
+  const getActMap = (n) => {
+    if (n <= 3) {
+      return [
+        `ACT 1 — HOOK (Scene ${1}): Pattern interrupt — grab attention in 1 second. Open with a provocative question, bold claim, shocking stat, or mid-action story drop in BM. No "Hai korang..." intro. Dialogue must feel like a real person interrupting their friend's scroll.`,
+        `ACT 2 — CONTENT / SOLUTION (Scene ${2}): Deliver the value, show the transformation, explain the problem and solution naturally. Emotional build. Dialogue must feel like someone sharing a genuine experience, not reading a script.`,
+        `ACT 3 — CTA / PAYOFF (Scene ${3}): Strong closing. Emotional payoff, satisfaction, or clear call-to-action. Leave the viewer feeling something. No dead ending like "ok tu je".`
+      ];
+    } else if (n <= 4) {
+      return [
+        `ACT 1 — HOOK (Scene 1): Instant pattern interrupt. Start with curiosity gap, question, or relatable confession. MUST feel like a real TikTok/Reels hook — imperfect, energetic, natural BM.`,
+        `ACT 1 — SETUP (Scene 2): Establish context. Who, what, why now. Make viewer care. Transition naturally from the hook.`,
+        `ACT 2 — SOLUTION / DEMO (Scene 3): Show the transformation, the product, the answer. Demonstrate with real energy. Dialogues must include natural BM fillers: "eh", "kan", "tau tak", "sumpah".`,
+        `ACT 3 — CTA (Scene 4): Strong close with emotional payoff. Point to action (beg kuning, swipe up, etc.). Make viewer feel FOMO or satisfaction.`
+      ];
+    } else {
+      return [
+        `ACT 1 — HOOK (Scene 1): Pattern interrupt. Bold question, controversial take, or shocking stat. Must stop the scroll in under 1.5s. Natural BM hook — think kawan sembang, bukan script.`,
+        `ACT 1 — SETUP (Scene 2): Establish the world, character, stakes. Why should the viewer care? Build curiosity naturally.`,
+        `ACT 2 — CONFLICT / PROBLEM (Scene 3): Introduce the tension, pain point, or challenge. Make it relatable. "Korang pernah rasa..." style.`,
+        `ACT 2 — BUILD / SOLUTION (Scene 4): Start revealing the solution or demonstration. Energy builds. Show transformation beginning.`,
+        `ACT 2 — DEEPER SOLUTION (Scene 5): Full demonstration, proof, or emotional breakthrough. Most valuable content here. Dialogue should feel like an excited friend sharing something amazing.`,
+        `ACT 3 — CTA / PAYOFF (Scene 6): Strong emotional close. Satisfaction, transformation complete, clear action step. Leave viewer with a feeling or urge to act.`
+      ];
+    }
+  };
 
-3-ACT STRUCTURE — every scene MUST follow this arc (do not skip or reorder):
+  const actMap = getActMap(sceneCount);
+
+  return `You are a VIRAL MALAYSIA TIKTOK/REELS STORYBOARD DIRECTOR who speaks like a real human, not AI. Create a ${sec}s ${aspect} storyboard about: ${topic}${style !== 'auto' ? ` in ${style} style` : ''}${audience ? `. Target: ${audience}` : ''}.
+
+CRITICAL RULES — Your life depends on following these:
+1. Exactly ${sceneCount} scenes, ~${perScene}s each. Continuous story with no gaps.
+2. ${sec <= 15 ? 'This is a SHORT video — every second counts. No filler scenes.' : 'Build a proper narrative arc with rising tension.'}
+3. DIALOGUE MUST SOUND 100% HUMAN — not like AI copywriting. Rules:
+   - Use natural Malay fillers: "eh", "kan", "tau tak", "sumpah", "weh", "gila", "macam", "serious"
+   - Include incomplete sentences, self-corrections, rhetorical questions
+   - Each scene's dialogue must have DIFFERENT emotional energy than the scene before
+   - NEVER start with "Hai korang hari ni aku nak share tentang..."
+   - Think how a real Malaysian creator talks to their close friend on TikTok Live
+4. 3-ACT STRUCTURE (HOOK → CONTENT/SOLUTION → CTA) — MUST follow:
 ${actMap.map((act, i) => `Scene ${i+1}: ${act}`).join('\n')}
-Emotional journey: Curiosity → Tension/Interest → Satisfaction. Each scene must PUSH the story forward — no filler.
+5. Emotional journey: Curiosity → Engagement → Satisfaction/FOMO
+6. Each scene MUST push the story forward — zero filler.
+7. Visual/image fields in English. Dialogue in natural BM.
 
+${refCount > 0 ? 'Reference assets loaded — lock product/identity consistency across ALL scenes.' : ''}
+${assetAnalysis ? `ASSET ANALYSIS for visual consistency:\n${assetAnalysis}\n` : ''}
+${identityBible ? `${identityBible}\n` : ''}
 ${SCENE_ENVIRONMENT_RULES}
 ${SCENE_JSON_CONTRACT}
-Dialogue must be natural conversational Bahasa Melayu. Visual/image fields English. Every image_prompt must name a real location/set for the topic (not white).
 
-Return ONLY valid JSON:
-{"title":"🎬 [topic]","duration":"${sec}s","style":"[style]","identity_bible":"[lock string]","scenes":[{"scene_num":1,"timecode":"0s–${perScene}s","visual":"[English with LOCATION + lighting]","camera":"[shot + movement]","action":"[what happens]","emotion":"[facial]","dialogue":"[BM]","image_prompt":"[English still with full environment]","i2v_prompt":"[English motion prompt]","negative":"${DEFAULT_NEGATIVE}"}]}`;
+Return ONLY valid JSON — no markdown, no commentary:
+{"title":"🎬 [organic-sounding title in BM]","duration":"${sec}s","style":"${style}","identity_bible":"[lock string]","scenes":[{"scene_num":1,"timecode":"0s–${perScene}s","visual":"[English with LOCATION + lighting]","camera":"[shot + movement]","action":"[what happens — natural vibe]","emotion":"[facial expression]","dialogue":"[NATURAL BM — like real friend talking, NOT scripted ad copy]","image_prompt":"[English still with full environment]","i2v_prompt":"[English motion prompt]","negative":"${DEFAULT_NEGATIVE}"}]}`;
 };
 
 const getMicroImpactPrompt = (topic, aspect, audience, refCount, identityBible = '', assetAnalysis = '') =>
