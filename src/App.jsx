@@ -1096,6 +1096,7 @@ const generateFlowSegments = (scenes, durationStr, options = {}) => {
         buckets[i] = donor.map((sc) => ({
           ...sc,
           visual: `${sc.visual || ''}\n[CONTINUATION ${s0}s–${e0}s: same identity/product/wardrobe, progress the action naturally for this window]`,
+          dialogue: '',
           i2v_prompt: sc.i2v_prompt
             ? `${sc.i2v_prompt} Continue motion into ${s0}s–${e0}s.`
             : `Continue seamless motion ${s0}s–${e0}s, same character and product.`
