@@ -566,7 +566,7 @@ Return ONLY valid JSON:
 
 const getCinematicStoryboardPrompt = (topic, duration, style, aspect, audience, refCount, identityBible = '', assetAnalysis = '') => {
   const sec = parseInt(duration) || 30;
-  const sceneCount = sec <= 10 ? 3 : sec <= 20 ? 4 : sec <= 30 ? 6 : sec <= 45 ? 9 : 12;
+  const sceneCount = sec <= 10 ? 4 : sec <= 15 ? 5 : sec <= 20 ? 6 : sec <= 30 ? 8 : sec <= 45 ? 12 : 16;
   const perScene = (sec / sceneCount).toFixed(1);
 
   // Natural 3-Act structure per duration: HOOK → CONTENT → CTA
