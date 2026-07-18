@@ -110,6 +110,65 @@ const deduplicateDialogue = (scenes) => {
   return result;
 };
 
+// Verify dialogue flows smoothly across scenes — detect repetition, dangling questions, filler overuse.
+// Returns { ok, issues } so callers can trigger AI repair when the story is broken.
+const verifyDialogueContinuity = (scenes) => {
+  if (!Array.isArray(scenes) || scenes.length < 2) return { ok: true, issues: [] };
+  const issues = [];
+  const dialogues = scenes.map((s) => String(s.dialogue || '').trim()).filter(Boolean);
+
+  // Check 1: Exact duplicate dialogue lines (case-insensitive, punctuation-stripped)
+  const seen = new Set();
+  dialogues.forEach((d) => {
+    const normalized = d.toLowerCase().replace(/[^\w\s]/g, '').trim();
+    if (normalized.length < 8) return;
+    if (seen.has(normalized)) {
+      issues.push(`Dialog berulang (sama exact): "${d.slice(0, 50)}..."`);
+    }
+    seen.add(normalized);
+  });
+
+  // Check 2: Consecutive scenes opening with the same word
+  for (let i = 1; i < dialogues.length; i++) {
+    const prevOpen = (dialogues[i - 1].split(/\s+/)[0] || '').toLowerCase();
+    const currOpen = (dialogues[i].split(/\s+/)[0] || '').toLowerCase();
+    if (prevOpen && currOpen && prevOpen === currOpen && prevOpen.length > 2) {
+      issues.push(`Scene berturut-turut buka dengan perkataan sama: "${prevOpen}"`);
+    }
+  }
+
+  // Check 3: Dangling question — scene ends with "?" but next scene doesn't answer
+  for (let i = 0; i < dialogues.length - 1; i++) {
+    const endsWithQuestion = /[?？]\s*$/.test(dialogues[i]);
+    if (!endsWithQuestion) continue;
+    const nextOpen = (dialogues[i + 1].split(/\s+/)[0] || '').toLowerCase();
+    const answersQuestion = /^(ya|betul|sebab|kerana|memang|sebenarnya|actually|yes|no|tak|memanglah|ar|haa|haaa|oh)\b/.test(nextOpen);
+    if (!answersQuestion) {
+      issues.push(`Scene ${i + 1} tamat dengan soalan tapi Scene ${i + 2} tak jawab — dialog tergantung`);
+    }
+  }
+
+  // Check 4: Filler overused across multiple scenes (>2 occurrences)
+  const fillerCounts = {};
+  dialogues.forEach((d) => {
+    const lower = d.toLowerCase();
+    COMMON_FILLERS.forEach((f) => {
+      if (lower.includes(f)) fillerCounts[f] = (fillerCounts[f] || 0) + 1;
+    });
+  });
+  Object.entries(fillerCounts).forEach(([f, c]) => {
+    if (c > 2) issues.push(`Filler "${f}" berulang ${c} kali across scenes — buang`);
+  });
+
+  // Check 5: Dead-end closing (last scene ends with "ok tu je" / "so yeah")
+  const lastLine = dialogues[dialogues.length - 1] || '';
+  if (/(ok tu je|so yeah|tu je|itu je|gitu je)\s*$/i.test(lastLine)) {
+    issues.push(`Scene terakhir tamat dengan dead-end ("ok tu je") — perlu CTA/payoff`);
+  }
+
+  return { ok: issues.length === 0, issues };
+};
+
 const HOOK_ANGLES = [
   'QUESTION HOOK: Open with a bold provocative question that makes the viewer unable to scroll away.',
   'CONTROVERSY HOOK: Start with a contrarian opinion or unexpected take that challenges common belief.',
@@ -729,7 +788,16 @@ const getMicroImpactPrompt = (topic, aspect, audience, refCount, identityBible =
   `You are a 10s MICRO-IMPACT SPECIALIST. Create exactly 3 scenes (~3.3s) for: ${topic}. Aspect ${aspect}.${audience ? ` Target: ${audience}.` : ''}${refCount ? ' Refs loaded.' : ''}
 ${assetAnalysis ? `ASSET:\n${assetAnalysis}\n` : ''}${identityBible ? identityBible + '\n' : ''}${SCENE_ENVIRONMENT_RULES}
 ${SCENE_JSON_CONTRACT}
-Dialogue BM; visuals EN; each image_prompt must include a vivid environment matching the topic (never plain white). JSON only:
+Dialogue BM; visuals EN; each image_prompt must include a vivid environment matching the topic (never plain white).
+
+SCENE STRUCTURE (3 scenes for 10s):
+- Scene 1: HOOK — stop-scroll moment. Provocative question or shocking statement in BM.
+- Scene 2: PAYOFF/DEMO — deliver the hook's promise immediately. Show key detail/result.
+- Scene 3: CTA — urgency-driven close pointing to beg kuning. No dead-end "ok tu je".
+
+${DIALOGUE_AUTHENTICITY_RULES}
+
+JSON only:
 {"title":"⚡ ${topic}","duration":"10s","identity_bible":"[lock]","scenes":[{"scene_num":1,"timecode":"0s–3.3s","visual":"[EN + location]","camera":"[shot]","action":"[action]","emotion":"[face]","dialogue":"[BM]","image_prompt":"[still with environment]","i2v_prompt":"[motion]","negative":"${DEFAULT_NEGATIVE}"}]}`;
 
 const getNarrativeArcPrompt = (topic, aspect, audience, refCount, identityBible = '', assetAnalysis = '') => {
@@ -1156,14 +1224,35 @@ const generateFlowSegments = (scenes, durationStr, options = {}) => {
       if (donor && donor.length) {
         const s0 = i * segSize;
         const e0 = Math.min(s0 + segSize, totalSec);
-        buckets[i] = donor.map((sc) => ({
-          ...sc,
-          visual: `${sc.visual || ''}\n[CONTINUATION ${s0}s–${e0}s: same identity/product/wardrobe, progress the action naturally for this window]`,
-          dialogue: '',
-          i2v_prompt: sc.i2v_prompt
-            ? `${sc.i2v_prompt} Continue motion into ${s0}s–${e0}s.`
-            : `Continue seamless motion ${s0}s–${e0}s, same character and product.`
-        }));
+        // CONTINUITY DIALOGUE FIX: Carry forward dialogue with bridging transitions
+        // instead of emptying it. This prevents broken/dangling story flow in Flow AI.
+        buckets[i] = donor.map((sc, donorIdx) => {
+          const baseDialogue = String(sc.dialogue || '').trim();
+          const isFinalSegment = i === numSegments - 1;
+          // Use a different bridging transition per continuation to avoid repetition
+          const bridges = ['so lepas tu', 'pastu', 'tapi yang best nya', 'then', 'ok so', 'dan yang penting'];
+          const bridge = bridges[donorIdx % bridges.length];
+          // For final segment, append CTA-style payoff if dialogue ends weakly
+          let continuedDialogue = baseDialogue;
+          if (baseDialogue && !isFinalSegment) {
+            // Continue the conversation — add a bridging hook that points to the next beat
+            continuedDialogue = `${baseDialogue} ${bridge}...`;
+          } else if (baseDialogue && isFinalSegment) {
+            // Ensure final segment closes with CTA, not dead-end
+            const endsWeak = /(tu je|je|je lah|gitu|macam tu)\s*[.!?]?\s*$/i.test(baseDialogue);
+            if (endsWeak) {
+              continuedDialogue = `${baseDialogue} Jangan tunggu lagi — klik beg kuning sekarang! 🛒`;
+            }
+          }
+          return {
+            ...sc,
+            visual: `${sc.visual || ''}\n[CONTINUATION ${s0}s–${e0}s: same identity/product/wardrobe, progress the action naturally for this window. Same environment, new camera angle.]`,
+            dialogue: continuedDialogue,
+            i2v_prompt: sc.i2v_prompt
+              ? `${sc.i2v_prompt} Continue motion into ${s0}s–${e0}s.`
+              : `Continue seamless motion ${s0}s–${e0}s, same character and product.`
+          };
+        });
       }
     }
   }
