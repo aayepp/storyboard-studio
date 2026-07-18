@@ -125,6 +125,15 @@ SEGMENT-TO-SEGMENT DIALOGUE BRIDGE RULES (MANDATORY):
 - NEVER end a segment with "ok tu je" or "so yeah" — every segment ending must create a natural bridge to the next segment's opening.
 - Think of it as a single continuous conversation that's been cut into pieces — the conversation must be seamless across ALL cuts.
 - When rewriting dialogue for any segment, always check: "Does the last line here naturally connect to the next segment's first line?" If not, rewrite the last line to bridge.
+
+CLEAN DIALOGUE POLISHING RULES (MANDATORY):
+- NO REPEATED FILLERS ACROSS SCENES: If Scene 1 uses "weh", Scene 2 must NOT use "weh". Pick a DIFFERENT filler or skip fillers entirely for that scene. Each scene gets ONE unique filler at most.
+- BANNED REPEATED PATTERNS: Do NOT open consecutive scenes with the same word or phrase type. Alternate between: question opener, statement opener, action opener, emotion opener, bridging opener.
+- FILLER ROTATION: Available fillers: "eh", "kan", "tau tak", "ah", "weh", "sumpah", "gila", "serious", "best", "best gila", "best ah", "try la". Use maximum 1 filler per scene. Never use the same filler twice across ALL scenes in the video.
+- PROFESSIONAL POLISH: Remove unnecessary repetitions, redundant phrases, and filler overload. Each dialogue line should feel deliberate and well-crafted, not lazy or repetitive.
+- NO CLICHÉ OPENINGS: Do NOT start scenes with "Weh korang!", "Sumpah ah!", "Gila weh!", "Serious gila!" repeatedly. Vary the opening words: start with a question, start mid-sentence, start with a reaction, start with an observation, start with a claim.
+- DIALOGUE HIERARCHY: Each scene's dialogue must serve a specific purpose: HOOK (grab attention) → BUILD (add detail) → PROVE (show evidence) → CLOSE (call to action). Each purpose uses different tone and vocabulary.
+- WORD CHOICE VARIETY: If Scene 1 says "premium", Scene 2 must say "quality" or "best" or "memang worth it". Never use the same adjective across different scenes.
 `;
 
 const DEFAULT_NEGATIVE = 'no text overlay, no watermark, no logo text, no extra fingers, no deformed hands, no plastic skin, no blurry face, no cropped head, plain pure white background, empty white void, featureless white studio cyclorama, blank white backdrop, solid white wall only';
