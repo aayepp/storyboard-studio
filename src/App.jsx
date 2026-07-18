@@ -2121,6 +2121,13 @@ Be visual and specific. English only.`
         runLimit = Math.min(forcedLimit || 2, 2);
       }
 
+      // Smart Keyframe Mode: only generate 1 image (scene 1 keyframe), rest are text only
+      if (keyframeMode === 'on' && promptsToRun.length > 1 && !isRegenerate) {
+        promptsToRun = [promptsToRun[0]];
+        runLimit = 1;
+        setLoadingText('🔑 Smart Keyframe: Generating 1 keyframe only (rest = text prompts for Flow AI)...');
+      }
+
       const results = new Array(runLimit).fill(null);
       let lastImageError = null;
       let completed = 0;
