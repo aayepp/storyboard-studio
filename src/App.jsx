@@ -1,4 +1,4 @@
-﻿/** Storyboard Studio — Vite + React (GitHub/Vercel Ready) */
+/** Storyboard Studio — Vite + React (GitHub/Vercel Ready) */
 import React, { useState, useRef, useEffect } from 'react';
 
 const I = ({ name, size = 16, className = '', style = {} }) => React.createElement('span', {
@@ -7,20 +7,20 @@ const I = ({ name, size = 16, className = '', style = {} }) => React.createEleme
   role: 'img',
   'aria-label': name
 }, {
-  "Video": "🎬", "Mic": "🎤", "Hash": "#️⃣", "Copy": "📋", "Check": "✅",
-  "Sparkles": "✨", "Upload": "📤", "Box": "📦", "Shirt": "👕", "RefreshCw": "🔄",
-  "Download": "⬇️", "User": "👤", "Maximize": "⛶", "ShieldAlert": "⚠️", "Layers": "📚",
-  "Smartphone": "📱", "X": "✖️", "MessageCircle": "💬", "HelpCircle": "❓", "ChevronDown": "🔽",
-  "ChevronRight": "▶️", "Camera": "📸", "Briefcase": "💼", "Headphones": "🎧", "Flame": "🔥",
-  "CheckCircle": "🟢", "Wand2": "🪄", "Send": "📨", "ShieldCheck": "🛡️", "Code": "💻",
-  "Sun": "☀️", "Moon": "🌙", "Film": "🎞️", "ZoomIn": "🔍", "Info": "ℹ️", "UserCheck": "✅👤",
-  "ExternalLink": "🔗", "UserPlus": "➕👤", "Eye": "👁️", "Zap": "⚡", "Clock": "🕐",
-  "PenTool": "✒️", "Clapperboard": "🎬", "Edit2": "✏️", "Save": "💾", "ChevronLeft": "◀️",
-  "FileText": "📄", "Volume2": "🔊", "Image": "🖼️", "Trash": "🗑️"
-}[name] || '◆');
+  "Video": "??", "Mic": "??", "Hash": "#??", "Copy": "??", "Check": "?",
+  "Sparkles": "?", "Upload": "??", "Box": "??", "Shirt": "??", "RefreshCw": "??",
+  "Download": "??", "User": "??", "Maximize": "?", "ShieldAlert": "??", "Layers": "??",
+  "Smartphone": "??", "X": "??", "MessageCircle": "??", "HelpCircle": "?", "ChevronDown": "??",
+  "ChevronRight": "??", "Camera": "??", "Briefcase": "??", "Headphones": "??", "Flame": "??",
+  "CheckCircle": "??", "Wand2": "??", "Send": "??", "ShieldCheck": "???", "Code": "??",
+  "Sun": "??", "Moon": "??", "Film": "???", "ZoomIn": "??", "Info": "??", "UserCheck": "???",
+  "ExternalLink": "??", "UserPlus": "???", "Eye": "???", "Zap": "?", "Clock": "??",
+  "PenTool": "??", "Clapperboard": "??", "Edit2": "??", "Save": "??", "ChevronLeft": "??",
+  "FileText": "??", "Volume2": "??", "Image": "???", "Trash": "???"
+}[name] || '?');
 
 const ChevronDown = ({ className = '', size = 16 }) => (
-  <span className={className} style={{ fontSize: size + 'px', lineHeight: 1, display: 'inline-block' }}>🔽</span>
+  <span className={className} style={{ fontSize: size + 'px', lineHeight: 1, display: 'inline-block' }}>??</span>
 );
 
 const ASPECT_RATIOS = [
@@ -139,7 +139,7 @@ const verifyDialogueContinuity = (scenes) => {
 
   // Check 3: Dangling question — scene ends with "?" but next scene doesn't answer
   for (let i = 0; i < dialogues.length - 1; i++) {
-    const endsWithQuestion = /[?？]\s*$/.test(dialogues[i]);
+    const endsWithQuestion = /[??]\s*$/.test(dialogues[i]);
     if (!endsWithQuestion) continue;
     const nextOpen = (dialogues[i + 1].split(/\s+/)[0] || '').toLowerCase();
     const answersQuestion = /^(ya|betul|sebab|kerana|memang|sebenarnya|actually|yes|no|tak|memanglah|ar|haa|haaa|oh)\b/.test(nextOpen);
@@ -189,7 +189,7 @@ DIALOGUE STYLE RULES (MANDATORY):
 - Write ALL dialogue as if the person is genuinely talking to their close friend on TikTok Live — NOT reading a script.
 - Include natural Malay fillers: eh, kan, tau tak, serious ah, gila, weh, macam, nak bagitau, sumpah.
 - Avoid formal copywriting tone. No "Hai korang hari ini aku nak share tentang..."
-- Each scene's dialogue must have a DIFFERENT emotional energy than the previous scene (curious → excited → shocked → satisfied → urgent).
+- Each scene's dialogue must have a DIFFERENT emotional energy than the previous scene (curious ? excited ? shocked ? satisfied ? urgent).
 - Never repeat the same sentence structure or opening word in consecutive scenes.
 - Dialogue must feel spontaneous, imperfect, and relatable — like real person talking, not AI-generated ad copy.
 - Use incomplete thoughts, self-corrections, and rhetorical questions naturally.
@@ -208,7 +208,7 @@ PACING & FLOW RULES (CRITICAL FOR VIDEO GENERATION):
 - Leave BREATHING ROOM — not every scene needs dialogue. Some scenes work better with just visual storytelling and silence.
 - Dialogue across scenes must form ONE continuous conversation/story — Scene 2's dialogue must feel like a direct continuation of Scene 1, not a random jump.
 - Use BRIDGING WORDS between scenes: "lepas tu kan...", "so...", "tapi yang best nya...", "then...", "pastu..." to connect dialogue across scene cuts.
-- The emotional arc must ESCALATE gradually — don't peak at Scene 1. Build tension: calm → curious → excited → peak → resolve.
+- The emotional arc must ESCALATE gradually — don't peak at Scene 1. Build tension: calm ? curious ? excited ? peak ? resolve.
 - NEVER repeat the same information in different words across scenes. Each scene must ADD new information to the story.
 - For segments (10s chunks): the dialogue within each segment must feel like ONE complete mini-thought that connects to the next segment's opening.
 
@@ -227,7 +227,7 @@ CLEAN DIALOGUE POLISHING RULES (MANDATORY):
 - FILLER ROTATION: Available fillers: "eh", "kan", "tau tak", "ah", "weh", "sumpah", "gila", "serious", "best", "best gila", "best ah", "try la". Use maximum 1 filler per scene. Never use the same filler twice across ALL scenes in the video.
 - PROFESSIONAL POLISH: Remove unnecessary repetitions, redundant phrases, and filler overload. Each dialogue line should feel deliberate and well-crafted, not lazy or repetitive.
 - NO CLICHÉ OPENINGS: Do NOT start scenes with "Weh korang!", "Sumpah ah!", "Gila weh!", "Serious gila!" repeatedly. Vary the opening words: start with a question, start mid-sentence, start with a reaction, start with an observation, start with a claim.
-- DIALOGUE HIERARCHY: Each scene's dialogue must serve a specific purpose: HOOK (grab attention) → BUILD (add detail) → PROVE (show evidence) → CLOSE (call to action). Each purpose uses different tone and vocabulary.
+- DIALOGUE HIERARCHY: Each scene's dialogue must serve a specific purpose: HOOK (grab attention) ? BUILD (add detail) ? PROVE (show evidence) ? CLOSE (call to action). Each purpose uses different tone and vocabulary.
 - WORD CHOICE VARIETY: If Scene 1 says "premium", Scene 2 must say "quality" or "best" or "memang worth it". Never use the same adjective across different scenes.
 `;
 
@@ -318,7 +318,7 @@ const parseModelJson = (rawText) => {
 const normalizeStoryboardPayload = (parsed) => {
   let data = parsed;
   if (Array.isArray(data)) {
-    data = { title: '🎬 Papan Cerita Storyboard', duration: 'Kustom', style: 'Auto', scenes: data };
+    data = { title: '?? Papan Cerita Storyboard', duration: 'Kustom', style: 'Auto', scenes: data };
   } else if (data && !data.scenes) {
     const arrayKey = Object.keys(data).find((k) => Array.isArray(data[k]));
     if (arrayKey) data = { ...data, scenes: data[arrayKey] };
@@ -559,8 +559,8 @@ const combineImagesVerticallyPair = (imgUrl1, imgUrl2, aspectRatio = '9:16') => 
       ctx.fillRect(0, halfH + gap / 2, canvasWidth, 36);
       ctx.font = 'bold 20px sans-serif';
       ctx.fillStyle = '#fff';
-      ctx.fillText('▶ SCENE A', 16, 26);
-      ctx.fillText('▶ SCENE B', 16, halfH + gap / 2 + 26);
+      ctx.fillText('? SCENE A', 16, 26);
+      ctx.fillText('? SCENE B', 16, halfH + gap / 2 + 26);
 
       resolve(canvas.toDataURL('image/jpeg', 0.92));
     };
@@ -666,7 +666,7 @@ ${SCENE_ENVIRONMENT_RULES}
 
 Return ONLY valid JSON:
 {
-"title": "🤳 UGC: ${product}",
+"title": "?? UGC: ${product}",
 "duration": "${sec}s",
 "identity_bible": "short lock string for face/product/environment",
 "scenes": [
@@ -691,7 +691,7 @@ const getCinematicStoryboardPrompt = (topic, duration, style, aspect, audience, 
   const sceneCount = sec <= 10 ? 4 : sec <= 15 ? 5 : sec <= 20 ? 6 : sec <= 30 ? 8 : sec <= 45 ? 12 : 16;
   const perScene = (sec / sceneCount).toFixed(1);
 
-  // Natural 3-Act structure per duration: HOOK → CONTENT → CTA
+  // Natural 3-Act structure per duration: HOOK ? CONTENT ? CTA
   const getActMap = (n) => {
     if (n <= 3) {
       return [
@@ -731,9 +731,9 @@ CRITICAL RULES — Your life depends on following these:
    - Each scene's dialogue must have DIFFERENT emotional energy than the scene before
    - NEVER start with "Hai korang hari ni aku nak share tentang..."
    - Think how a real Malaysian creator talks to their close friend on TikTok Live
-4. 3-ACT STRUCTURE (HOOK → CONTENT/SOLUTION → CTA) — MUST follow:
+4. 3-ACT STRUCTURE (HOOK ? CONTENT/SOLUTION ? CTA) — MUST follow:
 ${actMap.map((act, i) => `Scene ${i+1}: ${act}`).join('\n')}
-5. Emotional journey: Curiosity → Engagement → Satisfaction/FOMO
+5. Emotional journey: Curiosity ? Engagement ? Satisfaction/FOMO
 6. Each scene MUST push the story forward — zero filler.
 7. Visual/image fields in English. Dialogue in natural BM.
 
@@ -744,7 +744,7 @@ DIALOG PACING & SEGMENT CONTINUITY (CRITICAL FOR AI VIDEO GENERATION):
 11. The full dialogue across all scenes must read as ONE continuous conversation — not isolated random sentences.
 12. For videos >${sec > 15 ? '15s' : '10s'}: group every 2-3 scenes into a mini-thought that resolves before the next group begins. This ensures each 10s segment feels complete when cut.
 
-NARRATIVE ENGINE — Select the STRONGEST progression for this topic (do NOT force Hook→Problem→Solution→CTA if another works better):
+NARRATIVE ENGINE — Select the STRONGEST progression for this topic (do NOT force Hook?Problem?Solution?CTA if another works better):
 Available progressions: escalating problem, desire progression, mystery reveal, curiosity loop, before vs after, transformation journey, documentary discovery, character journey, problem to consequence, comedy setup to punchline, visual escalation, expectation vs reality, social experiment, countdown, hidden truth.
 Pick the one that creates the most retention for THIS specific topic. Announce your chosen progression in the JSON "style" field.
 
@@ -781,7 +781,7 @@ ${SCENE_ENVIRONMENT_RULES}
 ${SCENE_JSON_CONTRACT}
 
 Return ONLY valid JSON — no markdown, no commentary:
-{"title":"🎬 [organic-sounding title in BM]","duration":"${sec}s","style":"[chosen style]","audio_direction":"[mood]","identity_bible":"[lock string]","scenes":[{"scene_num":1,"timecode":"0s–${perScene}s","visual":"[English with LOCATION + lighting + concrete details]","camera":"[specific shot type + movement — VARY each scene]","action":"[what happens — include movement]","emotion":"[facial expression + body language]","dialogue":"[NATURAL BM max ${Math.round(parseFloat(perScene) * 3)} words — or empty string for visual-only scenes]","image_prompt":"[English still with full environment]","i2v_prompt":"[English motion prompt]","negative":"${DEFAULT_NEGATIVE}"}]}`;
+{"title":"?? [organic-sounding title in BM]","duration":"${sec}s","style":"[chosen style]","audio_direction":"[mood]","identity_bible":"[lock string]","scenes":[{"scene_num":1,"timecode":"0s–${perScene}s","visual":"[English with LOCATION + lighting + concrete details]","camera":"[specific shot type + movement — VARY each scene]","action":"[what happens — include movement]","emotion":"[facial expression + body language]","dialogue":"[NATURAL BM max ${Math.round(parseFloat(perScene) * 3)} words — or empty string for visual-only scenes]","image_prompt":"[English still with full environment]","i2v_prompt":"[English motion prompt]","negative":"${DEFAULT_NEGATIVE}"}]}`;
 };
 
 const getMicroImpactPrompt = (topic, aspect, audience, refCount, identityBible = '', assetAnalysis = '') =>
@@ -798,7 +798,7 @@ SCENE STRUCTURE (3 scenes for 10s):
 ${DIALOGUE_AUTHENTICITY_RULES}
 
 JSON only:
-{"title":"⚡ ${topic}","duration":"10s","identity_bible":"[lock]","scenes":[{"scene_num":1,"timecode":"0s–3.3s","visual":"[EN + location]","camera":"[shot]","action":"[action]","emotion":"[face]","dialogue":"[BM]","image_prompt":"[still with environment]","i2v_prompt":"[motion]","negative":"${DEFAULT_NEGATIVE}"}]}`;
+{"title":"? ${topic}","duration":"10s","identity_bible":"[lock]","scenes":[{"scene_num":1,"timecode":"0s–3.3s","visual":"[EN + location]","camera":"[shot]","action":"[action]","emotion":"[face]","dialogue":"[BM]","image_prompt":"[still with environment]","i2v_prompt":"[motion]","negative":"${DEFAULT_NEGATIVE}"}]}`;
 
 const getNarrativeArcPrompt = (topic, aspect, audience, refCount, identityBible = '', assetAnalysis = '') => {
   return `You are a professional FLOW AI & IMAGE-TO-VIDEO CINEMATIC DIRECTOR. Create a continuous 30-second storyboard with exactly 6 scenes (5 seconds each) optimized for Flow AI.
@@ -816,7 +816,7 @@ Scene 3: ACT 2 — CONFLICT: introduce tension, problem, challenge, or desire. E
 Scene 4: ACT 2 — BUILD: deepen conflict or demonstrate solution building. Energy escalates.
 Scene 5: ACT 3 — RESOLUTION: breakthrough moment, transformation, or answer revealed. Emotional peak.
 Scene 6: ACT 3 — PAYOFF: strong close — satisfaction, CTA, or lingering emotional image. No dead ending.
-Emotional arc: Curiosity → Tension → Release. Action in scene N must flow naturally into scene N+1.
+Emotional arc: Curiosity ? Tension ? Release. Action in scene N must flow naturally into scene N+1.
 
 ${SCENE_ENVIRONMENT_RULES}
 ${SCENE_JSON_CONTRACT}
@@ -830,7 +830,7 @@ CAMERA VARIETY (MANDATORY):
 ${DIALOGUE_AUTHENTICITY_RULES}
 
 Return ONLY valid JSON:
-{"title": "🎬 30s Narrative: [Topic]", "duration": "30s", "style": "Flow AI Optimized", "identity_bible":"[lock]", "scenes": [{"scene_num":1,"timecode":"0s–5s","visual":"[English + location/lighting]","camera":"[movement]","action":"[continuous action]","emotion":"[emotion]","dialogue":"[BM]","image_prompt":"[still with full environment]","i2v_prompt":"[motion]","negative":"${DEFAULT_NEGATIVE}"}]}`;
+{"title": "?? 30s Narrative: [Topic]", "duration": "30s", "style": "Flow AI Optimized", "identity_bible":"[lock]", "scenes": [{"scene_num":1,"timecode":"0s–5s","visual":"[English + location/lighting]","camera":"[movement]","action":"[continuous action]","emotion":"[emotion]","dialogue":"[BM]","image_prompt":"[still with full environment]","i2v_prompt":"[motion]","negative":"${DEFAULT_NEGATIVE}"}]}`;
 };
 
 const getTalkingHeadPrompt = (topic, duration, tone, aspect, audience, refCount, identityBible = '', assetAnalysis = '') => {
@@ -852,15 +852,22 @@ SCENE 1 HOOK — MANDATORY (pick the strongest hook type for this topic):
 Scene 1 dialogue MUST use one of these hooks. No generic intros like "Hai korang, hari ni aku nak cakap pasal...".
 
 STORY STRUCTURE for remaining scenes:
-- Middle scenes: deliver the value/story/demo promised by the hook. Build curiosity → answer → deeper insight.
+- Middle scenes: deliver the value/story/demo promised by the hook. Build curiosity ? answer ? deeper insight.
 - Final scene: strong close — emotional payoff, clear CTA, or memorable punchline. Not just "ok tu je dari aku".
 
 ${SCENE_ENVIRONMENT_RULES}
 ${SCENE_JSON_CONTRACT}
 Keep same face identity. Dialogue natural BM. Visuals English. Background must be a real room/location (bedroom, cafe, office, street) — never plain white.
 
+CAMERA VARIETY (MANDATORY):
+- NEVER repeat the same camera angle in consecutive scenes.
+- Use at least 4 different camera types across ${sceneCount} scenes.
+- Available: Extreme Close Up, Close Up, Medium Shot, Wide Shot, POV, Over Shoulder, Tracking Shot, Dolly In, Low Angle, High Angle, Macro, Handheld.
+
+${DIALOGUE_AUTHENTICITY_RULES}
+
 Return ONLY valid JSON:
-{"title":"🤳 [topic]","duration":"${sec}s","style":"${tone}","identity_bible":"[lock]","scenes":[{"scene_num":1,"timecode":"0s–${perScene}s","visual":"[English + room/location]","camera":"[shot]","action":"[action]","emotion":"[facial]","dialogue":"[BM hook — question/bold claim/stat/story]","image_prompt":"[still with environment]","i2v_prompt":"[motion]","negative":"${DEFAULT_NEGATIVE}"}]}`;
+{"title":"?? [topic]","duration":"${sec}s","style":"${tone}","identity_bible":"[lock]","scenes":[{"scene_num":1,"timecode":"0s–${perScene}s","visual":"[English + room/location]","camera":"[shot]","action":"[action]","emotion":"[facial]","dialogue":"[BM hook — question/bold claim/stat/story]","image_prompt":"[still with environment]","i2v_prompt":"[motion]","negative":"${DEFAULT_NEGATIVE}"}]}`;
 };
 
 const getStopMotionPrompt = (product, duration, style, aspect, audience, refCount, identityBible = '', assetAnalysis = '') => {
@@ -885,7 +892,7 @@ Tabletop set must have visible surface texture, props, and lighting — not empt
 
 Return ONLY valid JSON:
 {
-"title": "🧩 Stop Motion: ${product}",
+"title": "?? Stop Motion: ${product}",
 "duration": "10s",
 "style": "Stop Motion",
 "identity_bible": "[product lock]",
@@ -936,7 +943,7 @@ ${SCENE_JSON_CONTRACT}
 
 Return ONLY valid JSON (no markdown):
 {
-"title": "📊 ${cleanTopic.slice(0, 80)}",
+"title": "?? ${cleanTopic.slice(0, 80)}",
 "duration": "${sec}s",
 "style": "${style && style !== 'auto' ? style : 'motion-graphics'}",
 "topic": "${cleanTopic.replace(/"/g, '\\"')}",
@@ -1248,7 +1255,7 @@ const generateFlowSegments = (scenes, durationStr, options = {}) => {
             // Ensure final segment closes with CTA, not dead-end
             const endsWeak = /(tu je|je|je lah|gitu|macam tu)\s*[.!?]?\s*$/i.test(baseDialogue);
             if (endsWeak) {
-              continuedDialogue = `${baseDialogue} Jangan tunggu lagi — klik beg kuning sekarang! 🛒`;
+              continuedDialogue = `${baseDialogue} Jangan tunggu lagi — klik beg kuning sekarang! ??`;
             }
           }
           return {
@@ -1291,7 +1298,7 @@ const generateFlowSegments = (scenes, durationStr, options = {}) => {
       .join('\n');
 
     const prompt = [
-      `🌊 FLOW AI SEGMENT ${s}s–${e}s  (full video ${totalSec}s · part ${i + 1}/${numSegments})`,
+      `?? FLOW AI SEGMENT ${s}s–${e}s  (full video ${totalSec}s · part ${i + 1}/${numSegments})`,
       title ? `TITLE: ${title}` : '',
       `FORMAT: ${aspectRatio} | WINDOW: ${s}s to ${e}s | DURATION: ${e - s}s`,
       identityBible ? `\n${identityBible}` : '',
@@ -1787,9 +1794,17 @@ Be visual and specific. English only.`
       const fillerCounts = countRepeatedFillers(allDialogue);
       const overused = Object.entries(fillerCounts).filter(([, c]) => c > Math.max(2, parsed.scenes.length));
       if (overused.length) {
-        console.warn('⚠️ Dialogue fillers overused:', overused.map(([f, c]) => `${f}(${c})`).join(', '));
+        console.warn('?? Dialogue fillers overused:', overused.map(([f, c]) => `${f}(${c})`).join(', '));
       }
-      return parsed;
+            // CONTINUITY CHECK: detect repeated/dangling/dead-end dialogue and force a repair pass.
+      // Critical for Flow AI segments so the story feels seamless across cuts.
+      const continuity = verifyDialogueContinuity(parsed.scenes);
+      if (!continuity.ok && !repairNote) {
+        const issueList = continuity.issues.slice(0, 4).join('; ');
+        throw new Error(`Dialog continuity issue: ${issueList}. Rewrite dialog supaya jalan cerita bersambung, tiada pengulangan, tiada soalan tergantung.`);
+      }
+
+return parsed;
     };
 
     try {
@@ -2313,7 +2328,7 @@ Be visual and specific. English only.`
       if (keyframeMode === 'on' && promptsToRun.length > 1 && !isRegenerate) {
         promptsToRun = [promptsToRun[0]];
         runLimit = 1;
-        setLoadingText('🔑 Smart Keyframe: Generating 1 keyframe only (rest = text prompts for Flow AI)...');
+        setLoadingText('?? Smart Keyframe: Generating 1 keyframe only (rest = text prompts for Flow AI)...');
       }
 
       const results = new Array(runLimit).fill(null);
@@ -2588,19 +2603,19 @@ Keep the subject person, face reference, background layout, and clothes identica
 
     if (platform === 'TikTok') {
       platformHashtags = `#FYP #TikTokMalaysia #TikTokPromote #${activeTab === 'ootd' ? 'TikTokFashion #OOTDMalaysia' : 'TikTokReview #RacunTikTok #Recommendation'}`;
-      platformCallOut = "Korang kena dapatkan cepat sebelum sold out teruk! 🛒👇";
+      platformCallOut = "Korang kena dapatkan cepat sebelum sold out teruk! ????";
     } else if (platform === 'Reels') {
       platformHashtags = `#ExplorePage #ReelsInstagram #ReelsMalaysia #${activeTab === 'ootd' ? 'InstaFashion #OOTDReels' : 'InstagramReview #ViralMalaysia'}`;
-      platformCallOut = "Boleh check out dekat link bio I sekarang okay! ✨";
+      platformCallOut = "Boleh check out dekat link bio I sekarang okay! ?";
     } else {
       platformHashtags = `#RacunAesthetic #${activeTab === 'ootd' ? 'OOTDStyle' : 'ProductReview'}`;
-      platformCallOut = "Link pembelian ada dekat ruangan yang disediakan ya! ✨";
+      platformCallOut = "Link pembelian ada dekat ruangan yang disediakan ya! ?";
     }
 
     const captionTemplates = [
-      `Sumpah I tak menyesal langsung beli ${pName} ni! 😭✨ Kualiti dia memang premium habis weh!`,
-      `Akhirnya dapat pun try ${pName} yang tengah viral gila tu! Memang berbaloi gila 💯`,
-      `Racun aesthetic kalini: ${pName}. Korang dah grab ke belum? Sila cepat weh sebelum kehabisan stock! 🛒👇`
+      `Sumpah I tak menyesal langsung beli ${pName} ni! ??? Kualiti dia memang premium habis weh!`,
+      `Akhirnya dapat pun try ${pName} yang tengah viral gila tu! Memang berbaloi gila ??`,
+      `Racun aesthetic kalini: ${pName}. Korang dah grab ke belum? Sila cepat weh sebelum kehabisan stock! ????`
     ];
     const selectedCaption = getRandomElement(captionTemplates);
 
@@ -2740,7 +2755,7 @@ Keep the subject person, face reference, background layout, and clothes identica
         });
         parsed.title = parsed.title && String(parsed.title).includes(topicText.slice(0, 20))
           ? parsed.title
-          : `📊 ${topicText}`;
+          : `?? ${topicText}`;
         parsed.topic = topicText;
       }
 
@@ -2768,7 +2783,7 @@ Keep the subject person, face reference, background layout, and clothes identica
         ? `CONTINUITY: Same motion-graphics style, palette, and TOPIC ("${topicText}") across ALL scenes. No random influencer faces.`
         : 'CONTINUITY: Same character/product identity across ALL scenes.';
 
-      const vp = `TITLE: ${parsed.title || (isGrafix ? `📊 ${topicText}` : 'Papan Cerita Storyboard')}\nTOPIC: ${topicText}\nDURATION: ${lockedSec}s | FORMAT: ${aspectRatio}\nSTYLE: ${parsed.style || styleByMode[mode] || 'Cinematic'}\n\n${finalBible}\n\n${sceneLines}\n\n${continuityLine}`;
+      const vp = `TITLE: ${parsed.title || (isGrafix ? `?? ${topicText}` : 'Papan Cerita Storyboard')}\nTOPIC: ${topicText}\nDURATION: ${lockedSec}s | FORMAT: ${aspectRatio}\nSTYLE: ${parsed.style || styleByMode[mode] || 'Cinematic'}\n\n${finalBible}\n\n${sceneLines}\n\n${continuityLine}`;
 
       const imagePrompts = parsed.scenes.map((s) => {
         const base = s.image_prompt || s.visual || '';
@@ -2967,12 +2982,12 @@ CAMERA SYSTEM: Ultra-stable static tripod shot.`;
             general: `Tengok detail dia — bukan sekadar cantik tapi functional betul-betul.`
           } : {};
           const ctaDialogues = isSpeakingProduct ? {
-            beauty: `Kalau kau serius nak result, ${safeProductName} ni memang kena ada dalam routine. Klik beg kuning sekarang! 🛒`,
-            food: `Stock dia cepat habis sebab ramai dah tau. Grab dulu sebelum terlambat — beg kuning bawah! 🛒`,
-            fashion: `Limited stock. Kalau kau suka apa yang kau nampak, jangan tunggu lagi — klik beg kuning! 🛒`,
-            gadget: `Investment yang betul-betul berbaloi. Grab sekarang sebelum harga naik — beg kuning bawah! 🛒`,
-            home: `Upgrade rumah kau sekarang. Harga special masih ada — klik beg kuning sebelum sold out! 🛒`,
-            general: `Grab cepat sebelum stock habis — beg kuning bawah ni! 🛒`
+            beauty: `Kalau kau serius nak result, ${safeProductName} ni memang kena ada dalam routine. Klik beg kuning sekarang! ??`,
+            food: `Stock dia cepat habis sebab ramai dah tau. Grab dulu sebelum terlambat — beg kuning bawah! ??`,
+            fashion: `Limited stock. Kalau kau suka apa yang kau nampak, jangan tunggu lagi — klik beg kuning! ??`,
+            gadget: `Investment yang betul-betul berbaloi. Grab sekarang sebelum harga naik — beg kuning bawah! ??`,
+            home: `Upgrade rumah kau sekarang. Harga special masih ada — klik beg kuning sebelum sold out! ??`,
+            general: `Grab cepat sebelum stock habis — beg kuning bawah ni! ??`
           } : {};
 
 
@@ -3204,7 +3219,7 @@ CAMERA SYSTEM: Ultra-stable static tripod shot.`;
             {
               role: 'CTA',
               visual: `${modelDesc} in ${envPrompt} holding ${safeProductName}, pointing down gesture (yellow basket CTA), strong end-frame composition.`,
-              dialogue: `Cepat grab sebelum stok habis. Klik beg kuning bawah ni sekarang! 🛒`
+              dialogue: `Cepat grab sebelum stok habis. Klik beg kuning bawah ni sekarang! ??`
             }
           ];
 
@@ -3520,7 +3535,7 @@ ${aspectStr}`;
         else setAspectRatio('16:9');
       }
 
-      result.cta = `👉 Klik beg kuning di bawah untuk dapatkan sekarang! 🛒✨`;
+      result.cta = `?? Klik beg kuning di bawah untuk dapatkan sekarang! ???`;
       if (!result.selectedDurationSec) {
         const locked = getSelectedDurationSeconds();
         result.duration = `${locked}s`;
@@ -3771,7 +3786,7 @@ ${aspectStr}`;
                 onClick={() => setEditModes(prev => ({ ...prev, [`${sectionId}_expanded`]: true }))}
                 className={`mt-2 text-[10px] font-bold uppercase tracking-widest ${t('text-sky-400 hover:text-sky-300', 'text-sky-500 hover:text-sky-600')} transition-colors`}
               >
-                ▼ Show Full Prompt
+                ? Show Full Prompt
               </button>
             )}
             {String(value || '').length > 300 && editModes[`${sectionId}_expanded`] && (
@@ -3779,7 +3794,7 @@ ${aspectStr}`;
                 onClick={() => setEditModes(prev => ({ ...prev, [`${sectionId}_expanded`]: false }))}
                 className={`mt-2 text-[10px] font-bold uppercase tracking-widest ${t('text-gray-500 hover:text-gray-400', 'text-gray-400 hover:text-gray-500')} transition-colors`}
               >
-                ▲ Collapse
+                ? Collapse
               </button>
             )}
           </div>
@@ -3820,7 +3835,7 @@ ${aspectStr}`;
               {activeProduct.base64 ? (
                 <img src={`data:${activeProduct.mimeType};base64,${activeProduct.base64}`} alt="preview" className="w-full h-full object-cover rounded-full p-1" />
               ) : (
-                <span style={{ fontSize: '24px', lineHeight: 1 }}>📤</span>
+                <span style={{ fontSize: '24px', lineHeight: 1 }}>??</span>
               )}
             </div>
             <div className="flex flex-col min-w-0">
@@ -3838,7 +3853,7 @@ ${aspectStr}`;
               onClick={(e) => { e.preventDefault(); handleRemoveProduct(0); }}
               className={`absolute right-4 top-4 sm:top-1/2 sm:-translate-y-1/2 p-2 rounded-full transition-colors z-20 shadow-sm border ${t('bg-red-900/30 text-red-400 border-red-900/50', 'bg-white text-red-500 border-red-105')}`}
             >
-              <span style={{ fontSize: '16px', lineHeight: 1 }}>✖️</span>
+              <span style={{ fontSize: '16px', lineHeight: 1 }}>??</span>
             </button>
           )}
         </div>
@@ -4049,7 +4064,7 @@ ${aspectStr}`;
             <div className={`p-5 rounded-2xl border relative overflow-hidden ${t('bg-red-950/30 border-red-900/50', 'bg-red-50 border-red-200')}`}>
               <div className="absolute left-0 top-0 w-1 h-full bg-red-500"></div>
               <p className={`font-black text-lg mb-2 uppercase tracking-widest ${t('text-red-500', 'text-red-600')}`}>
-                ⚠️ STRICTLY FORBIDDEN TO RESELL!
+                ?? STRICTLY FORBIDDEN TO RESELL!
               </p>
               <p className={`font-medium leading-relaxed ${t('text-red-200', 'text-red-800')}`}>
                 This platform is protected by the exclusive license of the developer. You are
@@ -4162,7 +4177,7 @@ ${aspectStr}`;
         {(showApiKeyInput || !apiKey) && (
           <div className={`mb-6 p-4 rounded-2xl border flex flex-col sm:flex-row items-center gap-3 ${t('bg-[#11131a] border-yellow-900/50', 'bg-yellow-50 border-yellow-200')}`}>
             <div className="flex items-center gap-2 shrink-0">
-              <span style={{ fontSize: '16px' }}>🔑</span>
+              <span style={{ fontSize: '16px' }}>??</span>
               <span className={`text-xs font-bold uppercase tracking-widest ${t('text-yellow-400', 'text-yellow-700')}`}>Gemini API Key</span>
             </div>
             <div className="flex-1 w-full relative">
@@ -4195,21 +4210,21 @@ ${aspectStr}`;
         {/* Arahan cara dapatkan Gemini API Key */}
         {(showApiKeyInput || !apiKey) && (
           <div className={`mb-6 p-5 rounded-2xl border ${t('bg-[#11131a] border-gray-800', 'bg-gray-50 border-gray-200')}`}>
-            <p className={`text-xs font-bold uppercase tracking-widest mb-3 ${t('text-gray-400', 'text-gray-500')}`}>📖 Cara Dapatkan Gemini API Key</p>
+            <p className={`text-xs font-bold uppercase tracking-widest mb-3 ${t('text-gray-400', 'text-gray-500')}`}>?? Cara Dapatkan Gemini API Key</p>
             <ol className={`text-sm space-y-2 list-decimal list-inside leading-relaxed ${t('text-gray-300', 'text-gray-600')}`}>
-              <li>Pergi ke <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" className="text-sky-400 underline hover:text-sky-300 font-bold">Google AI Studio → API Keys</a></li>
+              <li>Pergi ke <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" className="text-sky-400 underline hover:text-sky-300 font-bold">Google AI Studio ? API Keys</a></li>
               <li>Log masuk dengan akaun Google anda.</li>
               <li>Klik butang <span className="font-bold text-sky-400">"Create API Key"</span>.</li>
               <li>Pilih mana-mana Google Cloud project (atau buat baru jika tiada).</li>
-              <li>Copy API key yang dipaparkan dan paste di ruangan atas. ☝️</li>
+              <li>Copy API key yang dipaparkan dan paste di ruangan atas. ??</li>
             </ol>
-            <p className={`text-[11px] mt-3 ${t('text-gray-500', 'text-gray-400')}`}>💡 API key ini percuma (free tier). Pastikan jangan kongsi key anda dengan orang lain.</p>
+            <p className={`text-[11px] mt-3 ${t('text-gray-500', 'text-gray-400')}`}>?? API key ini percuma (free tier). Pastikan jangan kongsi key anda dengan orang lain.</p>
           </div>
         )}
         {apiKey && !showApiKeyInput && (
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <span className={`text-[10px] font-bold uppercase tracking-widest ${t('text-gray-500', 'text-gray-400')}`}>🤖 Model:</span>
+              <span className={`text-[10px] font-bold uppercase tracking-widest ${t('text-gray-500', 'text-gray-400')}`}>?? Model:</span>
               <select
                 value={selectedModel}
                 onChange={(e) => handleModelChange(e.target.value)}
@@ -4221,7 +4236,7 @@ ${aspectStr}`;
               </select>
             </div>
             <button onClick={() => setShowApiKeyInput(true)} className="text-[10px] text-gray-500 hover:text-sky-400 transition-colors uppercase tracking-widest font-bold">
-              🔑 Change API Key
+              ?? Change API Key
             </button>
           </div>
         )}
@@ -4233,19 +4248,19 @@ ${aspectStr}`;
               className={`w-full px-4 py-3 flex items-center justify-between text-left ${t('hover:bg-gray-800/50', 'hover:bg-gray-100')} transition-colors`}
             >
               <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest">
-                <span>⚙️</span>
+                <span>??</span>
                 <span className={t('text-gray-500', 'text-gray-400')}>Provider:</span>
                 <span className={textProvider === 'genfity' ? 'text-purple-400' : 'text-emerald-400'}>{textProvider === 'genfity' ? 'Genfity' : 'Gemini'}</span>
                 <span className={t('text-gray-600', 'text-gray-400')}>·</span>
                 <span className={t('text-gray-500', 'text-gray-400')}>Mode:</span>
                 <span className={generateMode === 'text_only' ? 'text-purple-400' : 'text-sky-400'}>{generateMode === 'text_only' ? 'Text Only' : 'Text + Img'}</span>
               </div>
-              <span className={`text-[10px] ${t('text-gray-500', 'text-gray-400')}`}>{showProviderPanel ? '▲' : '▼'}</span>
+              <span className={`text-[10px] ${t('text-gray-500', 'text-gray-400')}`}>{showProviderPanel ? '?' : '?'}</span>
             </button>
             {showProviderPanel && (
               <div className="px-4 pb-4 pt-2 border-t border-gray-800/50 space-y-3">
                 <div className="flex flex-wrap items-center gap-3">
-                  <span className={`text-[10px] font-bold uppercase tracking-widest ${t('text-gray-500', 'text-gray-400')}`}>📝 Text Provider:</span>
+                  <span className={`text-[10px] font-bold uppercase tracking-widest ${t('text-gray-500', 'text-gray-400')}`}>?? Text Provider:</span>
                   <select
                     value={textProvider}
                     onChange={(e) => handleTextProviderChange(e.target.value)}
@@ -4273,7 +4288,7 @@ ${aspectStr}`;
 
                 {textProvider === 'genfity' && (
                   <div className="flex items-center gap-2">
-                    <span className={`text-[10px] font-bold uppercase tracking-widest shrink-0 ${t('text-purple-400', 'text-purple-600')}`}>🔑 Genfity Key:</span>
+                    <span className={`text-[10px] font-bold uppercase tracking-widest shrink-0 ${t('text-purple-400', 'text-purple-600')}`}>?? Genfity Key:</span>
                     <div className="flex-1 relative">
                       <input
                         type={showGenfityKeyVisible ? "text" : "password"}
@@ -4292,24 +4307,24 @@ ${aspectStr}`;
                         <I name="Eye" size={12} />
                       </button>
                     </div>
-                    {genfityKey && <span className="text-[10px] text-green-400 font-bold">✓</span>}
+                    {genfityKey && <span className="text-[10px] text-green-400 font-bold">?</span>}
                   </div>
                 )}
 
                 <div className="flex flex-wrap items-center gap-3">
-                  <span className={`text-[10px] font-bold uppercase tracking-widest ${t('text-gray-500', 'text-gray-400')}`}>🎯 Output:</span>
+                  <span className={`text-[10px] font-bold uppercase tracking-widest ${t('text-gray-500', 'text-gray-400')}`}>?? Output:</span>
                   <div className={`flex rounded-xl p-1 border ${t('bg-[#0a0c10] border-gray-700', 'bg-white border-gray-200')}`}>
                     <button
                       onClick={() => handleGenerateModeChange('text_and_images')}
                       className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${generateMode === 'text_and_images' ? 'bg-sky-500 text-white shadow-sm' : t('text-gray-400', 'text-gray-500')}`}
                     >
-                      📝 + 🖼️ Text + Images
+                      ?? + ??? Text + Images
                     </button>
                     <button
                       onClick={() => handleGenerateModeChange('text_only')}
                       className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${generateMode === 'text_only' ? 'bg-purple-500 text-white shadow-sm' : t('text-gray-400', 'text-gray-500')}`}
                     >
-                      📝 Text Only
+                      ?? Text Only
                     </button>
                   </div>
                   {generateMode === 'text_only' && (
@@ -4318,12 +4333,12 @@ ${aspectStr}`;
                 </div>
                 {generateMode === 'text_and_images' && (
                   <div className="flex items-center gap-3 pt-2 border-t border-gray-800/30">
-                    <span className={`text-[10px] font-bold uppercase tracking-widest ${t('text-gray-500', 'text-gray-400')}`}>⚡ Smart Keyframe:</span>
+                    <span className={`text-[10px] font-bold uppercase tracking-widest ${t('text-gray-500', 'text-gray-400')}`}>? Smart Keyframe:</span>
                     <button
                       onClick={() => handleKeyframeModeChange(keyframeMode === 'on' ? 'off' : 'on')}
                       className={`px-3 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all ${keyframeMode === 'on' ? 'bg-amber-500 text-white shadow-sm' : t('bg-gray-800 text-gray-400 hover:text-white', 'bg-gray-100 text-gray-500')}`}
                     >
-                      {keyframeMode === 'on' ? '🔑 ON (1 img)' : '🔑 OFF'}
+                      {keyframeMode === 'on' ? '?? ON (1 img)' : '?? OFF'}
                     </button>
                     {keyframeMode === 'on' && (
                       <span className={`text-[10px] font-medium ${t('text-amber-400', 'text-amber-600')}`}>
@@ -4801,7 +4816,7 @@ ${aspectStr}`;
                   onChange={(e) => setLocation(e.target.value)}
                   options={[
                     { v: 'Auto by AI', l: 'Auto Lifestyle Aesthetic Vibe' },
-                    { v: 'Inside Car (Passenger Seat)', l: '🚗 Inside Car (Passenger Seat)' },
+                    { v: 'Inside Car (Passenger Seat)', l: '?? Inside Car (Passenger Seat)' },
                     { v: 'Aesthetic Room', l: 'Minimalist Bedroom' },
                     { v: 'Studio Minimalis', l: 'Photo Studio' }
                   ]}
@@ -5063,13 +5078,13 @@ ${aspectStr}`;
                   value={charSubjectType}
                   onChange={(e) => setCharSubjectType(e.target.value)}
                   options={[
-                    { v: 'HUMAN_CHARACTER', l: '🧑 Human Actor' },
-                    { v: 'PRODUCT_CHARACTER', l: '📦 Primary Product' },
-                    { v: 'VEHICLE_CHARACTER', l: '🚗 Vehicle' },
-                    { v: 'ANIMAL_CHARACTER', l: '🐾 Animal / Organism' },
-                    { v: 'MASCOT_CHARACTER', l: '🎭 Mascot / Avatar' },
-                    { v: 'OBJECT_CHARACTER', l: '💻 Other (Laptop, Accessories...)' },
-                    { v: 'AUTO_DETECT', l: '✨ AI Auto Detect (From Image)' }
+                    { v: 'HUMAN_CHARACTER', l: '?? Human Actor' },
+                    { v: 'PRODUCT_CHARACTER', l: '?? Primary Product' },
+                    { v: 'VEHICLE_CHARACTER', l: '?? Vehicle' },
+                    { v: 'ANIMAL_CHARACTER', l: '?? Animal / Organism' },
+                    { v: 'MASCOT_CHARACTER', l: '?? Mascot / Avatar' },
+                    { v: 'OBJECT_CHARACTER', l: '?? Other (Laptop, Accessories...)' },
+                    { v: 'AUTO_DETECT', l: '? AI Auto Detect (From Image)' }
                   ]}
                   isDarkMode={isDarkMode}
                 />
@@ -5389,7 +5404,7 @@ ${aspectStr}`;
                               className={`w-full py-3.5 rounded-xl border text-[10px] font-black flex items-center justify-center gap-2 transition-all tracking-widest uppercase shadow-sm disabled:opacity-50 ${showMagicBox[index] ? (PINK_GRAD + ' border-transparent') : (t('bg-[#11131a] border-gray-800 text-sky-400 hover:border-sky-500', 'bg-sky-50 border-sky-200 text-sky-600'))}`}
                             >
                               <I name="Wand2" size={14} className={showMagicBox[index] ? "text-white" : "text-sky-500"} />
-                              {showMagicBox[index] ? 'CLOSE MAGIC BOX' : 'MAGIC BOX TUNER 🪄'}
+                              {showMagicBox[index] ? 'CLOSE MAGIC BOX' : 'MAGIC BOX TUNER ??'}
                             </button>
 
                             {showMagicBox[index] && (
@@ -5423,7 +5438,7 @@ ${aspectStr}`;
                                 className={`w-full mt-2 py-3 rounded-xl border text-[10px] font-black flex items-center justify-center gap-2 transition-all tracking-widest uppercase shadow-sm disabled:opacity-50 ${t('bg-sky-950/30 border-sky-800/50 text-sky-400 hover:border-sky-500', 'bg-sky-50 border-sky-200 text-sky-600 hover:border-sky-400')}`}
                               >
                                 <I name="Layers" size={14} className="text-sky-400" />
-                                {combiningPairIndex === pairIndex ? 'COMBINING...' : `⬇️ DOWNLOAD COMBINED SEGMENT ${pairIndex + 1}`}
+                                {combiningPairIndex === pairIndex ? 'COMBINING...' : `?? DOWNLOAD COMBINED SEGMENT ${pairIndex + 1}`}
                               </button>
                             )}
                         </div>
@@ -5461,14 +5476,14 @@ ${aspectStr}`;
                 return (
                   <div className="border rounded-[1.25rem] p-6 shadow-sm relative transition-all duration-300 bg-[#09151c] border-[#12313f] mt-8 max-w-4xl mx-auto">
                     <h3 className="font-extrabold text-sm flex items-center gap-2 uppercase tracking-wide mb-2 text-[#38bdf8]">
-                      <span style={{ fontSize: '16px', lineHeight: 1 }}>⚡</span> FLOW AI CONTINUITY SEGMENTS (I2V)
+                      <span style={{ fontSize: '16px', lineHeight: 1 }}>?</span> FLOW AI CONTINUITY SEGMENTS (I2V)
                     </h3>
                     <p className="text-xs mb-2 leading-relaxed text-gray-400">
                       Core duration: <span className="text-sky-300 font-bold">{totalSec}s</span>
                       {' '}· Preparing {segs.length} chained segments.
                     </p>
                     <p className="text-[10px] mb-4 text-gray-500 uppercase tracking-widest">
-                      {segs.map((s) => s.label).join('  →  ')}
+                      {segs.map((s) => s.label).join('  ?  ')}
                     </p>
                     <div className="space-y-3 mt-2">
                       {segs.map((seg, i) => {
@@ -5508,7 +5523,7 @@ ${aspectStr}`;
                                   : 'bg-[#143e4f] text-[#38bdf8] hover:bg-[#1e4d5f]'
                                 }`}
                               >
-                                <span style={{ fontSize: '12px', lineHeight: 1 }}>{copiedSection === `flow_seg_${i}` ? '✅' : '📋'}</span>
+                                <span style={{ fontSize: '12px', lineHeight: 1 }}>{copiedSection === `flow_seg_${i}` ? '?' : '??'}</span>
                                 {copiedSection === `flow_seg_${i}` ? 'Copied' : 'Copy'}
                               </button>
                             </div>
@@ -5545,7 +5560,7 @@ ${aspectStr}`;
                                 {(currentDialogueVal || isDialogueEditing) && (
                                   <div>
                                     <div className="flex items-center justify-between mb-1.5">
-                                      <span className="text-[9px] font-bold uppercase tracking-widest text-sky-400">🎤 Dialog / VO (Segment)</span>
+                                      <span className="text-[9px] font-bold uppercase tracking-widest text-sky-400">?? Dialog / VO (Segment)</span>
                                       <div className="flex gap-1.5">
                                         <button
                                           onClick={async () => {
@@ -5596,7 +5611,7 @@ RULES:
                                           <button onClick={() => toggleEditBoxMode(segDialogueKey)} className="px-2 py-0.5 rounded text-[10px] bg-sky-900/40 text-sky-400 font-bold hover:bg-sky-900/60">Edit</button>
                                         )}
                                         <button onClick={() => copyToClipboard(currentDialogueVal, `flow_seg_dlg_${i}`)} className={`px-2 py-0.5 rounded text-[10px] font-bold ${copiedSection === `flow_seg_dlg_${i}` ? 'bg-green-500 text-white' : 'bg-sky-900/40 text-sky-400'}`}>
-                                          {copiedSection === `flow_seg_dlg_${i}` ? '✅' : '📋'}
+                                          {copiedSection === `flow_seg_dlg_${i}` ? '?' : '??'}
                                         </button>
                                       </div>
                                     </div>
@@ -5978,7 +5993,7 @@ RULES:
                   <I name="Wand2" size={16} /> Modifying Component Architecture
                 </h3>
                 <p>
-                  Access the <strong>MAGIC BOX TUNER 🪄</strong> configuration mechanism to apply partial visual adjustment logic natively without affecting fundamental composition references.
+                  Access the <strong>MAGIC BOX TUNER ??</strong> configuration mechanism to apply partial visual adjustment logic natively without affecting fundamental composition references.
                 </p>
               </div>
             </div>
