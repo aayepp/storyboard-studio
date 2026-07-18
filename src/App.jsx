@@ -622,6 +622,36 @@ DIALOG PACING & SEGMENT CONTINUITY (CRITICAL FOR AI VIDEO GENERATION):
 11. The full dialogue across all scenes must read as ONE continuous conversation — not isolated random sentences.
 12. For videos >${sec > 15 ? '15s' : '10s'}: group every 2-3 scenes into a mini-thought that resolves before the next group begins. This ensures each 10s segment feels complete when cut.
 
+NARRATIVE ENGINE — Select the STRONGEST progression for this topic (do NOT force Hook→Problem→Solution→CTA if another works better):
+Available progressions: escalating problem, desire progression, mystery reveal, curiosity loop, before vs after, transformation journey, documentary discovery, character journey, problem to consequence, comedy setup to punchline, visual escalation, expectation vs reality, social experiment, countdown, hidden truth.
+Pick the one that creates the most retention for THIS specific topic. Announce your chosen progression in the JSON "style" field.
+
+CAMERA VARIETY (MANDATORY):
+- NEVER repeat the same camera angle/shot type in consecutive scenes.
+- Use at least 4 different camera types across ${sceneCount} scenes.
+- Available: Extreme Close Up, Close Up, Medium Shot, Wide Shot, POV, Over Shoulder, Tracking Shot, Dolly In, Low Angle, High Angle, Top Down, Macro, Handheld, Orbit Shot, Whip Pan.
+- Vary strategically: close-up for emotion, wide for context, POV for immersion, tracking for energy.
+
+STYLE INFERENCE (when style is "auto"):
+${style === 'auto' ? `Automatically select the strongest visual style for "${topic}". Consider: Cinematic, UGC, POV, Documentary, Product Demo, Emotional Storytelling, Comedy Skit, Hyperreal Commercial, Aesthetic B-Roll, Visual Metaphor, Macro Product Film. Pick what creates the most impact.` : `Mandatory style: ${style}.`}
+
+RETENTION — SCENE 1 MUST create immediate interest using one of these:
+- Unexpected movement or action mid-frame
+- Unfinished action (viewer needs to see what happens next)
+- Emotional tension or human reaction
+- Visual contradiction or unusual scale
+- Mystery or transformation beginning
+- Sensory imagery (texture, sound implication, touch)
+- Pattern interruption (something viewers don't expect)
+Do NOT open with generic talking-to-camera unless the topic demands it.
+
+CONTINUITY RULES (STRICT):
+- Every scene must: connect to previous scene, move story forward, show progression, include movement, reveal new information.
+- NEVER create random disconnected scenes. NEVER use filler. NEVER repeat the same message in different words.
+- No random character changes between scenes. No wardrobe changes unless specified. No face changes. No product redesign. No disconnected transitions. No unexplained environment changes.
+
+AUDIO DIRECTION: Include an "audio_direction" field in the JSON output suggesting the best audio mood (e.g., "emotional piano", "tension pulse", "fast percussion", "trending beat", "minimal ambience", "ASMR texture", "silence before reveal").
+
 ${refCount > 0 ? 'Reference assets loaded — lock product/identity consistency across ALL scenes.' : ''}
 ${assetAnalysis ? `ASSET ANALYSIS for visual consistency:\n${assetAnalysis}\n` : ''}
 ${identityBible ? `${identityBible}\n` : ''}
@@ -629,7 +659,7 @@ ${SCENE_ENVIRONMENT_RULES}
 ${SCENE_JSON_CONTRACT}
 
 Return ONLY valid JSON — no markdown, no commentary:
-{"title":"🎬 [organic-sounding title in BM]","duration":"${sec}s","style":"${style}","identity_bible":"[lock string]","scenes":[{"scene_num":1,"timecode":"0s–${perScene}s","visual":"[English with LOCATION + lighting]","camera":"[shot + movement]","action":"[what happens — natural vibe]","emotion":"[facial expression]","dialogue":"[NATURAL BM — like real friend talking, NOT scripted ad copy]","image_prompt":"[English still with full environment]","i2v_prompt":"[English motion prompt]","negative":"${DEFAULT_NEGATIVE}"}]}`;
+{"title":"🎬 [organic-sounding title in BM]","duration":"${sec}s","style":"[chosen style]","audio_direction":"[mood]","identity_bible":"[lock string]","scenes":[{"scene_num":1,"timecode":"0s–${perScene}s","visual":"[English with LOCATION + lighting + concrete details]","camera":"[specific shot type + movement — VARY each scene]","action":"[what happens — include movement]","emotion":"[facial expression + body language]","dialogue":"[NATURAL BM max ${Math.round(parseFloat(perScene) * 3)} words — or empty string for visual-only scenes]","image_prompt":"[English still with full environment]","i2v_prompt":"[English motion prompt]","negative":"${DEFAULT_NEGATIVE}"}]}`;
 };
 
 const getMicroImpactPrompt = (topic, aspect, audience, refCount, identityBible = '', assetAnalysis = '') =>
