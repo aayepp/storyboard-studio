@@ -3507,25 +3507,27 @@ ${aspectStr}`;
     return name.replace(/[^a-zA-Z0-9\s\-_]/g, '').trim().slice(0, 60);
   };
 
-  const handleDownloadHD = async (url, index) => {
+  const handleDownloadHD = async (url, index, resolution = '4k') => {
     if (!url) return;
     const baseName = getDownloadName() || 'Storyboard_Studio';
     const safeName = baseName.replace(/\s+/g, '_').toLowerCase();
+    // 4K = 3840px, 2K = 1920px (good enough for Flow AI video generation)
+    const is2k = resolution === '2k';
     try {
       const img = new Image();
       img.crossOrigin = "anonymous";
       img.onload = () => {
         const canvas = document.createElement('canvas');
         const activeRatio = currentDisplayRatio || aspectRatio;
-        let targetWidth = 3840;
-        let targetHeight = 3840;
+        let targetWidth = is2k ? 1920 : 3840;
+        let targetHeight = is2k ? 1920 : 3840;
 
         if (activeRatio === '9:16') {
-          targetWidth = 2160;
-          targetHeight = 3840;
+          targetWidth = is2k ? 1080 : 2160;
+          targetHeight = is2k ? 1920 : 3840;
         } else if (activeRatio === '16:9') {
-          targetWidth = 3840;
-          targetHeight = 2160;
+          targetWidth = is2k ? 1920 : 3840;
+          targetHeight = is2k ? 1080 : 2160;
         }
 
         canvas.width = targetWidth;
@@ -5265,18 +5267,26 @@ ${aspectStr}`;
                               <button
                                 onClick={() => handleDownloadHD(url, index)}
                                 disabled={!url || regeneratingIndexes[index]}
-                                className={`flex-1 py-3.5 rounded-xl border text-[10px] font-black flex items-center justify-center gap-2 transition-all tracking-widest uppercase shadow-sm disabled:opacity-50 ${t('bg-[#11131a] border-gray-800 text-white hover:border-sky-500', 'bg-white border-gray-200 text-gray-700 hover:border-sky-400')}`}
+                                className={`flex-1 py-3 rounded-xl border text-[10px] font-black flex items-center justify-center gap-2 transition-all tracking-widest uppercase shadow-sm disabled:opacity-50 ${t('bg-[#11131a] border-gray-800 text-white hover:border-sky-500', 'bg-white border-gray-200 text-gray-700 hover:border-sky-400')}`}
                               >
-                                <I name="Download" size={14} className="text-sky-500" /> DOWNLOAD HD
+                                <I name="Download" size={14} className="text-sky-500" /> DL 4K
                               </button>
                               <button
-                                onClick={() => regenerateSingleVisual(index)}
+                                onClick={() => handleDownloadHD(url, index, '2k')}
                                 disabled={!url || regeneratingIndexes[index]}
-                                className={`flex-1 py-3.5 rounded-xl border text-[10px] font-black flex items-center justify-center gap-2 transition-all tracking-widest uppercase shadow-sm disabled:opacity-50 ${t('bg-[#11131a] border-gray-800 text-white hover:border-cyan-400', 'bg-white border-gray-200 text-gray-700 hover:border-cyan-400')}`}
+                                className={`flex-1 py-3 rounded-xl border text-[10px] font-black flex items-center justify-center gap-2 transition-all tracking-widest uppercase shadow-sm disabled:opacity-50 ${t('bg-[#11131a] border-gray-800 text-white hover:border-cyan-400', 'bg-white border-gray-200 text-gray-700 hover:border-cyan-400')}`}
                               >
-                                <I name="RefreshCw" size={14} className={`${regeneratingIndexes[index] ? "animate-spin text-sky-500" : "text-gray-400"}`} /> ALTERNATIVE
+                                <I name="Download" size={14} className="text-cyan-400" /> DL 2K
                               </button>
                             </div>
+                            <button
+                              onClick={() => regenerateSingleVisual(index)}
+                              disabled={!url || regeneratingIndexes[index]}
+                              className={`w-full py-3.5 rounded-xl border text-[10px] font-black flex items-center justify-center gap-2 transition-all tracking-widest uppercase shadow-sm disabled:opacity-50 ${t('bg-[#11131a] border-gray-800 text-white hover:border-cyan-400', 'bg-white border-gray-200 text-gray-700 hover:border-cyan-400')}`}
+                            >
+                              <I name="RefreshCw" size={14} className={`${regeneratingIndexes[index] ? "animate-spin text-sky-500" : "text-gray-400"}`} /> ALT 2K
+                            </button>
+                          </div>
 
                             <button
                               onClick={() => toggleMagicBox(index)}
