@@ -1,7 +1,61 @@
-﻿/** Storyboard Studio — Vite + React (GitHub/Vercel Ready) */
+﻿/** Storyboard Studio — Vite + React + TypeScript (Gemini Canvas Ready) */
 import React, { useState, useRef, useEffect } from 'react';
 
-const I = ({ name, size = 16, className = '', style = {} }) => React.createElement('span', {
+interface IconProps {
+  name: string;
+  size?: number;
+  className?: string;
+  style?: React.CSSProperties;
+}
+
+interface SelectFieldProps {
+  label: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  options: (string | { v: string; l: string })[];
+  isDarkMode: boolean;
+}
+
+interface InputFieldProps {
+  label: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  placeholder?: string;
+  isDarkMode: boolean;
+}
+
+interface TextareaFieldProps {
+  label: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  placeholder?: string;
+  rows?: number;
+  isDarkMode: boolean;
+}
+
+interface ProductUpload {
+  name: string;
+  base64: string | null;
+  mimeType: string | null;
+  data?: string;
+}
+
+interface BackgroundUpload {
+  name: string;
+  base64: string;
+  mimeType: string;
+}
+
+interface TabUploadData {
+  products: ProductUpload[];
+  backgrounds: BackgroundUpload[];
+  faceFileName: string;
+  uploadedFaceBase64: string | null;
+  uploadedFaceMimeType: string | null;
+  useCustomFace: boolean;
+}
+
+const I: React.FC<IconProps> = ({ name, size = 16, className = '', style = {} }) => React.createElement('span', {
   className,
   style: { fontSize: Math.max(size, 12) + 'px', lineHeight: 1, ...style },
   role: 'img',
