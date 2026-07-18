@@ -3242,7 +3242,7 @@ CAMERA SYSTEM: Ultra-stable static tripod shot.`;
         await generateVisual(promptInputForAI, false, aspectRatio, normalizedScenes.length, {
           identityBible: finalBible,
           useContinuity: true,
-          concurrency: 3,
+          concurrency: 2,
           negatives: normalizedScenes.map((s) => withEnvNegative(s.negative || DEFAULT_NEGATIVE, false))
         });
         setIsGeneratingAll(false);
@@ -3468,8 +3468,8 @@ ${aspectStr}`;
       await generateVisual(visualPrompts, false, aspectRatio, imgCount, {
         identityBible,
         useContinuity: Array.isArray(promptInputForAI) && promptInputForAI.length >= 3,
-        concurrency: 3,
-        negatives: allowWhite ? [DEFAULT_NEGATIVE] : [withEnvNegative(DEFAULT_NEGATIVE, false)],
+          concurrency: 2,
+          negatives: allowWhite ? [DEFAULT_NEGATIVE] : [withEnvNegative(DEFAULT_NEGATIVE, false)],
         topicLock: activeTab === 'character' ? '' : (safeProductName || productName || '')
       });
     } catch (error) {
