@@ -1256,14 +1256,17 @@ const getStoredGenfityModel = () => {
   try { return localStorage.getItem('genfity_selected_model') || 'genfity/gemini-3.5-flash'; } catch { return 'genfity/gemini-3.5-flash'; }
 };
 
-const callGeminiApi = async (model, payload, isPredict = false, signal = null) => {
-  const currentKey = getStoredApiKey();
-  if (!currentKey) throw new Error('API Key belum dimasukkan. Sila masukkan Gemini API Key anda di bahagian atas halaman.');
+  const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+  const callGeminiApi = async (model, payload, isPredict = false, signal = null) => {
+    const currentKey = getStoredApiKey();
+    if (!currentKey) throw new Error('API Key belum dimasukkan. Sila masukkan Gemini API Key anda di bahagian atas halaman.');
   const endpoint = isPredict ? 'predict' : 'generateContent';
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:${endpoint}?key=${currentKey}`;
-  const delays = [1000, 2000, 4000, 8000, 16000];
+  // 429 (Too Many Requests) gets longer delays since quota resets slower
+  const delays = [2000, 4000, 8000, 16000, 32000, 60000];
   
-  for (let i = 0; i <= 5; i++) {
+  for (let i = 0; i <= 6; i++) {
     try {
       const response = await fetch(url, {
         method: 'POST',
@@ -1281,15 +1284,22 @@ const callGeminiApi = async (model, payload, isPredict = false, signal = null) =
         throw new Error(`HTTP ${response.status}: ${text}`);
       }
 
-      // For 5xx and other transient errors, retry with backoff
+      // For 429 and 5xx, retry with longer backoff
+      if (response.status === 429) {
+        console.warn(`Rate limited (429) on attempt ${i + 1}. Waiting ${delays[i] || 60000}ms...`);
+        if (i >= 6) throw new Error(`HTTP 429: Too Many Requests. Sila tunggu sebentar atau guna API key lain.`);
+        await new Promise((resolve) => setTimeout(resolve, delays[i] || 60000));
+        continue;
+      }
+
       throw new Error(`HTTP Error ${response.status}`);
     } catch (error) {
       if (error.name === 'AbortError') throw error;
-      // Don't retry permanent errors (400 Bad Request, 401 Unauthorized, 403 Forbidden)
       if (error.message && /HTTP (400|401|403)/.test(error.message)) throw error;
-      if (i === 5) throw error;
+      if (error.message && error.message.includes('429')) throw error; // 429 sudah retry loop
+      if (i === 6) throw error;
+      await new Promise((resolve) => setTimeout(resolve, delays[i] || 2000));
     }
-    await new Promise((resolve) => setTimeout(resolve, delays[i]));
   }
 };
 
@@ -2065,7 +2075,7 @@ Be visual and specific. English only.`
     const {
       identityBible = '',
       useContinuity = true,
-      concurrency = 3,
+      concurrency = 2,
       negatives = null,
       motionGraphicsMode = false,
       topicLock = ''
