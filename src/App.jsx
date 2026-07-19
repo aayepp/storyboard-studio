@@ -602,8 +602,8 @@ const combineImagesVerticallyPair = (imgUrl1, imgUrl2, aspectRatio = '9:16') => 
       ctx.fillRect(0, halfH + gap / 2, canvasWidth, 36);
       ctx.font = 'bold 20px sans-serif';
       ctx.fillStyle = '#fff';
-      ctx.fillText('? SCENE A', 16, 26);
-      ctx.fillText('? SCENE B', 16, halfH + gap / 2 + 26);
+      ctx.fillText('▶ SCENE A', 16, 26);
+      ctx.fillText('▶ SCENE B', 16, halfH + gap / 2 + 26);
 
       resolve(canvas.toDataURL('image/jpeg', 0.92));
     };
@@ -2371,7 +2371,7 @@ return parsed;
       if (keyframeMode === 'on' && promptsToRun.length > 1 && !isRegenerate) {
         promptsToRun = [promptsToRun[0]];
         runLimit = 1;
-        setLoadingText('?? Smart Keyframe: Generating 1 keyframe only (rest = text prompts for Flow AI)...');
+        setLoadingText('Smart Keyframe: Generating 1 keyframe only (rest = text prompts for Flow AI)...');
       }
 
       const results = new Array(runLimit).fill(null);
@@ -3829,7 +3829,7 @@ ${aspectStr}`;
                 onClick={() => setEditModes(prev => ({ ...prev, [`${sectionId}_expanded`]: true }))}
                 className={`mt-2 text-[10px] font-bold uppercase tracking-widest ${t('text-sky-400 hover:text-sky-300', 'text-sky-500 hover:text-sky-600')} transition-colors`}
               >
-                ? Show Full Prompt
+                ▼ Show Full Prompt
               </button>
             )}
             {String(value || '').length > 300 && editModes[`${sectionId}_expanded`] && (
@@ -3837,7 +3837,7 @@ ${aspectStr}`;
                 onClick={() => setEditModes(prev => ({ ...prev, [`${sectionId}_expanded`]: false }))}
                 className={`mt-2 text-[10px] font-bold uppercase tracking-widest ${t('text-gray-500 hover:text-gray-400', 'text-gray-400 hover:text-gray-500')} transition-colors`}
               >
-                ? Collapse
+                ▲ Collapse
               </button>
             )}
           </div>
@@ -4107,7 +4107,7 @@ ${aspectStr}`;
             <div className={`p-5 rounded-2xl border relative overflow-hidden ${t('bg-red-950/30 border-red-900/50', 'bg-red-50 border-red-200')}`}>
               <div className="absolute left-0 top-0 w-1 h-full bg-red-500"></div>
               <p className={`font-black text-lg mb-2 uppercase tracking-widest ${t('text-red-500', 'text-red-600')}`}>
-                ?? STRICTLY FORBIDDEN TO RESELL!
+                STRICTLY FORBIDDEN TO RESELL!
               </p>
               <p className={`font-medium leading-relaxed ${t('text-red-200', 'text-red-800')}`}>
                 This platform is protected by the exclusive license of the developer. You are
@@ -4350,7 +4350,7 @@ ${aspectStr}`;
                         <I name="Eye" size={12} />
                       </button>
                     </div>
-                    {genfityKey && <span className="text-[10px] text-green-400 font-bold">?</span>}
+                    {genfityKey && <span className="text-[10px] text-green-400 font-bold">OK</span>}
                   </div>
                 )}
 
@@ -4376,12 +4376,12 @@ ${aspectStr}`;
                 </div>
                 {generateMode === 'text_and_images' && (
                   <div className="flex items-center gap-3 pt-2 border-t border-gray-800/30">
-                    <span className={`text-[10px] font-bold uppercase tracking-widest ${t('text-gray-500', 'text-gray-400')}`}>? Smart Keyframe:</span>
+                    <span className={`text-[10px] font-bold uppercase tracking-widest ${t('text-gray-500', 'text-gray-400')}`}><I name="Zap" size={12} className="text-amber-400" /> Smart Keyframe:</span>
                     <button
                       onClick={() => handleKeyframeModeChange(keyframeMode === 'on' ? 'off' : 'on')}
                       className={`px-3 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all ${keyframeMode === 'on' ? 'bg-amber-500 text-white shadow-sm' : t('bg-gray-800 text-gray-400 hover:text-white', 'bg-gray-100 text-gray-500')}`}
                     >
-                      {keyframeMode === 'on' ? '?? ON (1 img)' : '?? OFF'}
+                      {keyframeMode === 'on' ? 'ON (1 img)' : 'OFF'}
                     </button>
                     {keyframeMode === 'on' && (
                       <span className={`text-[10px] font-medium ${t('text-amber-400', 'text-amber-600')}`}>
@@ -5447,7 +5447,7 @@ ${aspectStr}`;
                               className={`w-full py-3.5 rounded-xl border text-[10px] font-black flex items-center justify-center gap-2 transition-all tracking-widest uppercase shadow-sm disabled:opacity-50 ${showMagicBox[index] ? (PINK_GRAD + ' border-transparent') : (t('bg-[#11131a] border-gray-800 text-sky-400 hover:border-sky-500', 'bg-sky-50 border-sky-200 text-sky-600'))}`}
                             >
                               <I name="Wand2" size={14} className={showMagicBox[index] ? "text-white" : "text-sky-500"} />
-                              {showMagicBox[index] ? 'CLOSE MAGIC BOX' : 'MAGIC BOX TUNER ??'}
+                              {showMagicBox[index] ? 'CLOSE MAGIC BOX' : 'MAGIC BOX TUNER'}
                             </button>
 
                             {showMagicBox[index] && (
@@ -5481,7 +5481,7 @@ ${aspectStr}`;
                                 className={`w-full mt-2 py-3 rounded-xl border text-[10px] font-black flex items-center justify-center gap-2 transition-all tracking-widest uppercase shadow-sm disabled:opacity-50 ${t('bg-sky-950/30 border-sky-800/50 text-sky-400 hover:border-sky-500', 'bg-sky-50 border-sky-200 text-sky-600 hover:border-sky-400')}`}
                               >
                                 <I name="Layers" size={14} className="text-sky-400" />
-                                {combiningPairIndex === pairIndex ? 'COMBINING...' : `?? DOWNLOAD COMBINED SEGMENT ${pairIndex + 1}`}
+                                {combiningPairIndex === pairIndex ? 'COMBINING...' : `DOWNLOAD COMBINED SEGMENT ${pairIndex + 1}`}
                               </button>
                             )}
                         </div>
@@ -5519,14 +5519,14 @@ ${aspectStr}`;
                 return (
                   <div className="border rounded-[1.25rem] p-6 shadow-sm relative transition-all duration-300 bg-[#09151c] border-[#12313f] mt-8 max-w-4xl mx-auto">
                     <h3 className="font-extrabold text-sm flex items-center gap-2 uppercase tracking-wide mb-2 text-[#38bdf8]">
-                      <span style={{ fontSize: '16px', lineHeight: 1 }}>?</span> FLOW AI CONTINUITY SEGMENTS (I2V)
+                      <I name="Zap" size={16} className="text-sky-400" /> FLOW AI CONTINUITY SEGMENTS (I2V)
                     </h3>
                     <p className="text-xs mb-2 leading-relaxed text-gray-400">
                       Core duration: <span className="text-sky-300 font-bold">{totalSec}s</span>
                       {' '}· Preparing {segs.length} chained segments.
                     </p>
                     <p className="text-[10px] mb-4 text-gray-500 uppercase tracking-widest">
-                      {segs.map((s) => s.label).join('  ?  ')}
+                      {segs.map((s) => s.label).join('  →  ')}
                     </p>
                     <div className="space-y-3 mt-2">
                       {segs.map((seg, i) => {
@@ -6036,7 +6036,7 @@ RULES:
                   <I name="Wand2" size={16} /> Modifying Component Architecture
                 </h3>
                 <p>
-                  Access the <strong>MAGIC BOX TUNER ??</strong> configuration mechanism to apply partial visual adjustment logic natively without affecting fundamental composition references.
+                  Access the <strong>MAGIC BOX TUNER</strong> configuration mechanism to apply partial visual adjustment logic natively without affecting fundamental composition references.
                 </p>
               </div>
             </div>
