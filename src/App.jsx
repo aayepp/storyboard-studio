@@ -209,6 +209,22 @@ const verifyDialogueContinuity = (scenes) => {
     issues.push(`Scene terakhir tamat dengan dead-end ("ok tu je") — perlu CTA/payoff`);
   }
 
+  // Check 6: Semantic continuity — scene N+1 dialogue must reference scene N
+  for (let i = 0; i < dialogues.length - 1; i++) {
+    const current = dialogues[i].toLowerCase();
+    const next = dialogues[i + 1].toLowerCase();
+    // Extract meaningful content words (≥4 chars, not pronouns/stopwords) from both scenes
+    const stopwords = new Set(['aku','kau','dia','kita','korang','ni','tu','ini','itu','dan','atau','tapi','sebab','macam','yang','dah','sudah','belum','akan','sedang','telah','pernah','boleh','mahu','nak','hendak','saja','juga','semua','sikit','sangat','banyak','kalau','juga','lagi','bila','mana','sini','sana','tolong','cuba','mesti','hendak','hendaklah','adalah','ialah','iaitu','yakni','bahawa','kerana','supaya','untuk','dengan','secara','antara','dalam','seperti','tanpa','serta','setelah','selama','sejak']);
+    const meaningfulWords = (text) => [...new Set(text.split(/\W+/).filter(w => w.length >= 4 && !stopwords.has(w)))];
+    const currentWords = meaningfulWords(current);
+    const nextWords = meaningfulWords(next);
+    const shared = currentWords.filter(w => nextWords.includes(w));
+    // If scene N has at least 2 meaningful nouns and scene N+1 shares NONE, flag it
+    if (currentWords.length >= 2 && nextWords.length >= 1 && shared.length === 0) {
+      issues.push(`Scene ${i + 1} dan ${i + 2} tiada continuity semantic — topik berubah secara mendadak`);
+    }
+  }
+
   return { ok: issues.length === 0, issues };
 };
 
