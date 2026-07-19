@@ -839,6 +839,7 @@ CRITICAL RULES — Your life depends on following these:
    - Include incomplete sentences, self-corrections, rhetorical questions
    - Each scene's dialogue must have DIFFERENT emotional energy than the scene before
    - NEVER start with "Hai korang hari ni aku nak share tentang..."
+   - NEVER repeat the same word twice in a row (e.g. "baru baru", "best best", "gila gila") — use a different word instead
    - Think how a real Malaysian creator talks to their close friend on TikTok Live
 4. 3-ACT STRUCTURE (HOOK → CONTENT/SOLUTION → CTA) — MUST follow:
 ${actMap.map((act, i) => `Scene ${i+1}: ${act}`).join('\n')}
