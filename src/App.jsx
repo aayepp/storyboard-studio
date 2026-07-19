@@ -3898,6 +3898,27 @@ ${aspectStr}`;
     if (sectionId === 'videoPrompt' || sectionId === 'video') {
       setEditableImagePrompt(editedValues[sectionId]);
     }
+    // Sync dialogue edit → segment prompt (update DIALOGUE (BM) block in prompt)
+    const dlgMatch = sectionId.match(/^flow_seg_dialogue_(\d+)$/);
+    if (dlgMatch) {
+      const idx = dlgMatch[1];
+      const promptKey = `flow_seg_prompt_${idx}`;
+      const newDialogue = editedValues[sectionId] || '';
+      setBoxEdits(prev => {
+        const currentPrompt = prev[promptKey] || '';
+        // Replace existing DIALOGUE (BM) block or append
+        const dlgRegex = new RegExp('\nDIALOGUE \\(BM\\):[\\s\\S]*?(?=\nCONTINUITY:|\nINSTRUCTIONS:|$)');
+        const updated = currentPrompt.includes('DIALOGUE (BM):')
+          ? currentPrompt.replace(dlgRegex, `
+DIALOGUE (BM):
+${newDialogue}
+`)
+          : currentPrompt + `
+DIALOGUE (BM):
+${newDialogue}`;
+        return { ...prev, [promptKey]: updated };
+      });
+    }
   };
 
   const regenerateWithEditedPrompt = async (promptToUse) => {
@@ -5957,9 +5978,9 @@ ${aspectStr}`;
                             {isSegExpanded && (
                               <div className="px-4 pb-4 space-y-3 border-t border-[#143e4f] pt-3 animate-fade-in">
                                 {/* Editable Prompt */}
-                                <div>
+                                <div className="bg-amber-950/20 border border-amber-500/20 rounded-xl p-3">
                                   <div className="flex items-center justify-between mb-1.5">
-                                    <span className="text-[9px] font-bold uppercase tracking-widest text-sky-400">Segment Prompt</span>
+                                    <span className="text-[9px] font-bold uppercase tracking-widest text-amber-400 flex items-center gap-1">⚡ Segment Prompt</span>
                                     <div className="flex gap-1.5">
                                       {isPromptEditing ? (
                                         <button onClick={() => saveBoxValue(segPromptKey)} className={U.c9}>Save</button>
@@ -5984,9 +6005,9 @@ ${aspectStr}`;
                                 
                                 {/* Editable Dialogue */}
                                 {(currentDialogueVal || isDialogueEditing) && (
-                                  <div>
+                                  <div className="bg-pink-950/20 border border-pink-500/20 rounded-xl p-3">
                                     <div className="flex items-center justify-between mb-1.5">
-                                      <span className="text-[9px] font-bold uppercase tracking-widest text-sky-400">💬 Dialog / VO (Segment)</span>
+                                      <span className="text-[9px] font-bold uppercase tracking-widest text-pink-400 flex items-center gap-1">🎤 Dialog {'/'} VO (Segment)</span>
                                       <div className="flex gap-1.5">
                                         <button
                                           onClick={async () => {
