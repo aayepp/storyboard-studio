@@ -4058,6 +4058,32 @@ ${aspectStr}`;
 
   // Download combined segment (pair two images on-demand)
   const [combiningPairIndex, setCombiningPairIndex] = useState(null);
+  const handleExportToCharSheet = (imageDataUrl) => {
+    if (!imageDataUrl || !imageDataUrl.startsWith('data:image')) return;
+    const mimeType = imageDataUrl.substring(imageDataUrl.indexOf(':') + 1, imageDataUrl.indexOf(';'));
+    const base64Data = imageDataUrl.split(',')[1];
+    // Save to character tab's face lock
+    setTabUploads((prev) => ({
+      ...prev,
+      character: {
+        ...prev.character,
+        useCustomFace: true,
+        faceFileName: `Fake Influencer Export (${fiName || 'FI'})`,
+        uploadedFaceBase64: base64Data,
+        uploadedFaceMimeType: mimeType
+      }
+    }));
+    // Clear character tab cache so it picks up the new face
+    setTabCache((prev) => {
+      const next = { ...prev };
+      delete next.character;
+      return next;
+    });
+    // Show success feedback
+    setCopiedSection('exported_char_sheet');
+    setTimeout(() => setCopiedSection(''), 3000);
+  };
+
   const handleDownloadCombinedSegment = async (pairIndex) => {
     const idxA = pairIndex * 2;
     const idxB = pairIndex * 2 + 1;
@@ -5578,6 +5604,16 @@ ${aspectStr}`;
                               >
                                 <I name="Layers" size={14} className="text-sky-400" />
                                 {combiningPairIndex === pairIndex ? 'COMBINING...' : `DOWNLOAD COMBINED SEGMENT ${pairIndex + 1}`}
+                              </button>
+                            )}
+
+                            {/* Export to Character Sheet — only in fake_influencer tab */}
+                            {activeTab === 'fake_influencer' && url && (
+                              <button
+                                onClick={() => handleExportToCharSheet(url)}
+                                className={`w-full mt-2 py-3.5 rounded-xl border text-[10px] font-black flex items-center justify-center gap-2 transition-all tracking-widest uppercase shadow-sm ${t('bg-emerald-950/30 border-emerald-800/50 text-emerald-400 hover:border-emerald-500 hover:bg-emerald-900/30', 'bg-emerald-50 border-emerald-200 text-emerald-600 hover:border-emerald-400')}`}
+                              >
+                                <I name="UserPlus" size={14} className="text-emerald-400" /> EXPORT TO CHARACTER SHEET
                               </button>
                             )}
                         </div>
