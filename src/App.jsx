@@ -1459,9 +1459,19 @@ const generateFlowSegments = (scenes, durationStr, options = {}) => {
 };
 
 // UI Component Helpers Defined OUTSIDE to prevent focus loss on typing
-const SelectField = ({ label, value, onChange, options, isDarkMode }) => (
+const Tooltip = ({ text, children }) => (
+  <span className="relative group inline-flex items-center">
+    {children}
+    <span className="ml-1 w-3.5 h-3.5 rounded-full bg-gray-700 text-gray-400 text-[9px] font-black flex items-center justify-center cursor-help group-hover:bg-sky-500 group-hover:text-white transition-all">?</span>
+    <span className="absolute left-0 top-6 z-50 hidden group-hover:block w-48 p-2 rounded-lg text-[10px] leading-relaxed font-medium bg-gray-900 border border-gray-700 text-gray-200 shadow-xl pointer-events-none normal-case tracking-normal">
+      {text}
+    </span>
+  </span>
+);
+
+const SelectField = ({ label, value, onChange, options, isDarkMode, tooltip }) => (
   <div>
-    <label className={C.label}>{label}</label>
+    <label className={C.label}>{tooltip ? <Tooltip text={tooltip}>{label}</Tooltip> : label}</label>
     <div className="relative">
       <select
         value={value}
@@ -1488,9 +1498,9 @@ const darkFieldStyle = (d) => d
   ? { backgroundColor: '#0a0c10', color: '#ffffff', borderColor: '#374151' }
   : { backgroundColor: '#f9fafb', color: '#1f2937', borderColor: '#e5e7eb' };
 
-const InputField = ({ label, value, onChange, placeholder, isDarkMode }) => (
+const InputField = ({ label, value, onChange, placeholder, isDarkMode, tooltip }) => (
   <div>
-    <label className={C.label}>{label}</label>
+    <label className={C.label}>{tooltip ? <Tooltip text={tooltip}>{label}</Tooltip> : label}</label>
     <input
       type="text"
       value={value}
@@ -1502,9 +1512,9 @@ const InputField = ({ label, value, onChange, placeholder, isDarkMode }) => (
   </div>
 );
 
-const TextareaField = ({ label, value, onChange, placeholder, rows = 3, isDarkMode }) => (
+const TextareaField = ({ label, value, onChange, placeholder, rows = 3, isDarkMode, tooltip }) => (
   <div>
-    <label className={C.label}>{label}</label>
+    <label className={C.label}>{tooltip ? <Tooltip text={tooltip}>{label}</Tooltip> : label}</label>
     <textarea
       value={value}
       onChange={onChange}
@@ -1674,6 +1684,7 @@ export default function App() {
   const tabsContainerRef = useRef(null);
 
   const [isGeneratingAll, setIsGeneratingAll] = useState(false);
+  const [generationStep, setGenerationStep] = useState(0);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [regeneratingIndexes, setRegeneratingIndexes] = useState({});
   const [loadingText, setLoadingText] = useState('');
@@ -1697,6 +1708,7 @@ export default function App() {
   const [editModes, setEditModes] = useState({});
   const [editedValues, setBoxEdits] = useState({});
   const [tabCache, setTabCache] = useState({});
+  const [generateHistory, setGenerateHistory] = useState([]);
   const [logoError, setLogoError] = useState(false);
 
   const outputRef = useRef(null);
@@ -2283,6 +2295,28 @@ return parsed;
     setIsMagicEditing({});
   };
 
+  // Keyboard shortcuts: Ctrl+Enter = Generate, Escape = Cancel
+  useEffect(() => {
+    const handler = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        if (!isGeneratingAll && !isGeneratingImage) {
+          if (['cinematic_pro','microimpact','narrativearc','talkinghead','stopmotion','grafix'].includes(activeTab)) {
+            generateNewMode(activeTab);
+          } else {
+            generateAllContent();
+          }
+        }
+      }
+      if (e.key === 'Escape' && (isGeneratingAll || isGeneratingImage)) {
+        cancelAllGenerations();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [isGeneratingAll, isGeneratingImage, activeTab]);
+
+
   const handleTabChange = (tab) => {
     if (activeTab === tab) return;
 
@@ -2831,6 +2865,7 @@ Keep the subject person, face reference, background layout, and clothes identica
     }
 
     setIsGeneratingAll(true);
+    setGenerationStep(0);
     setGeneratedOutput(null);
     setImageUrls([]);
     setShowMagicBox({});
@@ -2858,6 +2893,7 @@ Keep the subject person, face reference, background layout, and clothes identica
         setLoadingText('Absorbing visual data from reference images...');
         try {
           assetAnalysis = await analyzeReferenceAssets(signal);
+          setGenerationStep(1);
         } catch (analyzeErr) {
           if (analyzeErr.name === 'AbortError') throw analyzeErr;
           console.warn('Reference analysis skipped:', analyzeErr);
@@ -2921,6 +2957,7 @@ Keep the subject person, face reference, background layout, and clothes identica
       setLoadingText(isGrafix ? 'Generating Grafix framework series...' : 'Building JSON sequence array...');
       setProgressStage(1);
       const parsed = await fetchStoryboardJson(promptText, expectedCount, signal);
+      setGenerationStep(2);
       if (signal.aborted) return;
       const lockedSec = parseDurationToSeconds(durationByMode[mode]) || expectedCount * 5 || 30;
       parsed.duration = `${lockedSec}s`;
@@ -3012,6 +3049,7 @@ Keep the subject person, face reference, background layout, and clothes identica
         identityBible: finalBible
       });
       setCurrentDisplayRatio(aspectRatio);
+      setGenerationStep(3);
       await generateVisual(imagePrompts, false, aspectRatio, imagePrompts.length, {
         identityBible: finalBible,
         useContinuity: true,
@@ -3063,6 +3101,7 @@ Keep the subject person, face reference, background layout, and clothes identica
     }
 
     setIsGeneratingAll(true);
+    setGenerationStep(0);
     setGeneratedOutput(null);
     setImageUrls([]);
     setZoomedImages({});
@@ -3094,6 +3133,7 @@ Keep the subject person, face reference, background layout, and clothes identica
         setLoadingText('Extracting features from reference images...');
         try {
           assetAnalysis = await analyzeReferenceAssets(signal);
+          setGenerationStep(1);
         } catch (analyzeErr) {
           if (analyzeErr.name === 'AbortError') throw analyzeErr;
           console.warn('Reference analysis skipped:', analyzeErr);
@@ -3463,6 +3503,7 @@ CAMERA SYSTEM: Ultra-stable static tripod shot.`;
           });
 
           setGeneratedOutput(result);
+          setGenerateHistory(prev => [{ tab: activeTab, topic: cinematicTopic || productName || thTopic || gfTopic || smProduct || narrativeArcTopic || microImpactTopic || characterName || fiName || '', output: result, timestamp: Date.now() }, ...prev].slice(0, 3));
           setEditableImagePrompt(promptInputForAI);
           setCurrentDisplayRatio(aspectRatio);
           await generateVisual(promptInputForAI, false, aspectRatio, result.scenes.length, {
@@ -3544,6 +3585,7 @@ CAMERA SYSTEM: Ultra-stable static tripod shot.`;
         });
 
         setGeneratedOutput(result);
+        setGenerateHistory(prev => [{ tab: activeTab, topic: cinematicTopic || productName || thTopic || gfTopic || smProduct || narrativeArcTopic || microImpactTopic || characterName || fiName || '', output: result, timestamp: Date.now() }, ...prev].slice(0, 3));
         setEditableImagePrompt(promptInputForAI);
         setCurrentDisplayRatio(aspectRatio);
         await generateVisual(promptInputForAI, false, aspectRatio, normalizedScenes.length, {
@@ -4023,7 +4065,7 @@ ${newDialogue}`;
 
   const renderGenderBox = () => (
     <div>
-      <label className="block text-[10px] font-bold mb-2.5 uppercase tracking-wider text-gray-400">Model Gender</label>
+      <label className="block text-[10px] font-bold mb-2.5 uppercase tracking-wider text-gray-400"><Tooltip text="Jantina model dalam video">Model Gender</Tooltip></label>
       <div className={`flex rounded-2xl p-1.5 border ${t('bg-gray-800/50 border-gray-700', 'bg-white border-gray-200')}`}>
         <button onClick={() => setGender('Wanita')} className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all ${gender === 'Wanita' ? 'bg-gradient-to-r from-blue-400 to-blue-500 text-white shadow-md' : (t('bg-transparent text-gray-400', 'bg-transparent text-gray-500'))}`}>Female</button>
         <button onClick={() => setGender('Pria')} className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all ${gender === 'Pria' ? 'bg-gradient-to-r from-blue-400 to-blue-500 text-white shadow-md' : (t('bg-transparent text-gray-400', 'bg-transparent text-gray-500'))}`}>Male</button>
@@ -4058,7 +4100,7 @@ ${newDialogue}`;
             </div>
             <div className="flex flex-col min-w-0">
               <span className={`text-base font-bold truncate ${activeProduct.name ? 'text-gray-200' : 'text-gray-500'}`}>
-                {activeProduct.name ? activeProduct.name : 'Upload Product Reference'}
+                {activeProduct.name ? activeProduct.name : <Tooltip text="Upload gambar produk untuk AI lock consistency visual">Upload Product Reference</Tooltip>}
               </span>
               {!activeProduct.name && <span className="text-xs mt-1 text-gray-400 font-bold">Locks consistency metric automatically inside active tab</span>}
             </div>
@@ -4383,14 +4425,14 @@ ${newDialogue}`;
   }
 
   return (
-    <div className={`min-h-screen font-sans pb-20 transition-colors duration-300 relative ${t('bg-[#0a0c10]', 'bg-[#f8fafc]')}`}>
+    <div className={`min-h-screen font-sans pb-20 transition-all duration-500 relative ${t('bg-[#0a0c10]', 'bg-[#f8fafc]')}`}>
       {/* Floating Background Particles */}
       <div className="bg-particle"></div>
       <div className="bg-particle"></div>
       <div className="bg-particle"></div>
       <div className="bg-particle"></div>
       <div className="bg-particle"></div>
-      <header className={`backdrop-blur-xl border-b sticky top-0 z-40 transition-colors duration-300 ${t('bg-[#11131a]/90 border-gray-800', 'bg-white/80 border-gray-100')}`}>
+      <header className={`backdrop-blur-xl border-b sticky top-0 z-40 transition-all duration-500 ${t('bg-[#11131a]/90 border-gray-800', 'bg-white/80 border-gray-100')}`}>
         <div className="max-w-[1200px] mx-auto px-5 sm:px-8 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
           <button
             onClick={() => {
@@ -4463,33 +4505,36 @@ ${newDialogue}`;
       <div className="flex min-h-[calc(100vh-64px)] relative z-10">
 
         {/* SIDEBAR */}
-        <aside className={`shrink-0 transition-all duration-300 overflow-hidden ${sidebarOpen ? 'w-56' : 'w-0'} ${t('bg-[#0d0f14] border-r border-gray-800', 'bg-gray-50 border-r border-gray-200')} sticky top-[65px] h-[calc(100vh-65px)] overflow-y-auto`}>
+        {sidebarOpen && (
+          <div className="fixed inset-0 bg-black/50 z-20 md:hidden" onClick={() => setSidebarOpen(false)} />
+        )}
+        <aside className={`shrink-0 transition-all duration-300 overflow-hidden ${sidebarOpen ? 'w-56' : 'w-0'} ${t('bg-[#0d0f14] border-r border-gray-800', 'bg-gray-50 border-r border-gray-200')} fixed md:relative top-[65px] md:top-auto h-[calc(100vh-65px)] z-30 md:z-auto overflow-y-auto`}>
           <div className="p-3 pt-4 min-w-[224px]">
             {[
               {
                 group: '🎬 Video',
                 tabs: [
-                  { id: 'cinematic_pro', icon: <I name="Clapperboard" size={14} />, label: 'Cinematic Pro', grad: 'from-violet-500 to-fuchsia-500', glow: 'shadow-violet-500/30', text: 'text-violet-300' },
-                  { id: 'microimpact', icon: <I name="Zap" size={14} />, label: '10s Micro', grad: 'from-amber-400 to-orange-500', glow: 'shadow-amber-500/30', text: 'text-amber-300' },
-                  { id: 'narrativearc', icon: <I name="Film" size={14} />, label: '30s Narrative', grad: 'from-rose-500 to-pink-500', glow: 'shadow-rose-500/30', text: 'text-rose-300' },
-                  { id: 'talkinghead', icon: <I name="User" size={14} />, label: 'Talking Head', grad: 'from-blue-500 to-indigo-500', glow: 'shadow-blue-500/30', text: 'text-blue-300' },
-                  { id: 'ugc', icon: <I name="Video" size={14} />, label: 'Affiliate UGC', grad: 'from-emerald-500 to-teal-500', glow: 'shadow-emerald-500/30', text: 'text-emerald-300' },
+                  { id: 'cinematic_pro', icon: <I name="Clapperboard" size={14} />, label: 'Cinematic Pro', desc: 'Storyboard penuh dengan scenes, dialog & visual', grad: 'from-violet-500 to-fuchsia-500', glow: 'shadow-violet-500/30', text: 'text-violet-300' },
+                  { id: 'microimpact', icon: <I name="Zap" size={14} />, label: '10s Micro', desc: 'Video pendek 10s impak maksimum', grad: 'from-amber-400 to-orange-500', glow: 'shadow-amber-500/30', text: 'text-amber-300' },
+                  { id: 'narrativearc', icon: <I name="Film" size={14} />, label: '30s Narrative', desc: 'Aliran cerita 30s Flow AI optimized', grad: 'from-rose-500 to-pink-500', glow: 'shadow-rose-500/30', text: 'text-rose-300' },
+                  { id: 'talkinghead', icon: <I name="User" size={14} />, label: 'Talking Head', desc: 'Penyampai hadapan kamera', grad: 'from-blue-500 to-indigo-500', glow: 'shadow-blue-500/30', text: 'text-blue-300' },
+                  { id: 'ugc', icon: <I name="Video" size={14} />, label: 'Affiliate UGC', desc: 'Kreator gaya hidup & demo produk', grad: 'from-emerald-500 to-teal-500', glow: 'shadow-emerald-500/30', text: 'text-emerald-300' },
                 ]
               },
               {
                 group: '🖼️ Image',
                 tabs: [
-                  { id: 'product', icon: <I name="Box" size={14} />, label: 'Product POV', grad: 'from-cyan-500 to-sky-500', glow: 'shadow-cyan-500/30', text: 'text-cyan-300' },
-                  { id: 'ootd', icon: <I name="Shirt" size={14} />, label: 'OOTD', grad: 'from-pink-500 to-rose-500', glow: 'shadow-pink-500/30', text: 'text-pink-300' },
-                  { id: 'stopmotion', icon: <I name="Box" size={14} />, label: 'Stop Motion', grad: 'from-orange-500 to-red-500', glow: 'shadow-orange-500/30', text: 'text-orange-300' },
+                  { id: 'product', icon: <I name="Box" size={14} />, label: 'Product POV', desc: 'Demonstrasi & unboxing produk', grad: 'from-cyan-500 to-sky-500', glow: 'shadow-cyan-500/30', text: 'text-cyan-300' },
+                  { id: 'ootd', icon: <I name="Shirt" size={14} />, label: 'OOTD', desc: 'Padanan fesyen & gaya hidup', grad: 'from-pink-500 to-rose-500', glow: 'shadow-pink-500/30', text: 'text-pink-300' },
+                  { id: 'stopmotion', icon: <I name="Box" size={14} />, label: 'Stop Motion', desc: 'Animasi objek kreatif & menarik', grad: 'from-orange-500 to-red-500', glow: 'shadow-orange-500/30', text: 'text-orange-300' },
                 ]
               },
               {
                 group: '🔧 Tools',
                 tabs: [
-                  { id: 'grafix', icon: <I name="PenTool" size={14} />, label: 'Grafix', grad: 'from-purple-500 to-indigo-500', glow: 'shadow-purple-500/30', text: 'text-purple-300' },
-                  { id: 'character', icon: <I name="User" size={14} />, label: 'Char Sheet', grad: 'from-sky-500 to-cyan-400', glow: 'shadow-sky-500/30', text: 'text-sky-300' },
-                  { id: 'fake_influencer', icon: <I name="UserPlus" size={14} />, label: 'Fake Influencer', grad: 'from-fuchsia-500 to-pink-500', glow: 'shadow-fuchsia-500/30', text: 'text-fuchsia-300' },
+                  { id: 'grafix', icon: <I name="PenTool" size={14} />, label: 'Grafix', desc: 'Animasi grafik bergerak & explainer', grad: 'from-purple-500 to-indigo-500', glow: 'shadow-purple-500/30', text: 'text-purple-300' },
+                  { id: 'character', icon: <I name="User" size={14} />, label: 'Char Sheet', desc: 'Blueprint visual karakter & produk', grad: 'from-sky-500 to-cyan-400', glow: 'shadow-sky-500/30', text: 'text-sky-300' },
+                  { id: 'fake_influencer', icon: <I name="UserPlus" size={14} />, label: 'Fake Influencer', desc: 'Avatar sintetik digital Malaysia', grad: 'from-fuchsia-500 to-pink-500', glow: 'shadow-fuchsia-500/30', text: 'text-fuchsia-300' },
                 ]
               }
             ].map(({ group, tabs }) => (
@@ -4507,12 +4552,26 @@ ${newDialogue}`;
                       }`}
                     >
                       <span className={activeTab === tab.id ? 'text-white' : t(tab.text, tab.text)}>{tab.icon}</span>
-                      {tab.label}
+                      <span className="flex flex-col items-start">
+                        <span>{tab.label}</span>
+                        {activeTab !== tab.id && tab.desc && <span className="text-[9px] font-normal opacity-50 leading-tight">{tab.desc}</span>}
+                      </span>
                     </button>
                   ))}
                 </div>
               </div>
             ))}
+            {generateHistory.length > 0 && (
+              <div className="mt-4 pt-4 border-t border-gray-800">
+                <p className="text-[9px] font-black uppercase tracking-widest px-2 mb-1.5 text-gray-600">Recent</p>
+                {generateHistory.map((h, i) => (
+                  <button key={i} onClick={() => { setGeneratedOutput(h.output); setActiveTab(h.tab); }}
+                    className="w-full text-left px-3 py-2 rounded-xl text-[10px] text-gray-500 hover:text-gray-300 hover:bg-white/5 transition-all truncate">
+                    {h.topic || h.tab}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </aside>
 
@@ -4718,6 +4777,7 @@ ${newDialogue}`;
             <div className="space-y-6">
               <TextareaField
                 label="Core Subject / Video Topic"
+                tooltip="Topik utama atau idea cerita video kau"
                 value={cinematicTopic}
                 onChange={(e) => setCinematicTopic(e.target.value)}
                 placeholder="e.g., The importance of financial planning among young adults..."
@@ -4728,6 +4788,7 @@ ${newDialogue}`;
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <SelectField
                   label="Video Duration"
+                  tooltip="Berapa saat video kau — lebih panjang = lebih banyak scenes"
                   value={cinematicDuration}
                   onChange={(e) => setCinematicDuration(e.target.value)}
                   options={['10', '15', '20', '30', '45', '60'].map(v => ({ v, l: `${v} Seconds` }))}
@@ -4736,6 +4797,7 @@ ${newDialogue}`;
 
                 <SelectField
                   label="Cinematic Style"
+                  tooltip="Mood dan feel visual keseluruhan video"
                   value={cinematicStyle}
                   onChange={(e) => setCinematicStyle(e.target.value)}
                   options={[
@@ -4746,13 +4808,14 @@ ${newDialogue}`;
                 />
 
                 <div>
-                  <label className={C.label}>Aspect Ratio Target</label>
+                  <label className={C.label}><Tooltip text="9:16 untuk TikTok/Reels, 16:9 untuk YouTube, 1:1 untuk Instagram">Aspect Ratio Target</Tooltip></label>
                   {renderAspectRatioButtons()}
                 </div>
               </div>
 
               <InputField
                 label="Target Audience (Optional)"
+                tooltip="Siapa penonton sasaran — AI akan optimise tone untuk mereka"
                 value={cinematicAudience}
                 onChange={(e) => setCinematicAudience(e.target.value)}
                 placeholder="e.g., Urban youth aged 20-30, startup founders..."
@@ -4764,13 +4827,27 @@ ${newDialogue}`;
               {renderIdentityBox()}
               {renderBackgroundUploadBox()}
 
-              <button
-                onClick={() => generateNewMode('cinematic_pro')}
-                disabled={isGeneratingAll || !cinematicTopic.trim()}
-                className={`${U.c2} mt-4 active:scale-[0.98] hover:opacity-90 disabled:opacity-50`}
-              >
-                {isGeneratingAll ? 'Processing Storyboard...' : 'Generate Cinematic Storyboard'}
-              </button>
+              <div className="sticky bottom-4 z-30 pt-4">
+                {isGeneratingAll && (
+                  <div className="flex items-center gap-2 mb-3 p-3 rounded-xl bg-sky-500/10 border border-sky-500/20">
+                    {['Menganalisis', 'Membina Cerita', 'Menjana Visual', 'Memproses'].map((step, i) => (
+                      <div key={i} className={`flex items-center gap-1.5 text-[10px] font-bold ${i <= generationStep ? 'text-sky-400' : 'text-gray-600'}`}>
+                        <div className={`w-2 h-2 rounded-full ${i < generationStep ? 'bg-sky-400' : i === generationStep ? 'bg-sky-400 animate-pulse' : 'bg-gray-700'}`} />
+                        {step}
+                        {i < 3 && <span className="text-gray-700 mx-0.5">{'→'}</span>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <button
+                  onClick={() => generateNewMode('cinematic_pro')}
+                  disabled={isGeneratingAll || !cinematicTopic.trim()}
+                  className={`${U.c2} active:scale-[0.98] hover:opacity-90 disabled:opacity-50`}
+                >
+                  {isGeneratingAll ? 'Processing Storyboard...' : 'Generate Cinematic Storyboard'}
+                </button>
+                <p className="text-center text-[9px] text-gray-600 mt-2">Ctrl+Enter to generate · Esc to cancel</p>
+              </div>
             </div>
           </div>
         )}
@@ -4794,13 +4871,14 @@ ${newDialogue}`;
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <InputField
                   label="Target Audience"
+                  tooltip="Siapa penonton sasaran — AI akan optimise tone untuk mereka"
                   value={microImpactAudience}
                   onChange={(e) => setMicroImpactAudience(e.target.value)}
                   placeholder="e.g., Spicy food lovers, local foodies..."
                   isDarkMode={isDarkMode}
                 />
                 <div>
-                  <label className={C.label}>Aspect Ratio Target</label>
+                  <label className={C.label}><Tooltip text="9:16 untuk TikTok/Reels, 16:9 untuk YouTube, 1:1 untuk Instagram">Aspect Ratio Target</Tooltip></label>
                   {renderAspectRatioButtons()}
                 </div>
               </div>
@@ -4810,13 +4888,27 @@ ${newDialogue}`;
               {renderIdentityBox()}
               {renderBackgroundUploadBox()}
 
-              <button
-                onClick={() => generateNewMode('microimpact')}
-                disabled={isGeneratingAll || !microImpactTopic.trim()}
-                className={`${U.c2} mt-4`}
-              >
-                {isGeneratingAll ? 'Processing...' : 'Generate 10s Micro-Impact Suite'}
-              </button>
+              <div className="sticky bottom-4 z-30 pt-4">
+                {isGeneratingAll && (
+                  <div className="flex items-center gap-2 mb-3 p-3 rounded-xl bg-sky-500/10 border border-sky-500/20">
+                    {['Menganalisis', 'Membina Cerita', 'Menjana Visual', 'Memproses'].map((step, i) => (
+                      <div key={i} className={`flex items-center gap-1.5 text-[10px] font-bold ${i <= generationStep ? 'text-sky-400' : 'text-gray-600'}`}>
+                        <div className={`w-2 h-2 rounded-full ${i < generationStep ? 'bg-sky-400' : i === generationStep ? 'bg-sky-400 animate-pulse' : 'bg-gray-700'}`} />
+                        {step}
+                        {i < 3 && <span className="text-gray-700 mx-0.5">{'→'}</span>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <button
+                  onClick={() => generateNewMode('microimpact')}
+                  disabled={isGeneratingAll || !microImpactTopic.trim()}
+                  className={`${U.c2}`}
+                >
+                  {isGeneratingAll ? 'Processing...' : 'Generate 10s Micro-Impact Suite'}
+                </button>
+                <p className="text-center text-[9px] text-gray-600 mt-2">Ctrl+Enter to generate · Esc to cancel</p>
+              </div>
             </div>
           </div>
         )}
@@ -4846,7 +4938,7 @@ ${newDialogue}`;
                   isDarkMode={isDarkMode}
                 />
                 <div>
-                  <label className={C.label}>Aspect Ratio Target</label>
+                  <label className={C.label}><Tooltip text="9:16 untuk TikTok/Reels, 16:9 untuk YouTube, 1:1 untuk Instagram">Aspect Ratio Target</Tooltip></label>
                   {renderAspectRatioButtons()}
                 </div>
               </div>
@@ -4856,13 +4948,27 @@ ${newDialogue}`;
               {renderIdentityBox()}
               {renderBackgroundUploadBox()}
 
-              <button
-                onClick={() => generateNewMode('narrativearc')}
-                disabled={isGeneratingAll || !narrativeArcTopic.trim()}
-                className={`${U.c2} mt-4`}
-              >
-                {isGeneratingAll ? 'Processing...' : 'Generate 30s Narrative Arc'}
-              </button>
+              <div className="sticky bottom-4 z-30 pt-4">
+                {isGeneratingAll && (
+                  <div className="flex items-center gap-2 mb-3 p-3 rounded-xl bg-sky-500/10 border border-sky-500/20">
+                    {['Menganalisis', 'Membina Cerita', 'Menjana Visual', 'Memproses'].map((step, i) => (
+                      <div key={i} className={`flex items-center gap-1.5 text-[10px] font-bold ${i <= generationStep ? 'text-sky-400' : 'text-gray-600'}`}>
+                        <div className={`w-2 h-2 rounded-full ${i < generationStep ? 'bg-sky-400' : i === generationStep ? 'bg-sky-400 animate-pulse' : 'bg-gray-700'}`} />
+                        {step}
+                        {i < 3 && <span className="text-gray-700 mx-0.5">{'→'}</span>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <button
+                  onClick={() => generateNewMode('narrativearc')}
+                  disabled={isGeneratingAll || !narrativeArcTopic.trim()}
+                  className={`${U.c2}`}
+                >
+                  {isGeneratingAll ? 'Processing...' : 'Generate 30s Narrative Arc'}
+                </button>
+                <p className="text-center text-[9px] text-gray-600 mt-2">Ctrl+Enter to generate · Esc to cancel</p>
+              </div>
             </div>
           </div>
         )}
@@ -4906,7 +5012,7 @@ ${newDialogue}`;
                 />
 
                 <div>
-                  <label className={C.label}>Aspect Ratio Target</label>
+                  <label className={C.label}><Tooltip text="9:16 untuk TikTok/Reels, 16:9 untuk YouTube, 1:1 untuk Instagram">Aspect Ratio Target</Tooltip></label>
                   {renderAspectRatioButtons()}
                 </div>
               </div>
@@ -4924,13 +5030,27 @@ ${newDialogue}`;
               {renderIdentityBox()}
               {renderBackgroundUploadBox()}
 
-              <button
-                onClick={() => generateNewMode('talkinghead')}
-                disabled={isGeneratingAll || !thTopic.trim()}
-                className={`${U.c2} mt-4`}
-              >
-                {isGeneratingAll ? 'Processing...' : 'Generate Talking Head Profile'}
-              </button>
+              <div className="sticky bottom-4 z-30 pt-4">
+                {isGeneratingAll && (
+                  <div className="flex items-center gap-2 mb-3 p-3 rounded-xl bg-sky-500/10 border border-sky-500/20">
+                    {['Menganalisis', 'Membina Cerita', 'Menjana Visual', 'Memproses'].map((step, i) => (
+                      <div key={i} className={`flex items-center gap-1.5 text-[10px] font-bold ${i <= generationStep ? 'text-sky-400' : 'text-gray-600'}`}>
+                        <div className={`w-2 h-2 rounded-full ${i < generationStep ? 'bg-sky-400' : i === generationStep ? 'bg-sky-400 animate-pulse' : 'bg-gray-700'}`} />
+                        {step}
+                        {i < 3 && <span className="text-gray-700 mx-0.5">{'→'}</span>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <button
+                  onClick={generateNewMode('talkinghead')}
+                  disabled={isGeneratingAll || !thTopic.trim()}
+                  className={`${U.c2}`}
+                >
+                  {isGeneratingAll ? 'Processing...' : 'Generate Talking Head Profile'}
+                </button>
+                <p className="text-center text-[9px] text-gray-600 mt-2">Ctrl+Enter to generate · Esc to cancel</p>
+              </div>
             </div>
           </div>
         )}
@@ -4983,7 +5103,7 @@ ${newDialogue}`;
                 />
 
                 <div>
-                  <label className={C.label}>Aspect Ratio Target</label>
+                  <label className={C.label}><Tooltip text="9:16 untuk TikTok/Reels, 16:9 untuk YouTube, 1:1 untuk Instagram">Aspect Ratio Target</Tooltip></label>
                   {renderAspectRatioButtons()}
                 </div>
               </div>
@@ -5091,7 +5211,7 @@ ${newDialogue}`;
                 />
 
                 <div>
-                  <label className={C.label}>Aspect Ratio Target</label>
+                  <label className={C.label}><Tooltip text="9:16 untuk TikTok/Reels, 16:9 untuk YouTube, 1:1 untuk Instagram">Aspect Ratio Target</Tooltip></label>
                   {renderAspectRatioButtons()}
                 </div>
               </div>
@@ -5197,7 +5317,7 @@ ${newDialogue}`;
                 />
 
                 <div>
-                  <label className={C.label}>Aspect Ratio Target</label>
+                  <label className={C.label}><Tooltip text="9:16 untuk TikTok/Reels, 16:9 untuk YouTube, 1:1 untuk Instagram">Aspect Ratio Target</Tooltip></label>
                   {renderAspectRatioButtons()}
                 </div>
               </div>
@@ -5266,7 +5386,7 @@ ${newDialogue}`;
                 />
 
                 <div>
-                  <label className={C.label}>Aspect Ratio Target</label>
+                  <label className={C.label}><Tooltip text="9:16 untuk TikTok/Reels, 16:9 untuk YouTube, 1:1 untuk Instagram">Aspect Ratio Target</Tooltip></label>
                   {renderAspectRatioButtons()}
                 </div>
               </div>
@@ -5334,7 +5454,7 @@ ${newDialogue}`;
                 />
 
                 <div>
-                  <label className={C.label}>Aspect Ratio Target</label>
+                  <label className={C.label}><Tooltip text="9:16 untuk TikTok/Reels, 16:9 untuk YouTube, 1:1 untuk Instagram">Aspect Ratio Target</Tooltip></label>
                   {renderAspectRatioButtons()}
                 </div>
               </div>
@@ -5414,7 +5534,7 @@ ${newDialogue}`;
                 />
 
                 <div>
-                  <label className={C.label}>Aspect Ratio Target</label>
+                  <label className={C.label}><Tooltip text="9:16 untuk TikTok/Reels, 16:9 untuk YouTube, 1:1 untuk Instagram">Aspect Ratio Target</Tooltip></label>
                   {renderAspectRatioButtons()}
                 </div>
               </div>
@@ -6696,6 +6816,8 @@ animation: bounceOnce 0.6s cubic-bezier(0.36, 0.07, 0.19, 0.97) forwards;
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #7dd3fc; border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: #38bdf8; }
+* { transition-property: background-color, border-color, color; transition-duration: 300ms; transition-timing-function: ease; }
+.no-transition * { transition: none !important; }
 ` }} />
     </div>
   );
