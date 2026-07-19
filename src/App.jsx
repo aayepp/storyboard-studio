@@ -5910,11 +5910,13 @@ ${aspectStr}`;
                                   )}
                                 </div>
                                 
-                                {/* Editable Dialogue */}
+                                {/* Editable Dialogue — HIGHLIGHTED */}
                                 {(currentDialogueVal || isDialogueEditing) && (
-                                  <div>
-                                    <div className="flex items-center justify-between mb-1.5">
-                                      <span className="text-[9px] font-bold uppercase tracking-widest text-sky-400">💬 Dialog / VO (Segment)</span>
+                                  <div className="bg-gradient-to-r from-pink-950/30 to-rose-950/20 rounded-xl p-3 border border-pink-500/20">
+                                    <div className="flex items-center justify-between mb-2">
+                                      <span className="text-[10px] font-black uppercase tracking-widest text-pink-300 flex items-center gap-1.5">
+                                        <I name="Mic" size={12} /> Dialog / VO (Segment)
+                                      </span>
                                       <div className="flex gap-1.5">
                                         <button
                                           onClick={async () => {
@@ -5955,16 +5957,16 @@ RULES:
                                             }
                                           }}
                                           disabled={editModes[`flow_seg_dialogue_${i}_loading`]}
-                                          className="px-2 py-0.5 rounded text-[10px] bg-sky-500/20 text-sky-300 font-bold hover:bg-sky-500/40 disabled:opacity-50 flex items-center gap-1"
+                                          className="px-2 py-0.5 rounded text-[10px] bg-pink-500/20 text-pink-300 font-bold hover:bg-pink-500/40 disabled:opacity-50 flex items-center gap-1"
                                         >
                                           <I name="RefreshCw" size={10} className={editModes[`flow_seg_dialogue_${i}_loading`] ? 'animate-spin' : ''} /> Re-Gen
                                         </button>
                                         {isDialogueEditing ? (
-                                          <button onClick={() => saveBoxValue(segDialogueKey)} className={U.c9}>Save</button>
+                                          <button onClick={() => saveBoxValue(segDialogueKey)} className="px-2 py-0.5 rounded text-[10px] bg-green-500 text-white font-bold hover:bg-green-600">Save</button>
                                         ) : (
-                                          <button onClick={() => toggleEditBoxMode(segDialogueKey)} className="px-2 py-0.5 rounded text-[10px] bg-sky-900/40 text-sky-400 font-bold hover:bg-sky-900/60">Edit</button>
+                                          <button onClick={() => toggleEditBoxMode(segDialogueKey)} className="px-2 py-0.5 rounded text-[10px] bg-pink-900/40 text-pink-400 font-bold hover:bg-pink-900/60">Edit</button>
                                         )}
-                                        <button onClick={() => copyToClipboard(currentDialogueVal, `flow_seg_dlg_${i}`)} className={`px-2 py-0.5 rounded text-[10px] font-bold ${copiedSection === `flow_seg_dlg_${i}` ? 'bg-green-500 text-white' : 'bg-sky-900/40 text-sky-400'}`}>
+                                        <button onClick={() => copyToClipboard(currentDialogueVal, `flow_seg_dlg_${i}`)} className={`px-2 py-0.5 rounded text-[10px] font-bold ${copiedSection === `flow_seg_dlg_${i}` ? 'bg-green-500 text-white' : 'bg-pink-900/40 text-pink-400'}`}>
                                           {copiedSection === `flow_seg_dlg_${i}` ? '✅' : '📋'}
                                         </button>
                                       </div>
@@ -5974,11 +5976,12 @@ RULES:
                                         value={currentDialogueVal}
                                         onChange={(e) => handleBoxValueChange(segDialogueKey, e.target.value)}
                                         rows={3}
-                                        className="w-full rounded-lg px-3 py-2 text-[11px] font-mono resize-none focus:outline-none focus:ring-1 focus:ring-sky-400 border bg-sky-950/20 border-pink-900/30 text-pink-200"
+                                        className="w-full rounded-lg px-3 py-2 text-[11px] font-mono resize-none focus:outline-none focus:ring-1 focus:ring-pink-400 border bg-rose-950/20 border-pink-500/50 text-pink-100 placeholder-pink-500/50"
                                       />
                                     ) : (
-                                      <div className="whitespace-pre-wrap text-[11px] font-medium leading-relaxed italic text-sky-300 bg-sky-950/20 border border-pink-900/30 rounded-lg p-3">
-                                        {currentDialogueVal || '(No dialogue for this segment)'}
+                                      <div className="whitespace-pre-wrap text-[11px] font-medium leading-relaxed text-pink-100 bg-pink-950/20 border border-pink-500/30 rounded-lg p-3 shadow-inner">
+                                        <span className="text-pink-300 text-[10px] font-bold uppercase tracking-widest block mb-1">🎤 Dialogue:</span>
+                                        {currentDialogueVal || <span className="text-pink-400/60 italic">(No dialogue for this segment)</span>}
                                       </div>
                                     )}
                                   </div>
