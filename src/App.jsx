@@ -5452,12 +5452,12 @@ ${aspectStr}`;
                        <div className="absolute bottom-1/4 right-1/4 w-32 h-32 rounded-full bg-cyan-400 blur-3xl animate-pulse" style={{ animationDelay: '0.5s' }}></div>
                      </div>
                      {/* Central spinner */}
-                     <div className="relative mb-8">
-                       <div className="w-20 h-20 border-4 border-sky-100/20 border-t-sky-500 rounded-full animate-spin"></div>
-                       <div className="absolute inset-0 w-20 h-20 border-4 border-transparent border-b-cyan-400 rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
+                     <div className="relative mb-10">
+                       <div className="w-24 h-24 border-4 border-sky-100/20 border-t-sky-500 rounded-full animate-spin"></div>
+                       <div className="absolute inset-0 w-24 h-24 border-4 border-transparent border-b-cyan-400 rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
                      </div>
-                     {/* Pipeline stages */}
-                     <div className="relative w-full max-w-xs space-y-3 mb-6">
+                     {/* Pipeline stages — centered below spinner */}
+                     <div className="relative w-full max-w-[200px] space-y-3 mb-6">
                        {stages.slice(0, 3).map((s, i) => (
                          <div key={i} className="flex items-center gap-3">
                            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black transition-all duration-500 ${
