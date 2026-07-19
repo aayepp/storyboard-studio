@@ -3958,8 +3958,23 @@ ${aspectStr}`;
       const idx = dlgMatch[1];
       const promptKey = `flow_seg_prompt_${idx}`;
       const newDialogue = editedValues[sectionId] || '';
+      // Build flow segments to get original prompt if not yet edited
+      const totalSec = parseDurationToSeconds(generatedOutput?.selectedDurationSec || generatedOutput?.duration) || getSelectedDurationSeconds();
+      const normScenes = collectScenesForFlow();
+      const fallbackScenes = normScenes.length ? normScenes : [{
+        scene_num: 1, timecode: `0s–${totalSec}s`,
+        visual: editedValues.videoPrompt || generatedOutput?.videoPrompt || editableImagePrompt || '',
+        dialogue: editedValues.script || generatedOutput?.script || '',
+        i2v_prompt: ''
+      }];
+      const segs = generateFlowSegments(fallbackScenes, String(totalSec), {
+        identityBible: generatedOutput?.identityBible || editedValues.identityBible || '',
+        aspectRatio: currentDisplayRatio || aspectRatio || '9:16',
+        title: generatedOutput?.title || generatedOutput?.caption || productName || cinematicTopic || ''
+      });
+      const originalPrompt = segs[idx]?.prompt || '';
       setBoxEdits(prev => {
-        const currentPrompt = prev[promptKey] || '';
+        const currentPrompt = prev[promptKey] || originalPrompt;
         // Replace existing DIALOGUE (BM) block or append
         const dlgRegex = new RegExp('\nDIALOGUE \\(BM\\):[\\s\\S]*?(?=\nCONTINUITY:|\nINSTRUCTIONS:|$)');
         const updated = currentPrompt.includes('DIALOGUE (BM):')
