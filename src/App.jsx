@@ -1535,6 +1535,10 @@ const getStoredGenerateMode = () => {
 const getStoredKeyframeMode = () => {
   try { return localStorage.getItem('keyframe_mode') || 'off'; } catch { return 'off'; }
 };
+const getStoredTimelineMode = () => {
+  try { return localStorage.getItem('timeline_mode') || 'off'; } catch { return 'off'; }
+};
+};
 
 const GEMINI_MODELS = [
   { v: 'gemini-3.5-flash', l: 'Gemini 3.5 Flash (Latest)' },
@@ -1789,6 +1793,7 @@ export default function App() {
   const [textProvider, setTextProvider] = useState(getStoredTextProvider);
   const [generateMode, setGenerateMode] = useState(getStoredGenerateMode);
   const [keyframeMode, setKeyframeMode] = useState(getStoredKeyframeMode);
+  const [timelineMode, setTimelineMode] = useState(getStoredTimelineMode);
   const [genfityModel, setGenfityModel] = useState(getStoredGenfityModel);
   const [showApiKeyInput, setShowApiKeyInput] = useState(!getStoredApiKey());
   const [showProviderPanel, setShowProviderPanel] = useState(false);
@@ -1866,6 +1871,10 @@ export default function App() {
   const handleKeyframeModeChange = (mode) => {
     setKeyframeMode(mode);
     try { localStorage.setItem('keyframe_mode', mode); } catch {}
+  };
+  const handleTimelineModeChange = (mode) => {
+    setTimelineMode(mode);
+    try { localStorage.setItem('timeline_mode', mode); } catch {}
   };
 
   const handleGenfityModelChange = (model) => {
@@ -2529,10 +2538,12 @@ return parsed;
       }
 
       // Smart Keyframe Mode: only generate 1 image (scene 1 keyframe), rest are text only
-      if (keyframeMode === 'on' && promptsToRun.length > 1 && !isRegenerate) {
+      // Storyboard Timeline Mode: ON = generate all scenes, OFF (default) = only 1 image
+      const singleImageMode = (keyframeMode === 'on' || timelineMode === 'off') && timelineMode !== 'on';
+      if (singleImageMode && promptsToRun.length > 1 && !isRegenerate) {
         promptsToRun = [promptsToRun[0]];
         runLimit = 1;
-        setLoadingText('Smart Keyframe: Generating 1 keyframe only (rest = text prompts for Flow AI)...');
+        setLoadingText(timelineMode === 'off' ? 'Storyboard Timeline OFF: Generating 1 image only...' : 'Smart Keyframe: Generating 1 keyframe only (rest = text prompts for Flow AI)...');
       }
 
       const results = new Array(runLimit).fill(null);
@@ -4731,7 +4742,7 @@ ${newDialogue}`;
                   )}
                 </div>
                 {generateMode === 'text_and_images' && (
-                  <div className="flex items-center gap-3 pt-2 border-t border-gray-800/30">
+                  <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-gray-800/30">
                     <span className={`text-[10px] font-bold uppercase tracking-widest ${t('text-gray-500', 'text-gray-400')}`}><I name="Zap" size={12} className="text-amber-400" /> Smart Keyframe:</span>
                     <button
                       onClick={() => handleKeyframeModeChange(keyframeMode === 'on' ? 'off' : 'on')}
@@ -4741,7 +4752,20 @@ ${newDialogue}`;
                     </button>
                     {keyframeMode === 'on' && (
                       <span className={`text-[10px] font-medium ${t('text-amber-400', 'text-amber-600')}`}>
-                        Jimat token: generate 1 keyframe je, selebihnya text prompt
+                        Jimat token: 1 keyframe je, selebihnya text prompt
+                      </span>
+                    )}
+                    
+                    <span className={`text-[10px] font-bold uppercase tracking-widest ml-2 ${t('text-gray-500', 'text-gray-400')}`}><I name="Layers" size={12} className="text-sky-400" /> Storyboard Timeline:</span>
+                    <button
+                      onClick={() => handleTimelineModeChange(timelineMode === 'on' ? 'off' : 'on')}
+                      className={`px-3 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all ${timelineMode === 'on' ? 'bg-sky-500 text-white shadow-sm' : t('bg-gray-800 text-gray-400 hover:text-white', 'bg-gray-100 text-gray-500')}`}
+                    >
+                      {timelineMode === 'on' ? 'ON (all scenes)' : 'OFF (1 img)'}
+                    </button>
+                    {timelineMode === 'off' && (
+                      <span className={`text-[10px] font-medium ${t('text-sky-400', 'text-sky-600')}`}>
+                        Default: 1 gambar je. ON untuk semua scene
                       </span>
                     )}
                   </div>
