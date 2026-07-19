@@ -1306,33 +1306,48 @@ const generateFlowSegments = (scenes, durationStr, options = {}) => {
       if (donor && donor.length) {
         const s0 = i * segSize;
         const e0 = Math.min(s0 + segSize, totalSec);
-        // CONTINUITY DIALOGUE FIX: Carry forward dialogue with bridging transitions
-        // instead of emptying it. This prevents broken/dangling story flow in Flow AI.
+        const segPart = `${i + 1}/${numSegments}`;
+        // SEGMENT UNIQUENESS FIX: Each donor copy MUST generate unique dialogue
+        // instead of repeating the same base dialogue across segments.
+        // This prevents Flow AI from producing repeated dialogue between scenes.
         buckets[i] = donor.map((sc, donorIdx) => {
           const baseDialogue = String(sc.dialogue || '').trim();
           const isFinalSegment = i === numSegments - 1;
-          // Use a different bridging transition per continuation to avoid repetition
-          const bridges = ['so lepas tu', 'pastu', 'tapi yang best nya', 'then', 'ok so', 'dan yang penting'];
-          const bridge = bridges[donorIdx % bridges.length];
-          // For final segment, append CTA-style payoff if dialogue ends weakly
-          let continuedDialogue = baseDialogue;
-          if (baseDialogue && !isFinalSegment) {
-            // Continue the conversation — add a bridging hook that points to the next beat
-            continuedDialogue = `${baseDialogue} ${bridge}...`;
-          } else if (baseDialogue && isFinalSegment) {
-            // Ensure final segment closes with CTA, not dead-end
-            const endsWeak = /(tu je|je|je lah|gitu|macam tu)\s*[.!?]?\s*$/i.test(baseDialogue);
-            if (endsWeak) {
-              continuedDialogue = `${baseDialogue} Jangan tunggu lagi — klik beg kuning sekarang! 🔥`;
+          // Use segment-position-aware bridges so each segment sounds different
+          const middleBridges = ['Nak bagitau lagi,', 'Lepas tu,', 'Dan yang bestnya,', 'Pastu,', 'So, untuk part ni,', 'Bila dah sampai sini,'];
+          const startBridges = ['Ok so untuk sambungan,', 'Korang,', 'Yang best lagi,', 'Selain tu,', 'Dan kalau korang nak tau,'];
+          const bridge = i <= 1 ? startBridges[donorIdx % startBridges.length] : middleBridges[donorIdx % middleBridges.length];
+          // Generate continuation dialogue with segment marker to prevent duplication
+          let continuedDialogue = '';
+          if (baseDialogue) {
+            if (isFinalSegment) {
+              const endsWeak = /(tu je|je|je lah|gitu|macam tu)\s*[.!?]?\s*$/i.test(baseDialogue);
+              if (endsWeak) {
+                continuedDialogue = `[SEG ${segPart}] Dah sampai penghujung — jangan tunggu lagi, klik beg kuning sekarang! 🔥`;
+              } else {
+                continuedDialogue = `[SEG ${segPart}] ${baseDialogue.slice(0, Math.min(baseDialogue.length, 60))} — dah sampai part akhir! 🔥`;
+              }
+            } else {
+              // Generate unique continuation: take different angle on same topic
+              // Use first few words as anchor then add fresh continuation
+              const anchor = baseDialogue.split(/\s+/).slice(0, 3).join(' ');
+              const segSpecific = [
+                `${anchor} — untuk ${s0}s–${e0}s ni, lain pulak ceritanya...`,
+                `${bridge} ${baseDialogue} — period ${segPart} pun sama...`,
+                `Untuk segmen ${segPart}: ${baseDialogue.replace(/^(.*?)(?:kan|tau|weh|eh|ah|gila|sumpah|serious)\s*/i, '').trim() || baseDialogue}`,
+                `Dalam part ${segPart}: ${anchor} dan makin menjadi...`,
+                `${bridge} dalam ${e0 - s0}s ni, ${baseDialogue.slice(0, 40)} — tapi versi lain`,
+              ];
+              continuedDialogue = segSpecific[donorIdx % segSpecific.length];
             }
           }
           return {
             ...sc,
-            visual: `${sc.visual || ''}\n[CONTINUATION ${s0}s–${e0}s: same identity/product/wardrobe, progress the action naturally for this window. Same environment, new camera angle.]`,
+            visual: `${sc.visual || ''}\n[SEGMENT ${segPart} ${s0}s–${e0}s: different dialogue, same topic, progress the action naturally. Same identity/product/environment.]`,
             dialogue: continuedDialogue,
             i2v_prompt: sc.i2v_prompt
-              ? `${sc.i2v_prompt} Continue motion into ${s0}s–${e0}s.`
-              : `Continue seamless motion ${s0}s–${e0}s, same character and product.`
+              ? `${sc.i2v_prompt} Continue motion for segment ${segPart} (${s0}s–${e0}s).`
+              : `Continue seamless motion ${s0}s–${e0}s for segment ${segPart}, same character and product.`
           };
         });
       }
