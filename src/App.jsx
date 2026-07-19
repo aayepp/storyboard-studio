@@ -1538,7 +1538,6 @@ const getStoredKeyframeMode = () => {
 const getStoredTimelineMode = () => {
   try { return localStorage.getItem('timeline_mode') || 'off'; } catch { return 'off'; }
 };
-};
 
 const GEMINI_MODELS = [
   { v: 'gemini-3.5-flash', l: 'Gemini 3.5 Flash (Latest)' },
