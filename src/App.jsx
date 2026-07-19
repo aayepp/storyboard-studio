@@ -1713,6 +1713,43 @@ export default function App() {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
 
+  // Toast notifications
+  const [toasts, setToasts] = useState([]);
+  const addToast = (message, type = 'info', duration = 4000) => {
+    const id = Date.now() + Math.random();
+    setToasts(prev => [...prev, { id, message, type }]);
+    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), duration);
+  };
+  const removeToast = (id) => setToasts(prev => prev.filter(t => t.id !== id));
+
+  // Scene detail modal
+  const [sceneModal, setSceneModal] = useState(null); // { scene, imageUrl }
+
+  // Lightbox navigation
+  const [lightboxIndex, setLightboxIndex] = useState(null);
+
+  // Generation history (localStorage, max 5 per tab)
+  const [genHistory, setGenHistory] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('gen_history') || '{}'); } catch { return {}; }
+  });
+  const saveToHistory = (tabKey, outputData, imageUrlsData) => {
+    setGenHistory(prev => {
+      const tabHistory = prev[tabKey] || [];
+      const entry = { timestamp: Date.now(), output: outputData, imageUrls: imageUrlsData.slice(0, 3) };
+      const updated = [entry, ...tabHistory].slice(0, 5);
+      const next = { ...prev, [tabKey]: updated };
+      try { localStorage.setItem('gen_history', JSON.stringify(next)); } catch {}
+      return next;
+    });
+  };
+  const [showHistory, setShowHistory] = useState(false);
+
+  // Export PDF state
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
+
+  // Skeleton loading slots
+  const [skeletonCount, setSkeletonCount] = useState(0);
+
   const handleSaveApiKey = (key) => {
     setApiKey(key);
     try { localStorage.setItem('gemini_api_key', key); } catch {}
@@ -5573,7 +5610,7 @@ ${aspectStr}`;
 
                           <div
                             className={`relative w-full ${containerAspectClass} bg-black overflow-hidden cursor-zoom-in`}
-                            onClick={() => setFullscreenImage(url)}
+                            onClick={() => { setFullscreenImage(url); setLightboxIndex(index); }}
                           >
                             {(regeneratingIndexes[index] || isMagicEditing[index]) && (
                                <div className="absolute inset-0 backdrop-blur-xl z-30 flex flex-col items-center justify-center text-center p-4 bg-black/80">
@@ -5703,7 +5740,7 @@ ${aspectStr}`;
                           const timecode = scene.timecode || `${idx * 5}s–${(idx + 1) * 5}s`;
                           const dialogue = String(scene.dialogue || '').trim();
                           return (
-                            <div key={idx} className={`flex-shrink-0 w-40 rounded-2xl border overflow-hidden transition-all hover:scale-105 cursor-pointer group ${t('bg-[#0a0c10] border-gray-700 hover:border-sky-500', 'bg-gray-50 border-gray-200 hover:border-sky-400')}`} onClick={() => setFullscreenImage(thumb)}>
+                            <div key={idx} className={`flex-shrink-0 w-40 rounded-2xl border overflow-hidden transition-all hover:scale-105 cursor-pointer group ${t('bg-[#0a0c10] border-gray-700 hover:border-sky-500', 'bg-gray-50 border-gray-200 hover:border-sky-400')}`} onClick={() => { setFullscreenImage(thumb); setLightboxIndex(idx); }}>
                               <div className={`relative ${containerAspectClass} bg-black overflow-hidden`}>
                                 {thumb ? (
                                   <img src={thumb} alt={`Scene ${idx + 1}`} className="w-full h-full object-cover" />
@@ -6352,6 +6389,65 @@ RULES:
                 OK, Teruskan
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+
+      {/* Toast Notifications */}
+      <div className="fixed bottom-6 right-6 z-[90] flex flex-col gap-2 pointer-events-none">
+        {toasts.map(toast => (
+          <div key={toast.id} className={`pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-2xl shadow-2xl border text-sm font-bold animate-fade-in-up max-w-xs ${
+            toast.type === 'success' ? 'bg-emerald-900/90 border-emerald-500/50 text-emerald-300' :
+            toast.type === 'error' ? 'bg-red-900/90 border-red-500/50 text-red-300' :
+            toast.type === 'warning' ? 'bg-amber-900/90 border-amber-500/50 text-amber-300' :
+            'bg-[#11131a]/90 border-gray-700 text-gray-200'
+          }`}>
+            <I name={toast.type === 'success' ? 'CheckCircle' : toast.type === 'error' ? 'X' : toast.type === 'warning' ? 'ShieldAlert' : 'Info'} size={16} />
+            <span className="flex-1">{toast.message}</span>
+            <button onClick={() => removeToast(toast.id)} className="opacity-60 hover:opacity-100 transition-opacity ml-1">
+              <I name="X" size={14} />
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {/* Generation History Panel */}
+      {showHistory && (
+        <div className="fixed inset-0 z-[65] bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-4 animate-fade-in" onClick={() => setShowHistory(false)}>
+          <div className={`rounded-3xl p-6 max-w-lg w-full max-h-[70vh] overflow-y-auto relative shadow-2xl border custom-scrollbar ${t('bg-[#11131a] border-gray-800', 'bg-white border-gray-200')}`} onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-5">
+              <h3 className={`font-black text-lg flex items-center gap-2 ${U.c14}`}><I name="Clock" size={20} className="text-sky-400" /> Generation History</h3>
+              <button onClick={() => setShowHistory(false)} className={t('text-gray-400 hover:text-white', 'text-gray-500 hover:text-gray-800')}><I name="X" size={20} /></button>
+            </div>
+            {(genHistory[activeTab] || []).length === 0 ? (
+              <p className="text-sm text-gray-500 text-center py-8">No history for this tab yet.</p>
+            ) : (
+              <div className="space-y-3">
+                {(genHistory[activeTab] || []).map((entry, i) => (
+                  <div key={i} className={`rounded-2xl border p-4 cursor-pointer transition-all hover:border-sky-500/50 ${t('bg-gray-800/50 border-gray-700', 'bg-gray-50 border-gray-200')}`}
+                    onClick={() => {
+                      setGeneratedOutput(entry.output);
+                      setImageUrls(entry.imageUrls || []);
+                      setShowHistory(false);
+                      addToast('History restored!', 'success');
+                    }}>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-bold text-sky-400">{new Date(entry.timestamp).toLocaleString()}</span>
+                      <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded ${t('bg-sky-900/40 text-sky-400', 'bg-sky-100 text-sky-600')}`}>Restore</span>
+                    </div>
+                    <p className={`text-xs truncate ${t('text-gray-300', 'text-gray-600')}`}>{entry.output?.title || entry.output?.topic || 'Generated output'}</p>
+                    {entry.imageUrls?.length > 0 && (
+                      <div className="flex gap-2 mt-2">
+                        {entry.imageUrls.slice(0, 3).map((url, j) => (
+                          <img key={j} src={url} alt="" className="w-10 h-16 object-cover rounded-lg border border-gray-700/50" />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}
