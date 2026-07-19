@@ -345,7 +345,7 @@ const DEFAULT_NEGATIVE = 'no text overlay, no watermark, no logo text, no extra 
 const SCENE_ENVIRONMENT_RULES = `
 ENV RULES: Every scene MUST take place in the EXACT SAME core location/set. If the action changes, just change the CAMERA ANGLE of the same room/environment. Do not invent new locations. FORBIDDEN plain white/empty studio. image_prompt must name the location, lighting, props. Keep character, product, and background architecture locked across all scenes.`;
 
-const SCENE_JSON_CONTRACT = `Each scene MUST include: scene_num, timecode, visual (EN — must describe LOCATION + lighting + background props), camera, action, emotion, dialogue (BM or ""), image_prompt (EN still — must include full environment, NOT white background), i2v_prompt (EN motion), negative (must ban plain white background).`;
+const SCENE_JSON_CONTRACT = `Each scene MUST include: scene_num, timecode, visual (EN — must describe LOCATION + lighting + background props), camera, action, emotion, dialogue (BM or ""), image_prompt (EN still — must include full environment, NOT white background), i2v_prompt (EN motion), negative (must ban plain white background). [SCREEN ORIENTATION RULE]: If any character is holding/using a device with a screen (phone, tablet, handheld console, laptop), the screen MUST face TOWARD the character — NOT toward the camera. Back of device faces viewer. Only show screen facing camera for product showcase/display shots.`;
 
 const enrichSceneImagePrompt = (scene, opts = {}) => {
   const {
@@ -3219,10 +3219,10 @@ CAMERA SYSTEM: Ultra-stable static tripod shot.`;
             : `[Mute Background Track]`;
         } else {
           if (isProductModelMode) {
-            promptInputForAI = `High resolution 4K photography. A young Asian ${gender} model holding and showcasing the ${productAction}. Background: ${productBgPrompt}. Color grading: ${energyImageStyle}. ${anatomyLock} Aspect ratio: ${aspectRatio}. ${hdModifier}. ${framingPrompt} ${cleanImageInstruction} NO plain white background.`;
+            promptInputForAI = `High resolution 4K photography. A young Asian ${gender} model holding and showcasing the ${productAction}. [SCREEN ORIENTATION: If product has a screen, screen faces the person holding it — NOT camera. Back of device faces viewer unless it's a display/showcase shot.] Background: ${productBgPrompt}. Color grading: ${energyImageStyle}. ${anatomyLock} Aspect ratio: ${aspectRatio}. ${hdModifier}. ${framingPrompt} ${cleanImageInstruction} NO plain white background.`;
             result.videoPrompt = `${targetModelHeader}\nSCENE: A young Asian ${gender} gently showing ${productAction} to the camera in ${productBgPrompt}.`;
           } else {
-            promptInputForAI = `First-person POV shot of a single human hand holding the ${productAction}. Background: ${productBgPrompt}. Color style: ${energyImageStyle}. ${anatomyLock} Aspect ratio: ${aspectRatio}. ${hdModifier}. ${framingPrompt} ${cleanImageInstruction} NO plain white background.`;
+            promptInputForAI = `First-person POV shot of a single human hand holding the ${productAction}. [SCREEN ORIENTATION: If product has a screen, screen faces the person holding it — NOT camera. Back of device faces viewer unless it's a display/showcase shot.] Background: ${productBgPrompt}. Color style: ${energyImageStyle}. ${anatomyLock} Aspect ratio: ${aspectRatio}. ${hdModifier}. ${framingPrompt} ${cleanImageInstruction} NO plain white background.`;
             result.videoPrompt = `${targetModelHeader}\nSCENE: Single human hand holding ${productAction} against ${productBgPrompt}.`;
           }
           const singleCatKey = (() => {
