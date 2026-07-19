@@ -5988,7 +5988,7 @@ Pick the ONE that best fits. No explanation, just the tag.`;
               </div>
 
               {/* === STORYBOARD TIMELINE VIEW === */}
-              {generatedOutput && imageUrls.length > 0 && (generatedOutput.scenes || generatedOutput.productScenes || generatedOutput.ootdScenes) && (() => {
+              {timelineMode === 'on' && generatedOutput && imageUrls.length > 0 && (generatedOutput.scenes || generatedOutput.productScenes || generatedOutput.ootdScenes) && (() => {
                 const allScenes = (generatedOutput.scenes || generatedOutput.productScenes || generatedOutput.ootdScenes || []).filter(Boolean);
                 if (!allScenes.length) return null;
                 return (
