@@ -4267,7 +4267,7 @@ ${aspectStr}`;
         {apiKey && !showApiKeyInput && (
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <span className={`text-[10px] font-bold uppercase tracking-widest ${t('text-gray-500', 'text-gray-400')}`}><I name="Sparkles" size={12} className="text-sky-400" /> MODEL:/span>
+              <span className={`text-[10px] font-bold uppercase tracking-widest ${t('text-gray-500', 'text-gray-400')}`}><I name="Sparkles" size={12} className="text-sky-400" /> MODEL:</span>
               <select
                 value={selectedModel}
                 onChange={(e) => handleModelChange(e.target.value)}
@@ -4303,7 +4303,7 @@ ${aspectStr}`;
             {showProviderPanel && (
               <div className="px-4 pb-4 pt-2 border-t border-gray-800/50 space-y-3">
                 <div className="flex flex-wrap items-center gap-3">
-                  <span className={`text-[10px] font-bold uppercase tracking-widest ${t('text-gray-500', 'text-gray-400')}`}><I name="Code" size={12} className="text-emerald-400" /> Text Provider:/span>
+                  <span className={`text-[10px] font-bold uppercase tracking-widest ${t('text-gray-500', 'text-gray-400')}`}><I name="Code" size={12} className="text-emerald-400" /> Text Provider:</span>
                   <select
                     value={textProvider}
                     onChange={(e) => handleTextProviderChange(e.target.value)}
@@ -4331,7 +4331,7 @@ ${aspectStr}`;
 
                 {textProvider === 'genfity' && (
                   <div className="flex items-center gap-2">
-                    <span className={`text-[10px] font-bold uppercase tracking-widest shrink-0 ${t('text-purple-400', 'text-purple-600')}`}><I name="ShieldAlert" size={12} className="text-purple-400" /> Genfity Key:/span>
+                    <span className={`text-[10px] font-bold uppercase tracking-widest shrink-0 ${t('text-purple-400', 'text-purple-600')}`}><I name="ShieldAlert" size={12} className="text-purple-400" /> Genfity Key:</span>
                     <div className="flex-1 relative">
                       <input
                         type={showGenfityKeyVisible ? "text" : "password"}
@@ -4355,7 +4355,7 @@ ${aspectStr}`;
                 )}
 
                 <div className="flex flex-wrap items-center gap-3">
-                  <span className={`text-[10px] font-bold uppercase tracking-widest ${t('text-gray-500', 'text-gray-400')}`}><I name="Layers" size={12} className="text-sky-400" /> Output:/span>
+                  <span className={`text-[10px] font-bold uppercase tracking-widest ${t('text-gray-500', 'text-gray-400')}`}><I name="Layers" size={12} className="text-sky-400" /> Output:</span>
                   <div className={`flex rounded-xl p-1 border ${t('bg-[#0a0c10] border-gray-700', 'bg-white border-gray-200')}`}>
                     <button
                       onClick={() => handleGenerateModeChange('text_and_images')}
