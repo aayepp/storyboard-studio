@@ -4619,67 +4619,54 @@ ${aspectStr}`;
           </div>
         )}
 
-        <div className="relative mb-10 group">
-          <div className="flex items-center">
-            <button
-              onClick={() => scrollTabs('left')}
-              className={`p-2 rounded-full mr-2 transition-all shrink-0 hover:bg-sky-500/10 ${t('text-sky-400 hover:text-sky-300', 'text-sky-500 hover:text-sky-600')}`}
-            >
-              <I name="ChevronLeft" className="w-5 h-5" />
-            </button>
-
-            <div
-              ref={tabsContainerRef}
-              onScroll={handleTabsScroll}
-              className={`flex-grow flex p-1.5 rounded-full shadow-md overflow-x-auto border scroll-smooth relative select-none no-scrollbar ${C.p3(isDarkMode)}`}
-              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-            >
-              {[
-                // === VIDEO MODES ===
-                { id: 'cinematic_pro', icon: <I name="Clapperboard" size={16} />, label: 'Cinematic Pro', group: 'Video', grad: 'from-violet-500 to-fuchsia-500', glow: 'shadow-violet-500/40', text: 'text-violet-300' },
-                { id: 'microimpact', icon: <I name="Zap" size={16} />, label: '10s Micro', group: 'Video', grad: 'from-amber-400 to-orange-500', glow: 'shadow-amber-500/40', text: 'text-amber-300' },
-                { id: 'narrativearc', icon: <I name="Film" size={16} />, label: '30s Narrative', group: 'Video', grad: 'from-rose-500 to-pink-500', glow: 'shadow-rose-500/40', text: 'text-rose-300' },
-                { id: 'talkinghead', icon: <I name="User" size={16} />, label: 'Talking Head', group: 'Video', grad: 'from-blue-500 to-indigo-500', glow: 'shadow-blue-500/40', text: 'text-blue-300' },
-                { id: 'ugc', icon: <I name="Video" size={16} />, label: 'Affiliate UGC', group: 'Video', grad: 'from-emerald-500 to-teal-500', glow: 'shadow-emerald-500/40', text: 'text-emerald-300' },
-                // === IMAGE MODES ===
-                { id: 'product', icon: <I name="Box" size={16} />, label: 'Product POV', group: 'Image', grad: 'from-cyan-500 to-sky-500', glow: 'shadow-cyan-500/40', text: 'text-cyan-300' },
-                { id: 'ootd', icon: <I name="Shirt" size={16} />, label: 'OOTD', group: 'Image', grad: 'from-pink-500 to-rose-500', glow: 'shadow-pink-500/40', text: 'text-pink-300' },
-                { id: 'stopmotion', icon: <I name="Box" size={16} />, label: 'Stop Motion', group: 'Image', grad: 'from-orange-500 to-red-500', glow: 'shadow-orange-500/40', text: 'text-orange-300' },
-                // === AI TOOLS ===
-                { id: 'grafix', icon: <I name="PenTool" size={16} />, label: 'Grafix', group: 'Tools', grad: 'from-purple-500 to-indigo-500', glow: 'shadow-purple-500/40', text: 'text-purple-300' },
-                { id: 'character', icon: <I name="User" size={16} />, label: 'Char Sheet', group: 'Tools', grad: 'from-sky-500 to-cyan-400', glow: 'shadow-sky-500/40', text: 'text-sky-300' },
-                { id: 'fake_influencer', icon: <I name="UserPlus" size={16} />, label: 'Fake Influencer', group: 'Tools', grad: 'from-fuchsia-500 to-pink-500', glow: 'shadow-fuchsia-500/40', text: 'text-fuchsia-300' },
-              ].map(tab => (
-                <button
-                  key={tab.id}
-                  data-active={activeTab === tab.id ? "true" : "false"}
-                  onClick={() => handleTabChange(tab.id)}
-                  title={`${tab.group} · ${tab.label}`}
-                  className={`flex-shrink-0 flex items-center justify-center gap-2 py-3 px-5 rounded-full font-bold text-xs transition-all whitespace-nowrap ${activeTab === tab.id ? `bg-gradient-to-r ${tab.grad} text-white shadow-lg ${tab.glow} scale-105 ring-2 ring-white/20` : (t('text-gray-400 hover:text-white bg-transparent hover:bg-white/5', 'text-gray-500 hover:text-gray-800 bg-transparent hover:bg-gray-100'))}`}
-                >
-                  <span className={activeTab === tab.id ? 'text-white' : t(tab.text, tab.text)}>{tab.icon}</span>
-                  <span className="hidden sm:inline">{tab.label}</span>
-                </button>
-              ))}
+        <div className="relative mb-10">
+          {[
+            {
+              group: '🎬 Video',
+              tabs: [
+                { id: 'cinematic_pro', icon: <I name="Clapperboard" size={15} />, label: 'Cinematic Pro', grad: 'from-violet-500 to-fuchsia-500', glow: 'shadow-violet-500/30', text: 'text-violet-300' },
+                { id: 'microimpact', icon: <I name="Zap" size={15} />, label: '10s Micro', grad: 'from-amber-400 to-orange-500', glow: 'shadow-amber-500/30', text: 'text-amber-300' },
+                { id: 'narrativearc', icon: <I name="Film" size={15} />, label: '30s Narrative', grad: 'from-rose-500 to-pink-500', glow: 'shadow-rose-500/30', text: 'text-rose-300' },
+                { id: 'talkinghead', icon: <I name="User" size={15} />, label: 'Talking Head', grad: 'from-blue-500 to-indigo-500', glow: 'shadow-blue-500/30', text: 'text-blue-300' },
+                { id: 'ugc', icon: <I name="Video" size={15} />, label: 'Affiliate UGC', grad: 'from-emerald-500 to-teal-500', glow: 'shadow-emerald-500/30', text: 'text-emerald-300' },
+              ]
+            },
+            {
+              group: '🖼️ Image & Tools',
+              tabs: [
+                { id: 'product', icon: <I name="Box" size={15} />, label: 'Product POV', grad: 'from-cyan-500 to-sky-500', glow: 'shadow-cyan-500/30', text: 'text-cyan-300' },
+                { id: 'ootd', icon: <I name="Shirt" size={15} />, label: 'OOTD', grad: 'from-pink-500 to-rose-500', glow: 'shadow-pink-500/30', text: 'text-pink-300' },
+                { id: 'stopmotion', icon: <I name="Box" size={15} />, label: 'Stop Motion', grad: 'from-orange-500 to-red-500', glow: 'shadow-orange-500/30', text: 'text-orange-300' },
+                { id: 'grafix', icon: <I name="PenTool" size={15} />, label: 'Grafix', grad: 'from-purple-500 to-indigo-500', glow: 'shadow-purple-500/30', text: 'text-purple-300' },
+                { id: 'character', icon: <I name="User" size={15} />, label: 'Char Sheet', grad: 'from-sky-500 to-cyan-400', glow: 'shadow-sky-500/30', text: 'text-sky-300' },
+                { id: 'fake_influencer', icon: <I name="UserPlus" size={15} />, label: 'Fake Influencer', grad: 'from-fuchsia-500 to-pink-500', glow: 'shadow-fuchsia-500/30', text: 'text-fuchsia-300' },
+              ]
+            }
+          ].map(({ group, tabs }) => (
+            <div key={group} className="mb-2">
+              <div className={`flex items-center gap-2 mb-1.5 px-1`}>
+                <span className={`text-[9px] font-black uppercase tracking-widest ${t('text-gray-600', 'text-gray-400')}`}>{group}</span>
+                <div className={`flex-1 h-px ${t('bg-gray-800', 'bg-gray-200')}`} />
+              </div>
+              <div className={`flex flex-wrap gap-1.5 p-1.5 rounded-2xl border ${t('bg-[#0d0f14] border-gray-800/60', 'bg-gray-50 border-gray-200')}`}>
+                {tabs.map(tab => (
+                  <button
+                    key={tab.id}
+                    data-active={activeTab === tab.id ? "true" : "false"}
+                    onClick={() => handleTabChange(tab.id)}
+                    className={`flex items-center gap-1.5 py-2 px-4 rounded-xl font-bold text-xs transition-all whitespace-nowrap ${
+                      activeTab === tab.id
+                        ? `bg-gradient-to-r ${tab.grad} text-white shadow-md ${tab.glow} ring-1 ring-white/20`
+                        : t('text-gray-400 hover:text-white hover:bg-white/5', 'text-gray-500 hover:text-gray-800 hover:bg-white')
+                    }`}
+                  >
+                    <span className={activeTab === tab.id ? 'text-white' : t(tab.text, tab.text)}>{tab.icon}</span>
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
             </div>
-
-            <button
-              onClick={() => scrollTabs('right')}
-              className={`p-2 rounded-full ml-2 transition-all shrink-0 hover:bg-sky-500/10 ${t('text-sky-400 hover:text-sky-300', 'text-sky-500 hover:text-sky-600')}`}
-            >
-              <I name="ChevronRight" className="w-5 h-5" />
-            </button>
-          </div>
-
-          <div className={`h-1.5 rounded-full mx-10 mt-3 relative overflow-hidden flex items-center ${t('bg-gray-800/60', 'bg-gray-200/60')}`}>
-            <div
-              className="absolute h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-400 transition-all duration-150"
-              style={{
-                width: '25%',
-                left: `${scrollPercent * 0.75}%`
-              }}
-            />
-          </div>
+          ))}
         </div>
 
         {activeTab === 'cinematic_pro' && (
