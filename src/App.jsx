@@ -232,7 +232,7 @@ DIALOGUE STYLE RULES (MANDATORY):
 - Write ALL dialogue as if the person is genuinely talking to their close friend on TikTok Live — NOT reading a script.
 - Include natural Malay fillers: eh, kan, tau tak, serious ah, gila, weh, macam, nak bagitau, sumpah.
 - Avoid formal copywriting tone. No "Hai korang hari ini aku nak share tentang..."
-- Each scene's dialogue must have a DIFFERENT emotional energy than the previous scene (curious ? excited ? shocked ? satisfied ? urgent).
+- Each scene's dialogue must have a DIFFERENT emotional energy than the previous scene (curious → excited → shocked → satisfied → urgent).
 - Never repeat the same sentence structure or opening word in consecutive scenes.
 - Dialogue must feel spontaneous, imperfect, and relatable — like real person talking, not AI-generated ad copy.
 - Use incomplete thoughts, self-corrections, and rhetorical questions naturally.
@@ -251,7 +251,7 @@ PACING & FLOW RULES (CRITICAL FOR VIDEO GENERATION):
 - Leave BREATHING ROOM — not every scene needs dialogue. Some scenes work better with just visual storytelling and silence.
 - Dialogue across scenes must form ONE continuous conversation/story — Scene 2's dialogue must feel like a direct continuation of Scene 1, not a random jump.
 - Use BRIDGING WORDS between scenes: "lepas tu kan...", "so...", "tapi yang best nya...", "then...", "pastu..." to connect dialogue across scene cuts.
-- The emotional arc must ESCALATE gradually — don't peak at Scene 1. Build tension: calm ? curious ? excited ? peak ? resolve.
+- The emotional arc must ESCALATE gradually — don't peak at Scene 1. Build tension: calm → curious → excited → peak → resolve.
 - NEVER repeat the same information in different words across scenes. Each scene must ADD new information to the story.
 - For segments (10s chunks): the dialogue within each segment must feel like ONE complete mini-thought that connects to the next segment's opening.
 
@@ -270,7 +270,7 @@ CLEAN DIALOGUE POLISHING RULES (MANDATORY):
 - FILLER ROTATION: Available fillers: "eh", "kan", "tau tak", "ah", "weh", "sumpah", "gila", "serious", "best", "best gila", "best ah", "try la". Use maximum 1 filler per scene. Never use the same filler twice across ALL scenes in the video.
 - PROFESSIONAL POLISH: Remove unnecessary repetitions, redundant phrases, and filler overload. Each dialogue line should feel deliberate and well-crafted, not lazy or repetitive.
 - NO CLICHÉ OPENINGS: Do NOT start scenes with "Weh korang!", "Sumpah ah!", "Gila weh!", "Serious gila!" repeatedly. Vary the opening words: start with a question, start mid-sentence, start with a reaction, start with an observation, start with a claim.
-- DIALOGUE HIERARCHY: Each scene's dialogue must serve a specific purpose: HOOK (grab attention) ? BUILD (add detail) ? PROVE (show evidence) ? CLOSE (call to action). Each purpose uses different tone and vocabulary.
+- DIALOGUE HIERARCHY: Each scene's dialogue must serve a specific purpose: HOOK (grab attention) → BUILD (add detail) → PROVE (show evidence) → CLOSE (call to action). Each purpose uses different tone and vocabulary.
 - WORD CHOICE VARIETY: If Scene 1 says "premium", Scene 2 must say "quality" or "best" or "memang worth it". Never use the same adjective across different scenes.
 `;
 
@@ -361,7 +361,7 @@ const parseModelJson = (rawText) => {
 const normalizeStoryboardPayload = (parsed) => {
   let data = parsed;
   if (Array.isArray(data)) {
-    data = { title: '?? Papan Cerita Storyboard', duration: 'Kustom', style: 'Auto', scenes: data };
+    data = { title: '🎬 Papan Cerita Storyboard', duration: 'Kustom', style: 'Auto', scenes: data };
   } else if (data && !data.scenes) {
     const arrayKey = Object.keys(data).find((k) => Array.isArray(data[k]));
     if (arrayKey) data = { ...data, scenes: data[arrayKey] };
@@ -709,7 +709,7 @@ ${SCENE_ENVIRONMENT_RULES}
 
 Return ONLY valid JSON:
 {
-"title": "?? UGC: ${product}",
+"title": "🤳 UGC: ${product}",
 "duration": "${sec}s",
 "identity_bible": "short lock string for face/product/environment",
 "scenes": [
@@ -734,7 +734,7 @@ const getCinematicStoryboardPrompt = (topic, duration, style, aspect, audience, 
   const sceneCount = sec <= 10 ? 4 : sec <= 15 ? 5 : sec <= 20 ? 6 : sec <= 30 ? 8 : sec <= 45 ? 12 : 16;
   const perScene = (sec / sceneCount).toFixed(1);
 
-  // Natural 3-Act structure per duration: HOOK ? CONTENT ? CTA
+  // Natural 3-Act structure per duration: HOOK → CONTENT → CTA
   const getActMap = (n) => {
     if (n <= 3) {
       return [
@@ -774,9 +774,9 @@ CRITICAL RULES — Your life depends on following these:
    - Each scene's dialogue must have DIFFERENT emotional energy than the scene before
    - NEVER start with "Hai korang hari ni aku nak share tentang..."
    - Think how a real Malaysian creator talks to their close friend on TikTok Live
-4. 3-ACT STRUCTURE (HOOK ? CONTENT/SOLUTION ? CTA) — MUST follow:
+4. 3-ACT STRUCTURE (HOOK → CONTENT/SOLUTION → CTA) — MUST follow:
 ${actMap.map((act, i) => `Scene ${i+1}: ${act}`).join('\n')}
-5. Emotional journey: Curiosity ? Engagement ? Satisfaction/FOMO
+5. Emotional journey: Curiosity → Engagement → Satisfaction/FOMO
 6. Each scene MUST push the story forward — zero filler.
 7. Visual/image fields in English. Dialogue in natural BM.
 
@@ -787,7 +787,7 @@ DIALOG PACING & SEGMENT CONTINUITY (CRITICAL FOR AI VIDEO GENERATION):
 11. The full dialogue across all scenes must read as ONE continuous conversation — not isolated random sentences.
 12. For videos >${sec > 15 ? '15s' : '10s'}: group every 2-3 scenes into a mini-thought that resolves before the next group begins. This ensures each 10s segment feels complete when cut.
 
-NARRATIVE ENGINE — Select the STRONGEST progression for this topic (do NOT force Hook?Problem?Solution?CTA if another works better):
+NARRATIVE ENGINE — Select the STRONGEST progression for this topic (do NOT force Hook→Problem→Solution→CTA if another works better):
 Available progressions: escalating problem, desire progression, mystery reveal, curiosity loop, before vs after, transformation journey, documentary discovery, character journey, problem to consequence, comedy setup to punchline, visual escalation, expectation vs reality, social experiment, countdown, hidden truth.
 Pick the one that creates the most retention for THIS specific topic. Announce your chosen progression in the JSON "style" field.
 
@@ -824,7 +824,7 @@ ${SCENE_ENVIRONMENT_RULES}
 ${SCENE_JSON_CONTRACT}
 
 Return ONLY valid JSON — no markdown, no commentary:
-{"title":"?? [organic-sounding title in BM]","duration":"${sec}s","style":"[chosen style]","audio_direction":"[mood]","identity_bible":"[lock string]","scenes":[{"scene_num":1,"timecode":"0s–${perScene}s","visual":"[English with LOCATION + lighting + concrete details]","camera":"[specific shot type + movement — VARY each scene]","action":"[what happens — include movement]","emotion":"[facial expression + body language]","dialogue":"[NATURAL BM max ${Math.round(parseFloat(perScene) * 3)} words — or empty string for visual-only scenes]","image_prompt":"[English still with full environment]","i2v_prompt":"[English motion prompt]","negative":"${DEFAULT_NEGATIVE}"}]}`;
+{"title":"🎬 [organic-sounding title in BM]","duration":"${sec}s","style":"[chosen style]","audio_direction":"[mood]","identity_bible":"[lock string]","scenes":[{"scene_num":1,"timecode":"0s–${perScene}s","visual":"[English with LOCATION + lighting + concrete details]","camera":"[specific shot type + movement — VARY each scene]","action":"[what happens — include movement]","emotion":"[facial expression + body language]","dialogue":"[NATURAL BM max ${Math.round(parseFloat(perScene) * 3)} words — or empty string for visual-only scenes]","image_prompt":"[English still with full environment]","i2v_prompt":"[English motion prompt]","negative":"${DEFAULT_NEGATIVE}"}]}`;
 };
 
 const getMicroImpactPrompt = (topic, aspect, audience, refCount, identityBible = '', assetAnalysis = '') =>
@@ -841,7 +841,7 @@ SCENE STRUCTURE (3 scenes for 10s):
 ${DIALOGUE_AUTHENTICITY_RULES}
 
 JSON only:
-{"title":"? ${topic}","duration":"10s","identity_bible":"[lock]","scenes":[{"scene_num":1,"timecode":"0s–3.3s","visual":"[EN + location]","camera":"[shot]","action":"[action]","emotion":"[face]","dialogue":"[BM]","image_prompt":"[still with environment]","i2v_prompt":"[motion]","negative":"${DEFAULT_NEGATIVE}"}]}`;
+{"title":"⚡ ${topic}","duration":"10s","identity_bible":"[lock]","scenes":[{"scene_num":1,"timecode":"0s–3.3s","visual":"[EN + location]","camera":"[shot]","action":"[action]","emotion":"[face]","dialogue":"[BM]","image_prompt":"[still with environment]","i2v_prompt":"[motion]","negative":"${DEFAULT_NEGATIVE}"}]}`;
 
 const getNarrativeArcPrompt = (topic, aspect, audience, refCount, identityBible = '', assetAnalysis = '') => {
   return `You are a professional FLOW AI & IMAGE-TO-VIDEO CINEMATIC DIRECTOR. Create a continuous 30-second storyboard with exactly 6 scenes (5 seconds each) optimized for Flow AI.
@@ -859,7 +859,7 @@ Scene 3: ACT 2 — CONFLICT: introduce tension, problem, challenge, or desire. E
 Scene 4: ACT 2 — BUILD: deepen conflict or demonstrate solution building. Energy escalates.
 Scene 5: ACT 3 — RESOLUTION: breakthrough moment, transformation, or answer revealed. Emotional peak.
 Scene 6: ACT 3 — PAYOFF: strong close — satisfaction, CTA, or lingering emotional image. No dead ending.
-Emotional arc: Curiosity ? Tension ? Release. Action in scene N must flow naturally into scene N+1.
+Emotional arc: Curiosity → Tension → Release. Action in scene N must flow naturally into scene N+1.
 
 ${SCENE_ENVIRONMENT_RULES}
 ${SCENE_JSON_CONTRACT}
@@ -873,7 +873,7 @@ CAMERA VARIETY (MANDATORY):
 ${DIALOGUE_AUTHENTICITY_RULES}
 
 Return ONLY valid JSON:
-{"title": "?? 30s Narrative: [Topic]", "duration": "30s", "style": "Flow AI Optimized", "identity_bible":"[lock]", "scenes": [{"scene_num":1,"timecode":"0s–5s","visual":"[English + location/lighting]","camera":"[movement]","action":"[continuous action]","emotion":"[emotion]","dialogue":"[BM]","image_prompt":"[still with full environment]","i2v_prompt":"[motion]","negative":"${DEFAULT_NEGATIVE}"}]}`;
+{"title": "🎬 30s Narrative: [Topic]", "duration": "30s", "style": "Flow AI Optimized", "identity_bible":"[lock]", "scenes": [{"scene_num":1,"timecode":"0s–5s","visual":"[English + location/lighting]","camera":"[movement]","action":"[continuous action]","emotion":"[emotion]","dialogue":"[BM]","image_prompt":"[still with full environment]","i2v_prompt":"[motion]","negative":"${DEFAULT_NEGATIVE}"}]}`;
 };
 
 const getTalkingHeadPrompt = (topic, duration, tone, aspect, audience, refCount, identityBible = '', assetAnalysis = '') => {
@@ -895,7 +895,7 @@ SCENE 1 HOOK — MANDATORY (pick the strongest hook type for this topic):
 Scene 1 dialogue MUST use one of these hooks. No generic intros like "Hai korang, hari ni aku nak cakap pasal...".
 
 STORY STRUCTURE for remaining scenes:
-- Middle scenes: deliver the value/story/demo promised by the hook. Build curiosity ? answer ? deeper insight.
+- Middle scenes: deliver the value/story/demo promised by the hook. Build curiosity → answer → deeper insight.
 - Final scene: strong close — emotional payoff, clear CTA, or memorable punchline. Not just "ok tu je dari aku".
 
 ${SCENE_ENVIRONMENT_RULES}
@@ -910,7 +910,7 @@ CAMERA VARIETY (MANDATORY):
 ${DIALOGUE_AUTHENTICITY_RULES}
 
 Return ONLY valid JSON:
-{"title":"?? [topic]","duration":"${sec}s","style":"${tone}","identity_bible":"[lock]","scenes":[{"scene_num":1,"timecode":"0s–${perScene}s","visual":"[English + room/location]","camera":"[shot]","action":"[action]","emotion":"[facial]","dialogue":"[BM hook — question/bold claim/stat/story]","image_prompt":"[still with environment]","i2v_prompt":"[motion]","negative":"${DEFAULT_NEGATIVE}"}]}`;
+{"title":"🤳 [topic]","duration":"${sec}s","style":"${tone}","identity_bible":"[lock]","scenes":[{"scene_num":1,"timecode":"0s–${perScene}s","visual":"[English + room/location]","camera":"[shot]","action":"[action]","emotion":"[facial]","dialogue":"[BM hook — question/bold claim/stat/story]","image_prompt":"[still with environment]","i2v_prompt":"[motion]","negative":"${DEFAULT_NEGATIVE}"}]}`;
 };
 
 const getStopMotionPrompt = (product, duration, style, aspect, audience, refCount, identityBible = '', assetAnalysis = '') => {
@@ -935,7 +935,7 @@ Tabletop set must have visible surface texture, props, and lighting — not empt
 
 Return ONLY valid JSON:
 {
-"title": "?? Stop Motion: ${product}",
+"title": "🧩 Stop Motion: ${product}",
 "duration": "10s",
 "style": "Stop Motion",
 "identity_bible": "[product lock]",
@@ -986,7 +986,7 @@ ${SCENE_JSON_CONTRACT}
 
 Return ONLY valid JSON (no markdown):
 {
-"title": "?? ${cleanTopic.slice(0, 80)}",
+"title": "📊 ${cleanTopic.slice(0, 80)}",
 "duration": "${sec}s",
 "style": "${style && style !== 'auto' ? style : 'motion-graphics'}",
 "topic": "${cleanTopic.replace(/"/g, '\\"')}",
@@ -1298,7 +1298,7 @@ const generateFlowSegments = (scenes, durationStr, options = {}) => {
             // Ensure final segment closes with CTA, not dead-end
             const endsWeak = /(tu je|je|je lah|gitu|macam tu)\s*[.!?]?\s*$/i.test(baseDialogue);
             if (endsWeak) {
-              continuedDialogue = `${baseDialogue} Jangan tunggu lagi — klik beg kuning sekarang! ??`;
+              continuedDialogue = `${baseDialogue} Jangan tunggu lagi — klik beg kuning sekarang! 🔥`;
             }
           }
           return {
@@ -1341,7 +1341,7 @@ const generateFlowSegments = (scenes, durationStr, options = {}) => {
       .join('\n');
 
     const prompt = [
-      `?? FLOW AI SEGMENT ${s}s–${e}s  (full video ${totalSec}s · part ${i + 1}/${numSegments})`,
+      `🎬 FLOW AI SEGMENT ${s}s–${e}s  (full video ${totalSec}s · part ${i + 1}/${numSegments})`,
       title ? `TITLE: ${title}` : '',
       `FORMAT: ${aspectRatio} | WINDOW: ${s}s to ${e}s | DURATION: ${e - s}s`,
       identityBible ? `\n${identityBible}` : '',
@@ -1573,6 +1573,7 @@ const extractGeminiText = (data) => {
 
 export default function App() {
   const [hasAgreed, setHasAgreed] = useState(false);
+  const [showLanding, setShowLanding] = useState(true);
   const [activeTab, setActiveTab] = useState('cinematic_pro');
   const [isDarkMode, setIsDarkMode] = useState(true);
   const t = (d, l) => (isDarkMode ? d : l);
@@ -1837,7 +1838,7 @@ Be visual and specific. English only.`
       const fillerCounts = countRepeatedFillers(allDialogue);
       const overused = Object.entries(fillerCounts).filter(([, c]) => c > Math.max(2, parsed.scenes.length));
       if (overused.length) {
-        console.warn('?? Dialogue fillers overused:', overused.map(([f, c]) => `${f}(${c})`).join(', '));
+        console.warn('⚠️ Dialogue fillers overused:', overused.map(([f, c]) => `${f}(${c})`).join(', '));
       }
             // CONTINUITY CHECK: detect repeated/dangling/dead-end dialogue and force a repair pass.
       // Critical for Flow AI segments so the story feels seamless across cuts.
@@ -2646,7 +2647,7 @@ Keep the subject person, face reference, background layout, and clothes identica
 
     if (platform === 'TikTok') {
       platformHashtags = `#FYP #TikTokMalaysia #TikTokPromote #${activeTab === 'ootd' ? 'TikTokFashion #OOTDMalaysia' : 'TikTokReview #RacunTikTok #Recommendation'}`;
-      platformCallOut = "Korang kena dapatkan cepat sebelum sold out teruk! ????";
+      platformCallOut = "Korang kena dapatkan cepat sebelum sold out teruk! 🔥🔥";
     } else if (platform === 'Reels') {
       platformHashtags = `#ExplorePage #ReelsInstagram #ReelsMalaysia #${activeTab === 'ootd' ? 'InstaFashion #OOTDReels' : 'InstagramReview #ViralMalaysia'}`;
       platformCallOut = "Boleh check out dekat link bio I sekarang okay! ?";
@@ -2656,9 +2657,9 @@ Keep the subject person, face reference, background layout, and clothes identica
     }
 
     const captionTemplates = [
-      `Sumpah I tak menyesal langsung beli ${pName} ni! ??? Kualiti dia memang premium habis weh!`,
-      `Akhirnya dapat pun try ${pName} yang tengah viral gila tu! Memang berbaloi gila ??`,
-      `Racun aesthetic kalini: ${pName}. Korang dah grab ke belum? Sila cepat weh sebelum kehabisan stock! ????`
+      `Sumpah I tak menyesal langsung beli ${pName} ni! 🔥 Kualiti dia memang premium habis weh!`,
+      `Akhirnya dapat pun try ${pName} yang tengah viral gila tu! Memang berbaloi gila 🔥`,
+      `Racun aesthetic kalini: ${pName}. Korang dah grab ke belum? Sila cepat weh sebelum kehabisan stock! 🔥🔥`
     ];
     const selectedCaption = getRandomElement(captionTemplates);
 
@@ -2798,7 +2799,7 @@ Keep the subject person, face reference, background layout, and clothes identica
         });
         parsed.title = parsed.title && String(parsed.title).includes(topicText.slice(0, 20))
           ? parsed.title
-          : `?? ${topicText}`;
+          : `🎬 ${topicText}`;
         parsed.topic = topicText;
       }
 
@@ -2826,7 +2827,7 @@ Keep the subject person, face reference, background layout, and clothes identica
         ? `CONTINUITY: Same motion-graphics style, palette, and TOPIC ("${topicText}") across ALL scenes. No random influencer faces.`
         : 'CONTINUITY: Same character/product identity across ALL scenes.';
 
-      const vp = `TITLE: ${parsed.title || (isGrafix ? `?? ${topicText}` : 'Papan Cerita Storyboard')}\nTOPIC: ${topicText}\nDURATION: ${lockedSec}s | FORMAT: ${aspectRatio}\nSTYLE: ${parsed.style || styleByMode[mode] || 'Cinematic'}\n\n${finalBible}\n\n${sceneLines}\n\n${continuityLine}`;
+      const vp = `TITLE: ${parsed.title || (isGrafix ? `🎬 ${topicText}` : 'Papan Cerita Storyboard')}\nTOPIC: ${topicText}\nDURATION: ${lockedSec}s | FORMAT: ${aspectRatio}\nSTYLE: ${parsed.style || styleByMode[mode] || 'Cinematic'}\n\n${finalBible}\n\n${sceneLines}\n\n${continuityLine}`;
 
       const imagePrompts = parsed.scenes.map((s) => {
         const base = s.image_prompt || s.visual || '';
@@ -3025,12 +3026,12 @@ CAMERA SYSTEM: Ultra-stable static tripod shot.`;
             general: `Tengok detail dia — bukan sekadar cantik tapi functional betul-betul.`
           } : {};
           const ctaDialogues = isSpeakingProduct ? {
-            beauty: `Kalau kau serius nak result, ${safeProductName} ni memang kena ada dalam routine. Klik beg kuning sekarang! ??`,
-            food: `Stock dia cepat habis sebab ramai dah tau. Grab dulu sebelum terlambat — beg kuning bawah! ??`,
-            fashion: `Limited stock. Kalau kau suka apa yang kau nampak, jangan tunggu lagi — klik beg kuning! ??`,
-            gadget: `Investment yang betul-betul berbaloi. Grab sekarang sebelum harga naik — beg kuning bawah! ??`,
-            home: `Upgrade rumah kau sekarang. Harga special masih ada — klik beg kuning sebelum sold out! ??`,
-            general: `Grab cepat sebelum stock habis — beg kuning bawah ni! ??`
+            beauty: `Kalau kau serius nak result, ${safeProductName} ni memang kena ada dalam routine. Klik beg kuning sekarang! 🔥`,
+            food: `Stock dia cepat habis sebab ramai dah tau. Grab dulu sebelum terlambat — beg kuning bawah! 🔥`,
+            fashion: `Limited stock. Kalau kau suka apa yang kau nampak, jangan tunggu lagi — klik beg kuning! 🔥`,
+            gadget: `Investment yang betul-betul berbaloi. Grab sekarang sebelum harga naik — beg kuning bawah! 🔥`,
+            home: `Upgrade rumah kau sekarang. Harga special masih ada — klik beg kuning sebelum sold out! 🔥`,
+            general: `Grab cepat sebelum stock habis — beg kuning bawah ni! 🔥`
           } : {};
 
 
@@ -3262,7 +3263,7 @@ CAMERA SYSTEM: Ultra-stable static tripod shot.`;
             {
               role: 'CTA',
               visual: `${modelDesc} in ${envPrompt} holding ${safeProductName}, pointing down gesture (yellow basket CTA), strong end-frame composition.`,
-              dialogue: `Cepat grab sebelum stok habis. Klik beg kuning bawah ni sekarang! ??`
+              dialogue: `Cepat grab sebelum stok habis. Klik beg kuning bawah ni sekarang! 🔥`
             }
           ];
 
@@ -3578,7 +3579,7 @@ ${aspectStr}`;
         else setAspectRatio('16:9');
       }
 
-      result.cta = `?? Klik beg kuning di bawah untuk dapatkan sekarang! ???`;
+      result.cta = `🛒 Klik beg kuning di bawah untuk dapatkan sekarang! 🔥🔥`;
       if (!result.selectedDurationSec) {
         const locked = getSelectedDurationSeconds();
         result.duration = `${locked}s`;
@@ -4090,6 +4091,51 @@ ${aspectStr}`;
   const displayRatio = currentDisplayRatio || aspectRatio;
   const containerAspectClass = displayRatio === '16:9' ? 'aspect-video' : displayRatio === '1:1' ? 'aspect-square' : 'aspect-[9/16]';
 
+  if (showLanding && !hasAgreed) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center p-4 font-sans relative overflow-hidden ${t('bg-[#0a0c10]', 'bg-[#f8fafc]')}`}>
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-sky-500/20 blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full bg-cyan-400/15 blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        </div>
+        <div className="relative z-10 max-w-4xl w-full text-center animate-fade-in-up">
+          <div className="flex justify-center mb-8">
+            <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-sky-500 to-cyan-400 flex items-center justify-center shadow-2xl shadow-sky-500/30">
+              <I name="Clapperboard" size={40} className="text-white" />
+            </div>
+          </div>
+          <h1 className={`text-4xl sm:text-6xl font-black tracking-tight mb-6 ${U.c14}`}>
+            Generate AI Storyboards
+            <span className="block mt-2 bg-gradient-to-r from-sky-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent">in 60 Seconds</span>
+          </h1>
+          <p className={`text-lg sm:text-xl mb-10 max-w-2xl mx-auto leading-relaxed ${t('text-gray-300', 'text-gray-600')}`}>
+            Professional storyboard generation for Malaysian TikTok, Reels & Shopee Live creators. AI-powered scenes, dialogue, and visuals — ready for Flow AI video generation.
+          </p>
+          <div className={`flex flex-wrap items-center justify-center gap-6 mb-12 px-6 py-4 rounded-2xl border ${t('bg-[#11131a]/50 border-gray-800', 'bg-white border-gray-200')}`}>
+            <div className="flex items-center gap-2"><I name="UserCheck" size={18} className="text-emerald-400" /><span className={`text-sm font-bold ${t('text-gray-300', 'text-gray-700')}`}>500+ Malaysian creators</span></div>
+            <div className={`w-px h-5 ${t('bg-gray-700', 'bg-gray-300')}`}></div>
+            <div className="flex items-center gap-2"><I name="Zap" size={18} className="text-amber-400" /><span className={`text-sm font-bold ${t('text-gray-300', 'text-gray-700')}`}>11 generation modes</span></div>
+            <div className={`w-px h-5 ${t('bg-gray-700', 'bg-gray-300')}`}></div>
+            <div className="flex items-center gap-2"><I name="ShieldCheck" size={18} className="text-sky-400" /><span className={`text-sm font-bold ${t('text-gray-300', 'text-gray-700')}`}>Free to start</span></div>
+          </div>
+          <button onClick={() => setShowLanding(false)} className="group relative px-10 py-5 rounded-2xl bg-gradient-to-r from-sky-500 to-cyan-400 text-white font-black text-lg tracking-wider uppercase shadow-2xl shadow-sky-500/40 transition-all transform hover:scale-105">
+            <span className="relative flex items-center gap-3 justify-center"><I name="Sparkles" size={22} />Start Creating Free</span>
+          </button>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-12 max-w-3xl mx-auto">
+            {[{ icon: 'Video', label: 'Cinematic Storyboards', desc: 'Full scene-by-scene breakdown' },{ icon: 'Image', label: 'AI Visual Generation', desc: '4K quality storyboard frames' },{ icon: 'Film', label: 'Flow AI Ready', desc: 'Segmented prompts for I2V' }].map((f, i) => (
+              <div key={i} className={`p-4 rounded-2xl border transition-all hover:scale-105 ${t('bg-[#11131a]/50 border-gray-800 hover:border-sky-500/50', 'bg-white border-gray-200 hover:border-sky-300')}`}>
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 mx-auto ${t('bg-sky-900/40', 'bg-sky-50')}`}><I name={f.icon} size={20} className="text-sky-400" /></div>
+                <p className={`text-sm font-bold mb-1 ${U.c14}`}>{f.label}</p>
+                <p className="text-xs text-gray-400">{f.desc}</p>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-gray-500 mt-10">© 2026 Storyboard Studio · Made for Malaysian content creators</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!hasAgreed) {
     return (
       <div className={`min-h-screen flex items-center justify-center p-4 font-sans transition-colors duration-300 ${t('bg-[#0a0c10]', 'bg-[#f8fafc]')}`}>
@@ -4259,7 +4305,7 @@ ${aspectStr}`;
               <li>Log masuk dengan akaun Google anda.</li>
               <li>Klik butang <span className="font-bold text-sky-400">"Create API Key"</span>.</li>
               <li>Pilih mana-mana Google Cloud project (atau buat baru jika tiada).</li>
-              <li>Copy API key yang dipaparkan dan paste di ruangan atas. ??</li>
+              <li>Copy API key yang dipaparkan dan paste di ruangan atas. ✅</li>
             </ol>
             <p className={`text-[11px] mt-3 ${t('text-gray-500', 'text-gray-400')}`}>API key ini percuma (free tier). Pastikan jangan kongsi key anda dengan orang lain.</p>
           </div>
@@ -4411,25 +4457,30 @@ ${aspectStr}`;
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
               {[
-                { id: 'cinematic_pro', icon: <I name="Clapperboard" size={16} />, label: 'Cinematic Pro' },
-                { id: 'microimpact', icon: <I name="Zap" size={16} />, label: '10s Micro' },
-                { id: 'narrativearc', icon: <I name="Film" size={16} />, label: '30s Narrative' },
-                { id: 'talkinghead', icon: <I name="User" size={16} />, label: 'Talking Head' },
-                { id: 'product', icon: <I name="Box" size={16} />, label: 'Product POV' },
-                { id: 'ootd', icon: <I name="Shirt" size={16} />, label: 'OOTD' },
-                { id: 'ugc', icon: <I name="Video" size={16} />, label: 'Affiliate UGC' },
-                { id: 'stopmotion', icon: <I name="Box" size={16} />, label: 'Stop Motion' },
-                { id: 'grafix', icon: <I name="PenTool" size={16} />, label: 'Grafix' },
-                { id: 'character', icon: <I name="User" size={16} />, label: 'Char Sheet' },
-                { id: 'fake_influencer', icon: <I name="UserPlus" size={16} />, label: 'Fake Influencer' },
+                // === VIDEO MODES ===
+                { id: 'cinematic_pro', icon: <I name="Clapperboard" size={16} />, label: 'Cinematic Pro', group: 'Video', grad: 'from-violet-500 to-fuchsia-500', glow: 'shadow-violet-500/40', text: 'text-violet-300' },
+                { id: 'microimpact', icon: <I name="Zap" size={16} />, label: '10s Micro', group: 'Video', grad: 'from-amber-400 to-orange-500', glow: 'shadow-amber-500/40', text: 'text-amber-300' },
+                { id: 'narrativearc', icon: <I name="Film" size={16} />, label: '30s Narrative', group: 'Video', grad: 'from-rose-500 to-pink-500', glow: 'shadow-rose-500/40', text: 'text-rose-300' },
+                { id: 'talkinghead', icon: <I name="User" size={16} />, label: 'Talking Head', group: 'Video', grad: 'from-blue-500 to-indigo-500', glow: 'shadow-blue-500/40', text: 'text-blue-300' },
+                { id: 'ugc', icon: <I name="Video" size={16} />, label: 'Affiliate UGC', group: 'Video', grad: 'from-emerald-500 to-teal-500', glow: 'shadow-emerald-500/40', text: 'text-emerald-300' },
+                // === IMAGE MODES ===
+                { id: 'product', icon: <I name="Box" size={16} />, label: 'Product POV', group: 'Image', grad: 'from-cyan-500 to-sky-500', glow: 'shadow-cyan-500/40', text: 'text-cyan-300' },
+                { id: 'ootd', icon: <I name="Shirt" size={16} />, label: 'OOTD', group: 'Image', grad: 'from-pink-500 to-rose-500', glow: 'shadow-pink-500/40', text: 'text-pink-300' },
+                { id: 'stopmotion', icon: <I name="Box" size={16} />, label: 'Stop Motion', group: 'Image', grad: 'from-orange-500 to-red-500', glow: 'shadow-orange-500/40', text: 'text-orange-300' },
+                // === AI TOOLS ===
+                { id: 'grafix', icon: <I name="PenTool" size={16} />, label: 'Grafix', group: 'Tools', grad: 'from-purple-500 to-indigo-500', glow: 'shadow-purple-500/40', text: 'text-purple-300' },
+                { id: 'character', icon: <I name="User" size={16} />, label: 'Char Sheet', group: 'Tools', grad: 'from-sky-500 to-cyan-400', glow: 'shadow-sky-500/40', text: 'text-sky-300' },
+                { id: 'fake_influencer', icon: <I name="UserPlus" size={16} />, label: 'Fake Influencer', group: 'Tools', grad: 'from-fuchsia-500 to-pink-500', glow: 'shadow-fuchsia-500/40', text: 'text-fuchsia-300' },
               ].map(tab => (
                 <button
                   key={tab.id}
                   data-active={activeTab === tab.id ? "true" : "false"}
                   onClick={() => handleTabChange(tab.id)}
-                  className={`flex-shrink-0 flex items-center justify-center gap-2 py-3 px-5 rounded-full font-bold text-xs transition-all whitespace-nowrap ${activeTab === tab.id ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/20' : (t('text-gray-400 hover:text-white bg-transparent', 'text-gray-500 hover:text-gray-800 bg-transparent'))}`}
+                  title={`${tab.group} · ${tab.label}`}
+                  className={`flex-shrink-0 flex items-center justify-center gap-2 py-3 px-5 rounded-full font-bold text-xs transition-all whitespace-nowrap ${activeTab === tab.id ? `bg-gradient-to-r ${tab.grad} text-white shadow-lg ${tab.glow} scale-105 ring-2 ring-white/20` : (t('text-gray-400 hover:text-white bg-transparent hover:bg-white/5', 'text-gray-500 hover:text-gray-800 bg-transparent hover:bg-gray-100'))}`}
                 >
-                  {tab.icon} <span className="hidden sm:inline">{tab.label}</span>
+                  <span className={activeTab === tab.id ? 'text-white' : t(tab.text, tab.text)}>{tab.icon}</span>
+                  <span className="hidden sm:inline">{tab.label}</span>
                 </button>
               ))}
             </div>
@@ -4859,7 +4910,7 @@ ${aspectStr}`;
                   onChange={(e) => setLocation(e.target.value)}
                   options={[
                     { v: 'Auto by AI', l: 'Auto Lifestyle Aesthetic Vibe' },
-                    { v: 'Inside Car (Passenger Seat)', l: '?? Inside Car (Passenger Seat)' },
+                    { v: 'Inside Car (Passenger Seat)', l: '🚗 Inside Car (Passenger Seat)' },
                     { v: 'Aesthetic Room', l: 'Minimalist Bedroom' },
                     { v: 'Studio Minimalis', l: 'Photo Studio' }
                   ]}
@@ -5121,12 +5172,12 @@ ${aspectStr}`;
                   value={charSubjectType}
                   onChange={(e) => setCharSubjectType(e.target.value)}
                   options={[
-                    { v: 'HUMAN_CHARACTER', l: '?? Human Actor' },
-                    { v: 'PRODUCT_CHARACTER', l: '?? Primary Product' },
-                    { v: 'VEHICLE_CHARACTER', l: '?? Vehicle' },
-                    { v: 'ANIMAL_CHARACTER', l: '?? Animal / Organism' },
-                    { v: 'MASCOT_CHARACTER', l: '?? Mascot / Avatar' },
-                    { v: 'OBJECT_CHARACTER', l: '?? Other (Laptop, Accessories...)' },
+                    { v: 'HUMAN_CHARACTER', l: '👤 Human Actor' },
+                    { v: 'PRODUCT_CHARACTER', l: '📦 Primary Product' },
+                    { v: 'VEHICLE_CHARACTER', l: '🚗 Vehicle' },
+                    { v: 'ANIMAL_CHARACTER', l: '🐾 Animal / Organism' },
+                    { v: 'MASCOT_CHARACTER', l: '🎭 Mascot / Avatar' },
+                    { v: 'OBJECT_CHARACTER', l: '💻 Other (Laptop, Accessories...)' },
                     { v: 'AUTO_DETECT', l: '? AI Auto Detect (From Image)' }
                   ]}
                   isDarkMode={isDarkMode}
@@ -5350,12 +5401,57 @@ ${aspectStr}`;
 
             <div className="space-y-16">
               <div>
-                {isGeneratingImage && imageUrls.length === 0 ? (
-                  <div className={`w-full max-w-lg mx-auto border rounded-[3rem] p-10 flex flex-col items-center justify-center text-center aspect-[9/16] shadow-2xl ${t('bg-[#11131a] border-gray-800 shadow-black/50', 'bg-white border-sky-100')}`}>
-                     <div className="w-16 h-16 border-4 border-sky-100 border-t-pink-500 rounded-full animate-spin mb-6"></div>
-                     <p className="text-lg font-black text-sky-500 animate-pulse tracking-widest uppercase">{loadingText}</p>
+                {isGeneratingImage && imageUrls.length === 0 ? (() => {
+                  // Parse loadingText to determine current pipeline stage
+                  const lt = String(loadingText || '').toLowerCase();
+                  let stage = 0; // 0=Analyzing, 1=Building, 2=Generating, 3=Done
+                  if (/analyz|extract|absorb|map/i.test(lt)) stage = 0;
+                  else if (/build|construct|engineer|repair|json|sequence|framework|architecture/i.test(lt)) stage = 1;
+                  else if (/generat|render|regen|visual|frame|deploy|synth/i.test(lt)) stage = 2;
+                  const stages = ['Analyzing', 'Building', 'Generating', 'Done'];
+                  return (
+                  <div className={`w-full max-w-lg mx-auto border rounded-[3rem] p-10 flex flex-col items-center justify-center text-center aspect-[9/16] shadow-2xl relative overflow-hidden ${t('bg-[#11131a] border-gray-800 shadow-black/50', 'bg-white border-sky-100')}`}>
+                     {/* Animated gradient background */}
+                     <div className="absolute inset-0 opacity-20 pointer-events-none">
+                       <div className="absolute top-1/4 left-1/4 w-40 h-40 rounded-full bg-sky-500 blur-3xl animate-pulse"></div>
+                       <div className="absolute bottom-1/4 right-1/4 w-32 h-32 rounded-full bg-cyan-400 blur-3xl animate-pulse" style={{ animationDelay: '0.5s' }}></div>
+                     </div>
+                     {/* Central spinner */}
+                     <div className="relative mb-8">
+                       <div className="w-20 h-20 border-4 border-sky-100/20 border-t-sky-500 rounded-full animate-spin"></div>
+                       <div className="absolute inset-0 w-20 h-20 border-4 border-transparent border-b-cyan-400 rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
+                     </div>
+                     {/* Pipeline stages */}
+                     <div className="relative w-full max-w-xs space-y-3 mb-6">
+                       {stages.slice(0, 3).map((s, i) => (
+                         <div key={i} className="flex items-center gap-3">
+                           <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black transition-all duration-500 ${
+                             i < stage ? 'bg-emerald-500 text-white' :
+                             i === stage ? 'bg-sky-500 text-white scale-110 shadow-lg shadow-sky-500/50' :
+                             t('bg-gray-800 text-gray-600', 'bg-gray-200 text-gray-400')
+                           }`}>
+                             {i < stage ? '✓' : i + 1}
+                           </div>
+                           <div className="flex-1 text-left">
+                             <span className={`text-sm font-bold transition-all duration-500 ${
+                               i < stage ? t('text-emerald-400', 'text-emerald-600') :
+                               i === stage ? 'text-sky-400 animate-pulse' :
+                               t('text-gray-600', 'text-gray-400')
+                             }`}>{s}</span>
+                             {i === stage && (
+                               <div className={`h-0.5 mt-1 rounded-full overflow-hidden ${t('bg-gray-800', 'bg-gray-200')}`}>
+                                 <div className="h-full w-full bg-gradient-to-r from-sky-500 to-cyan-400 animate-pulse"></div>
+                               </div>
+                             )}
+                           </div>
+                         </div>
+                       ))}
+                     </div>
+                     {/* Current status text */}
+                     <p className="relative text-sm font-black text-sky-500 tracking-widest uppercase leading-relaxed">{loadingText || 'Processing...'}</p>
                   </div>
-                ) : (
+                  );
+                })() : (
                   <div className={`grid grid-cols-1 ${imageUrls.length >= 6 ? 'md:grid-cols-3 max-w-6xl' : imageUrls.length === 3 ? 'md:grid-cols-3 max-w-6xl' : imageUrls.length > 1 ? 'md:grid-cols-2 max-w-4xl' : 'max-w-md'} mx-auto gap-6 lg:gap-10`}>
                     {imageUrls.map((url, index) => {
                        const pairIndex = Math.floor(index / 2);
@@ -5491,6 +5587,74 @@ ${aspectStr}`;
                 )}
               </div>
 
+              {/* === STORYBOARD TIMELINE VIEW === */}
+              {generatedOutput && imageUrls.length > 0 && (generatedOutput.scenes || generatedOutput.productScenes || generatedOutput.ootdScenes) && (() => {
+                const allScenes = (generatedOutput.scenes || generatedOutput.productScenes || generatedOutput.ootdScenes || []).filter(Boolean);
+                if (!allScenes.length) return null;
+                return (
+                  <div className={`rounded-3xl p-6 sm:p-8 shadow-lg border transition-all duration-300 mb-8 ${t('bg-[#11131a] border-gray-800', 'bg-white border-gray-100')}`}>
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${t('bg-sky-900/40', 'bg-sky-100')}`}>
+                        <I name="Film" size={20} className="text-sky-400" />
+                      </div>
+                      <div>
+                        <h3 className={`font-black text-lg ${U.c14}`}>Storyboard Timeline</h3>
+                        <p className="text-xs text-gray-400 mt-0.5">{allScenes.length} scenes · {generatedOutput.duration || '—'} · {currentDisplayRatio || aspectRatio}</p>
+                      </div>
+                    </div>
+                    <div className="overflow-x-auto pb-4 custom-scrollbar">
+                      <div className="flex gap-3 min-w-min">
+                        {allScenes.map((scene, idx) => {
+                          const thumb = imageUrls[idx] || imageUrls[idx % imageUrls.length];
+                          const timecode = scene.timecode || `${idx * 5}s–${(idx + 1) * 5}s`;
+                          const dialogue = String(scene.dialogue || '').trim();
+                          return (
+                            <div key={idx} className={`flex-shrink-0 w-40 rounded-2xl border overflow-hidden transition-all hover:scale-105 cursor-pointer group ${t('bg-[#0a0c10] border-gray-700 hover:border-sky-500', 'bg-gray-50 border-gray-200 hover:border-sky-400')}`} onClick={() => setFullscreenImage(thumb)}>
+                              <div className={`relative ${containerAspectClass} bg-black overflow-hidden`}>
+                                {thumb ? (
+                                  <img src={thumb} alt={`Scene ${idx + 1}`} className="w-full h-full object-cover" />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center">
+                                    <I name="Image" size={24} className="text-gray-600" />
+                                  </div>
+                                )}
+                                <div className="absolute top-2 left-2 w-7 h-7 rounded-full bg-sky-500 text-white text-xs font-black flex items-center justify-center shadow-lg z-10">
+                                  {idx + 1}
+                                </div>
+                                <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent p-2">
+                                  <span className="text-[10px] text-white font-bold tracking-wide">{timecode}</span>
+                                </div>
+                              </div>
+                              <div className="p-2.5 space-y-1.5">
+                                <p className={`text-[10px] font-bold uppercase tracking-wider ${t('text-sky-400', 'text-sky-600')}`}>
+                                  {String(scene.visual || scene.action || '').slice(0, 40)}{String(scene.visual || '').length > 40 ? '...' : ''}
+                                </p>
+                                {dialogue && (
+                                  <p className={`text-[10px] italic leading-snug ${t('text-gray-400', 'text-gray-500')}`}>
+                                    "{dialogue.slice(0, 50)}{dialogue.length > 50 ? '...' : ''}"
+                                  </p>
+                                )}
+                                {scene.camera && (
+                                  <p className={`text-[9px] uppercase tracking-widest ${t('text-gray-600', 'text-gray-400')}`}>
+                                    {String(scene.camera).slice(0, 30)}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    <div className={`mt-4 h-1.5 rounded-full overflow-hidden ${t('bg-gray-800', 'bg-gray-200')}`}>
+                      <div className="h-full bg-gradient-to-r from-sky-500 via-cyan-400 to-emerald-400" style={{ width: `${Math.min(100, (imageUrls.length / allScenes.length) * 100)}%` }}></div>
+                    </div>
+                    <p className="text-[10px] text-gray-400 mt-2 text-center">
+                      {imageUrls.length}/{allScenes.length} scenes generated · Click any scene to view fullscreen
+                    </p>
+                  </div>
+                );
+              })()}
+
               {/* Flow AI Segments — directly below images */}
               {generatedOutput && activeTab !== 'character' && activeTab !== 'fake_influencer' && (() => {
                 const totalSec = parseDurationToSeconds(generatedOutput.selectedDurationSec)
@@ -5566,7 +5730,7 @@ ${aspectStr}`;
                                   : 'bg-[#143e4f] text-[#38bdf8] hover:bg-[#1e4d5f]'
                                 }`}
                               >
-                                <span style={{ fontSize: '12px', lineHeight: 1 }}>{copiedSection === `flow_seg_${i}` ? '?' : '??'}</span>
+                                <span style={{ fontSize: '12px', lineHeight: 1 }}>{copiedSection === `flow_seg_${i}` ? '✅' : '📋'}</span>
                                 {copiedSection === `flow_seg_${i}` ? 'Copied' : 'Copy'}
                               </button>
                             </div>
@@ -5603,7 +5767,7 @@ ${aspectStr}`;
                                 {(currentDialogueVal || isDialogueEditing) && (
                                   <div>
                                     <div className="flex items-center justify-between mb-1.5">
-                                      <span className="text-[9px] font-bold uppercase tracking-widest text-sky-400">?? Dialog / VO (Segment)</span>
+                                      <span className="text-[9px] font-bold uppercase tracking-widest text-sky-400">💬 Dialog / VO (Segment)</span>
                                       <div className="flex gap-1.5">
                                         <button
                                           onClick={async () => {
@@ -5654,7 +5818,7 @@ RULES:
                                           <button onClick={() => toggleEditBoxMode(segDialogueKey)} className="px-2 py-0.5 rounded text-[10px] bg-sky-900/40 text-sky-400 font-bold hover:bg-sky-900/60">Edit</button>
                                         )}
                                         <button onClick={() => copyToClipboard(currentDialogueVal, `flow_seg_dlg_${i}`)} className={`px-2 py-0.5 rounded text-[10px] font-bold ${copiedSection === `flow_seg_dlg_${i}` ? 'bg-green-500 text-white' : 'bg-sky-900/40 text-sky-400'}`}>
-                                          {copiedSection === `flow_seg_dlg_${i}` ? '?' : '??'}
+                                          {copiedSection === `flow_seg_dlg_${i}` ? '✅' : '📋'}
                                         </button>
                                       </div>
                                     </div>
