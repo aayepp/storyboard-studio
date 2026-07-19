@@ -1162,6 +1162,15 @@ If creative interpretation conflicts with reference fidelity, choose reference f
 If complexity conflicts with consistency, choose consistency.
 
 ${cleanImageInstruction}
+=== PHOTOREALISM MANDATE (CRITICAL) ===
+This character sheet MUST be 100% PHOTOREALISTIC — indistinguishable from a real photograph.
+- REAL HUMAN SKIN: visible pores, natural skin texture, subtle imperfections, real lighting interaction on skin.
+- ZERO cartoon, illustration, anime, 3D render, or painterly style. If the subject is human, it must look like a real person photographed in a studio.
+- Match the uploaded reference face EXACTLY: same bone structure, same eye shape, same nose, same lip proportions, same skin tone, same age appearance. Do NOT beautify, stylize, or reinterpret the face.
+- The output must look like the SAME REAL PERSON photographed from different angles — not a "similar looking" AI interpretation.
+- Treat the reference image as a real photograph of a real person. Replicate their appearance with forensic accuracy.
+- NO smooth plastic AI skin. NO doll-like perfection. Keep natural human asymmetry and texture.
+
 Generate the Character Sheet now. Output a single 9:16 portrait professional Character Sheet image.`;
 };
 
