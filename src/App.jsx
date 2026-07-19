@@ -5461,13 +5461,16 @@ ${aspectStr}`;
               <div>
                 {isGeneratingImage && imageUrls.length === 0 ? (() => {
                   const lt = String(loadingText || '').toLowerCase();
-                  let stage = 0;
-                  if (/analyz|extract|absorb|map/i.test(lt)) stage = 0;
-                  else if (/build|construct|engineer|repair|json|sequence|framework|architecture/i.test(lt)) stage = 1;
-                  else if (/generat|render|regen|visual|frame|deploy|synth/i.test(lt)) stage = 2;
+                  // Use progressStage (state) as primary source of truth; fall back to text parsing
+                  let stage = progressStage;
+                  if (/analyz|extract|absorb|map/i.test(lt)) stage = Math.min(stage, 0);
+                  else if (/build|construct|engineer|repair|json|sequence|framework|architecture/i.test(lt)) stage = Math.max(stage, 1);
+                  else if (/generat|render|regen|visual|frame|deploy|synth/i.test(lt)) stage = Math.max(stage, 2);
                   const stages = ['Analyzing', 'Building', 'Generating', 'Done'];
                   
-                  const displayPct = stage === 2 ? progressPercent : stage === 1 ? 35 : 10;
+                  // stage 0 = analyzing (5–15%), stage 1 = building JSON (15–40%), stage 2 = generating images (progressPercent)
+                  const rawPct = stage === 2 ? Math.max(progressPercent, 5) : stage === 1 ? Math.max(progressPercent > 0 ? progressPercent : 0, 20) : 5;
+                  const displayPct = Math.min(rawPct, 99);
                   const eta = displayPct > 5 && elapsedSeconds > 5
                     ? Math.round((elapsedSeconds / displayPct) * (100 - displayPct))
                     : null;
