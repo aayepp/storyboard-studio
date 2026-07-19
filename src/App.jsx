@@ -3952,13 +3952,13 @@ ${aspectStr}`;
     if (sectionId === 'videoPrompt' || sectionId === 'video') {
       setEditableImagePrompt(editedValues[sectionId]);
     }
-    // Sync dialogue edit → segment prompt (update DIALOGUE (BM) block in prompt)
+    // Sync dialogue edit → segment prompt (update DIALOGUE (BM) block + auto tone detection)
     const dlgMatch = sectionId.match(/^flow_seg_dialogue_(\d+)$/);
     if (dlgMatch) {
       const idx = dlgMatch[1];
       const promptKey = `flow_seg_prompt_${idx}`;
       const newDialogue = editedValues[sectionId] || '';
-      // Build flow segments to get original prompt if not yet edited
+      // Build flow segments to get original prompt + scene context for tone detection
       const totalSec = parseDurationToSeconds(generatedOutput?.selectedDurationSec || generatedOutput?.duration) || getSelectedDurationSeconds();
       const normScenes = collectScenesForFlow();
       const fallbackScenes = normScenes.length ? normScenes : [{
@@ -3973,20 +3973,67 @@ ${aspectStr}`;
         title: generatedOutput?.title || generatedOutput?.caption || productName || cinematicTopic || ''
       });
       const originalPrompt = segs[idx]?.prompt || '';
+      const segScenes = segs[idx]?.scenes || [];
+      const sceneContext = segScenes.map(s => `Scene ${s.scene_num}: visual="${(s.visual || '').slice(0, 150)}", emotion="${s.emotion || ''}", action="${s.action || ''}"`).join('\n');
+
+      // Update prompt with new dialogue immediately
       setBoxEdits(prev => {
         const currentPrompt = prev[promptKey] || originalPrompt;
-        // Replace existing DIALOGUE (BM) block or append
         const dlgRegex = new RegExp('\nDIALOGUE \\(BM\\):[\\s\\S]*?(?=\nCONTINUITY:|\nINSTRUCTIONS:|$)');
-        const updated = currentPrompt.includes('DIALOGUE (BM):')
-          ? currentPrompt.replace(dlgRegex, `
+        // Remove old TONE tag if exists
+        const toneRegex = new RegExp('\[TONE:[^\]]*\]\s*', 'g');
+        const cleanedPrompt = currentPrompt.replace(toneRegex, '');
+        const updated = cleanedPrompt.includes('DIALOGUE (BM):')
+          ? cleanedPrompt.replace(dlgRegex, `
 DIALOGUE (BM):
 ${newDialogue}
 `)
-          : currentPrompt + `
+          : cleanedPrompt + `
 DIALOGUE (BM):
 ${newDialogue}`;
         return { ...prev, [promptKey]: updated };
       });
+
+      // Auto-detect tone via AI based on scene context + new dialogue
+      (async () => {
+        try {
+          const tonePrompt = `You are a voice director for Malaysian TikTok/Reels. Analyze the scene context and dialogue below. Detect the MOST NATURAL speaking tone for TTS that matches the scene mood.
+
+SCENE CONTEXT:
+${sceneContext.slice(0, 600)}
+
+DIALOGUE:
+${newDialogue.slice(0, 400)}
+
+Output ONLY a short tone tag in this exact format:
+[TONE: <energy level>, <emotion>, <pace>]
+
+Examples:
+[TONE: excited, enthusiastic, fast-paced]
+[TONE: calm, warm, slow and soft]
+[TONE: serious, concerned, measured]
+[TONE: playful, cheeky, upbeat]
+[TONE: dramatic, intense, building tension]
+[TONE: friendly, casual, conversational]
+[TONE: urgent, persuasive, energetic]
+[TONE: reflective, nostalgic, gentle]
+
+Pick the ONE that best fits. No explanation, just the tag.`;
+          const toneData = await callTextApi(tonePrompt, null, { temperature: 0.3 });
+          const toneTag = extractGeminiText(toneData).trim().match(/\[TONE:[^\]]*\]/)?.[0] || '';
+          if (toneTag) {
+            setBoxEdits(prev => {
+              const currentPrompt = prev[promptKey] || originalPrompt;
+              const toneRegex = new RegExp('\[TONE:[^\]]*\]\s*', 'g');
+              const cleaned = currentPrompt.replace(toneRegex, '');
+              const withTone = `${toneTag}\n${cleaned}`;
+              return { ...prev, [promptKey]: withTone };
+            });
+          }
+        } catch (e) {
+          console.warn('Tone detection skipped:', e);
+        }
+      })();
     }
   };
 
