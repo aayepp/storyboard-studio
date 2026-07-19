@@ -1811,6 +1811,9 @@ export default function App() {
   const [lightboxIndex, setLightboxIndex] = useState(null);
 
   // Generation history (localStorage, max 5 per tab)
+  // Main viewer (single image display)
+  const [mainImageIndex, setMainImageIndex] = useState(0);
+
   const [genHistory, setGenHistory] = useState(() => {
     try { return JSON.parse(localStorage.getItem('gen_history') || '{}'); } catch { return {}; }
   });
@@ -5655,150 +5658,114 @@ ${aspectStr}`;
                     </div>
                   );
                 })() : (
-                  <div className={`grid grid-cols-1 ${imageUrls.length >= 6 ? 'md:grid-cols-3 max-w-6xl' : imageUrls.length === 3 ? 'md:grid-cols-3 max-w-6xl' : imageUrls.length > 1 ? 'md:grid-cols-2 max-w-4xl' : 'max-w-md'} mx-auto gap-6 lg:gap-10`}>
-                    {imageUrls.map((url, index) => {
-                       const pairIndex = Math.floor(index / 2);
-                       const isSecondInPair = index % 2 === 1;
-                       const hasPairPartner = imageUrls.length >= 4 && index % 2 === 1 && imageUrls[index - 1];
-                       const slideDescs = activeTab === 'character' ? [
-                         "Character reference: Structural details for scene modeling continuity.",
-                         "Alternate character sheet viewpoint: Controlled ambient rendering metrics."
-                       ] : activeTab === 'ugc' ? [
-                         "Scene (Hook): Instant scrolling attention mechanism.",
-                         "Scene (Showcase): Macro product detail highlights.",
-                         "Scene (CTA): High-retention close-out call-to-action."
-                       ] : [
-                         "Fictional subject visual generated safely via reference guidelines.",
-                         "Consistent body posture mapped precisely inside frame constraints."
-                       ];
-
-                       return (
-                      <div key={index} className="flex flex-col group animate-fade-in-up" style={{ animationDelay: `${index * 150}ms` }}>
-                        <div className="flex gap-4 mb-6 px-2">
-                           <div className="w-12 h-12 shrink-0 rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center text-white font-black text-lg shadow-lg">
-                             0{index + 1}
-                           </div>
-                           <div className="flex items-center">
-                             <p className={`text-xs leading-relaxed font-medium ${C.muted(isDarkMode)}`}>
-                               {slideDescs[index % slideDescs.length]}
-                             </p>
-                           </div>
-                        </div>
-
-                        <div className={`relative border-[8px] rounded-[3rem] shadow-2xl overflow-hidden flex-grow flex flex-col group-hover:-translate-y-2 transition-transform duration-500 ${t('border-[#1a1c23] bg-[#1a1c23] shadow-black/50', 'border-gray-900 bg-gray-900')}`}>
-                          <div className="absolute top-0 inset-x-0 h-6 flex justify-center z-30">
-                             <div className={`w-32 h-6 rounded-b-2xl ${t('bg-[#1a1c23]', 'bg-gray-900')}`}></div>
+                  <div className="max-w-lg mx-auto">
+                  {/* Single Main Image Viewer */}
+                  {(() => {
+                    const totalImages = imageUrls.length;
+                    const currentIdx = mainImageIndex;
+                    const currentUrl = imageUrls[currentIdx];
+                    return (
+                      <div className="flex flex-col items-center">
+                        {/* Scene Counter Badge */}
+                        {totalImages > 1 && (
+                          <div className="flex items-center gap-2 mb-4 px-3 py-1.5 rounded-full border text-[10px] font-bold tracking-widest uppercase bg-sky-500/10 border-sky-500/30 text-sky-400">
+                            Scene {currentIdx + 1} of {totalImages}
                           </div>
+                        )}
 
-                          <div
-                            className={`relative w-full ${containerAspectClass} bg-black overflow-hidden cursor-zoom-in`}
-                            onClick={() => { setFullscreenImage(url); setLightboxIndex(index); }}
-                          >
-                            {(regeneratingIndexes[index] || isMagicEditing[index]) && (
-                               <div className="absolute inset-0 backdrop-blur-xl z-30 flex flex-col items-center justify-center text-center p-4 bg-black/80">
-                                   <I name="RefreshCw" className="animate-spin text-sky-500 mb-4" size={32} />
-                                   <span className="text-[10px] text-white font-black tracking-widest mb-6 animate-pulse">
-                                     {isMagicEditing[index] ? 'APPLYING MAGIC BOX ADJUSTMENTS...' : 'RE-SCHEDULING VISUAL GENERATION...'}
-                                   </span>
-                               </div>
-                            )}
-
-                            <img
-                              src={url}
-                              alt={`Output ${index + 1}`}
-                              className="w-full h-full object-cover transition-all duration-700"
-                              style={{
-                                transform: zoomedImages[index] ? 'scale(1.5)' : 'scale(1)',
-                                transition: zoomedImages[index] ? 'transform 15s ease-out' : 'transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1)'
-                              }}
-                            />
+                        {/* Featured Image */}
+                        <div className="w-full relative">
+                          <div className={`relative border-[8px] rounded-[3rem] shadow-2xl overflow-hidden group-hover:-translate-y-2 transition-transform duration-500 ${t('border-[#1a1c23] bg-[#1a1c23] shadow-black/50', 'border-gray-900 bg-gray-900')}`}>
+                            <div className={`relative w-full ${containerAspectClass} bg-black overflow-hidden cursor-zoom-in`}
+                              onClick={() => { setFullscreenImage(currentUrl); setLightboxIndex(currentIdx); }}>
+                              {(regeneratingIndexes[currentIdx] || isMagicEditing[currentIdx]) && (
+                                <div className="absolute inset-0 backdrop-blur-xl z-30 flex flex-col items-center justify-center text-center p-4 bg-black/80">
+                                  <I name="RefreshCw" className="animate-spin text-sky-500 mb-4" size={32} />
+                                  <span className="text-[10px] text-white font-black tracking-widest mb-6 animate-pulse">
+                                    {isMagicEditing[currentIdx] ? 'APPLYING MAGIC BOX ADJUSTMENTS...' : 'RE-SCHEDULING VISUAL GENERATION...'}
+                                  </span>
+                                </div>
+                              )}
+                              <img src={currentUrl} alt={`Scene ${currentIdx + 1}`}
+                                className="w-full h-full object-cover transition-all duration-700" />
+                            </div>
                           </div>
                         </div>
 
-                        <div className="flex flex-col gap-2 mt-6">
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() => handleDownloadHD(url, index)}
-                                disabled={!url || regeneratingIndexes[index]}
-                                className={`flex-1 py-3 rounded-xl border text-[10px] font-black flex items-center justify-center gap-2 transition-all tracking-widest uppercase shadow-sm disabled:opacity-50 ${t('bg-[#11131a] border-gray-800 text-white hover:border-sky-500', 'bg-white border-gray-200 text-gray-700 hover:border-sky-400')}`}
-                              >
-                                <I name="Download" size={14} className="text-sky-500" /> DOWNLOAD 4K
-                              </button>
-                              <button
-                                onClick={() => handleDownloadHD(url, index, '2k')}
-                                disabled={!url || regeneratingIndexes[index]}
-                                className={`flex-1 py-3 rounded-xl border text-[10px] font-black flex items-center justify-center gap-2 transition-all tracking-widest uppercase shadow-sm disabled:opacity-50 ${t('bg-[#11131a] border-gray-800 text-white hover:border-cyan-400', 'bg-white border-gray-200 text-gray-700 hover:border-cyan-400')}`}
-                              >
-                                <I name="Download" size={14} className="text-cyan-400" /> DOWNLOAD 2K
+                        {/* Dot Indicators + Nav Arrows */}
+                        {totalImages > 1 && (
+                          <div className="flex items-center justify-between gap-4 mt-6 w-full max-w-sm">
+                            <button onClick={() => setMainImageIndex(prev => Math.max(0, prev - 1))}
+                              disabled={currentIdx === 0}
+                              className={`px-4 py-2.5 rounded-xl border text-[10px] font-black flex items-center gap-1.5 transition-all tracking-widest uppercase disabled:opacity-30 ${t('bg-[#11131a] border-gray-800 text-white hover:border-sky-500', 'bg-white border-gray-200 text-gray-700 hover:border-sky-400')}`}>
+                              <I name="ChevronLeft" size={14} /> PREV
+                            </button>
+                            <div className="flex items-center gap-2">
+                              {imageUrls.map((_, dotIdx) => (
+                                <button key={dotIdx} onClick={() => setMainImageIndex(dotIdx)}
+                                  className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+                                    dotIdx === currentIdx 
+                                      ? 'bg-sky-500 scale-125 w-6' 
+                                      : t('bg-gray-700 hover:bg-gray-500', 'bg-gray-300 hover:bg-gray-400')
+                                  }`} />
+                              ))}
+                            </div>
+                            <button onClick={() => setMainImageIndex(prev => Math.min(totalImages - 1, prev + 1))}
+                              disabled={currentIdx === totalImages - 1}
+                              className={`px-4 py-2.5 rounded-xl border text-[10px] font-black flex items-center gap-1.5 transition-all tracking-widest uppercase disabled:opacity-30 ${t('bg-[#11131a] border-gray-800 text-white hover:border-sky-500', 'bg-white border-gray-200 text-gray-700 hover:border-sky-400')}`}>
+                              NEXT <I name="ChevronRight" size={14} />
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Action buttons for current image */}
+                        <div className="flex flex-col gap-2 mt-6 w-full max-w-sm">
+                          <div className="flex gap-2">
+                            <button onClick={() => handleDownloadHD(currentUrl, currentIdx)}
+                              className={`flex-1 py-3 rounded-xl border text-[10px] font-black flex items-center justify-center gap-2 transition-all tracking-widest uppercase shadow-sm ${t('bg-[#11131a] border-gray-800 text-white hover:border-sky-500', 'bg-white border-gray-200 text-gray-700 hover:border-sky-400')}`}>
+                              <I name="Download" size={14} className="text-sky-500" /> DOWNLOAD 4K
+                            </button>
+                            <button onClick={() => handleDownloadHD(currentUrl, currentIdx, '2k')}
+                              className={`flex-1 py-3 rounded-xl border text-[10px] font-black flex items-center justify-center gap-2 transition-all tracking-widest uppercase shadow-sm ${t('bg-[#11131a] border-gray-800 text-white hover:border-cyan-400', 'bg-white border-gray-200 text-gray-700 hover:border-cyan-400')}`}>
+                              <I name="Download" size={14} className="text-cyan-400" /> DOWNLOAD 2K
+                            </button>
+                          </div>
+                          <button onClick={() => regenerateSingleVisual(currentIdx)}
+                            disabled={!currentUrl || regeneratingIndexes[currentIdx]}
+                            className={`w-full py-3.5 rounded-xl border text-[10px] font-black flex items-center justify-center gap-2 transition-all tracking-widest uppercase shadow-sm disabled:opacity-50 ${t('bg-[#11131a] border-gray-800 text-white hover:border-cyan-400', 'bg-white border-gray-200 text-gray-700 hover:border-cyan-400')}`}>
+                            <I name="RefreshCw" size={14} className={`${regeneratingIndexes[currentIdx] ? "animate-spin text-sky-500" : "text-gray-400"}`} /> ALTERNATIVE 2K
+                          </button>
+                          <button onClick={() => toggleMagicBox(currentIdx)}
+                            disabled={!currentUrl || regeneratingIndexes[currentIdx]}
+                            className={`w-full py-3.5 rounded-xl border text-[10px] font-black flex items-center justify-center gap-2 transition-all tracking-widest uppercase shadow-sm disabled:opacity-50 ${showMagicBox[currentIdx] ? (PINK_GRAD + ' border-transparent') : (t('bg-[#11131a] border-gray-800 text-sky-400 hover:border-sky-500', 'bg-sky-50 border-sky-200 text-sky-600'))}`}>
+                            <I name="Wand2" size={14} className={showMagicBox[currentIdx] ? "text-white" : "text-sky-500"} />
+                            {showMagicBox[currentIdx] ? 'CLOSE MAGIC BOX' : 'MAGIC BOX TUNER'}
+                          </button>
+                          {showMagicBox[currentIdx] && (
+                            <div className={`mt-2 p-4 rounded-xl border shadow-inner animate-fade-in ${t('bg-[#0a0c10] border-sky-500/30', 'bg-sky-50/50 border-sky-200')}`}>
+                              <label className={`block text-[9px] font-bold mb-2 uppercase tracking-widest ${t('text-sky-400', 'text-sky-500')}`}>Fine-Tune Visual</label>
+                              <textarea value={magicPrompts[currentIdx] || ''}
+                                onChange={(e) => setMagicPrompts({ ...magicPrompts, [currentIdx]: e.target.value })}
+                                placeholder="e.g., Swap outfit color..."
+                                rows={2}
+                                className={`w-full rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-sky-400 transition-all border resize-none ${t('bg-[#11131a] border-gray-700 text-white', 'bg-white border-sky-100 text-gray-800')}`} />
+                              <button onClick={() => performMagicEdit(currentIdx)}
+                                disabled={!magicPrompts[currentIdx] || isMagicEditing[currentIdx]}
+                                className={`w-full mt-2 py-2.5 rounded-lg text-[10px] font-black flex items-center justify-center gap-2 transition-all tracking-widest uppercase shadow-md ${PINK_GRAD}`}>
+                                <I name="Send" size={12} /> Execute Edit
                               </button>
                             </div>
-                            <button
-                              onClick={() => regenerateSingleVisual(index)}
-                              disabled={!url || regeneratingIndexes[index]}
-                              className={`w-full py-3.5 rounded-xl border text-[10px] font-black flex items-center justify-center gap-2 transition-all tracking-widest uppercase shadow-sm disabled:opacity-50 ${t('bg-[#11131a] border-gray-800 text-white hover:border-cyan-400', 'bg-white border-gray-200 text-gray-700 hover:border-cyan-400')}`}
-                            >
-                              <I name="RefreshCw" size={14} className={`${regeneratingIndexes[index] ? "animate-spin text-sky-500" : "text-gray-400"}`} /> ALTERNATIVE 2K
+                          )}
+                          {activeTab === 'fake_influencer' && currentUrl && (
+                            <button onClick={() => handleExportToCharSheet(currentUrl)}
+                              className={`w-full py-3.5 rounded-xl border text-[10px] font-black flex items-center justify-center gap-2 transition-all tracking-widest uppercase shadow-sm ${t('bg-emerald-950/30 border-emerald-800/50 text-emerald-400', 'bg-emerald-50 border-emerald-200 text-emerald-600')}`}>
+                              <I name="UserPlus" size={14} className="text-emerald-400" /> EXPORT TO CHAR SHEET
                             </button>
-
-                            <button
-                              onClick={() => toggleMagicBox(index)}
-                              disabled={!url || regeneratingIndexes[index]}
-                              className={`w-full py-3.5 rounded-xl border text-[10px] font-black flex items-center justify-center gap-2 transition-all tracking-widest uppercase shadow-sm disabled:opacity-50 ${showMagicBox[index] ? (PINK_GRAD + ' border-transparent') : (t('bg-[#11131a] border-gray-800 text-sky-400 hover:border-sky-500', 'bg-sky-50 border-sky-200 text-sky-600'))}`}
-                            >
-                              <I name="Wand2" size={14} className={showMagicBox[index] ? "text-white" : "text-sky-500"} />
-                              {showMagicBox[index] ? 'CLOSE MAGIC BOX' : 'MAGIC BOX TUNER'}
-                            </button>
-
-                            {showMagicBox[index] && (
-                               <div className={`mt-2 p-4 rounded-xl border shadow-inner animate-fade-in ${t('bg-[#0a0c10] border-sky-500/30', 'bg-sky-50/50 border-sky-200')}`}>
-                                  <label className={`block text-[9px] font-bold mb-2 uppercase tracking-widest ${t('text-sky-400', 'text-sky-500')}`}>
-                                    Fine-Tune Visual Architecture
-                                  </label>
-                                  <textarea
-                                    value={magicPrompts[index] || ''}
-                                    onChange={(e) => setMagicPrompts({ ...magicPrompts, [index]: e.target.value })}
-                                    placeholder="e.g., Swap outfit color to elegant white, apply heavy cinematic shadow details..."
-                                    rows={2}
-                                    className={`w-full rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-sky-400 transition-all border resize-none ${t('bg-[#11131a] border-gray-700 text-white placeholder-gray-600', 'bg-white border-sky-100 text-gray-800')}`}
-                                    style={isDarkMode ? { backgroundColor: '#11131a', color: '#ffffff', borderColor: '#374151' } : {}}
-                                  />
-                                  <button
-                                    onClick={() => performMagicEdit(index)}
-                                    disabled={!magicPrompts[index] || isMagicEditing[index]}
-                                    className={`w-full mt-2 py-2.5 rounded-lg text-[10px] font-black flex items-center justify-center gap-2 transition-all tracking-widest uppercase shadow-md ${PINK_GRAD}`}
-                                  >
-                                    <I name="Send" size={12} /> Execute Parameter Updates
-                                  </button>
-                               </div>
-                            )}
-
-                            {/* Download Combined Segment button — shown on the 2nd image of each pair */}
-                            {hasPairPartner && (
-                              <button
-                                onClick={() => handleDownloadCombinedSegment(pairIndex)}
-                                disabled={combiningPairIndex === pairIndex}
-                                className={`w-full mt-2 py-3 rounded-xl border text-[10px] font-black flex items-center justify-center gap-2 transition-all tracking-widest uppercase shadow-sm disabled:opacity-50 ${t('bg-sky-950/30 border-sky-800/50 text-sky-400 hover:border-sky-500', 'bg-sky-50 border-sky-200 text-sky-600 hover:border-sky-400')}`}
-                              >
-                                <I name="Layers" size={14} className="text-sky-400" />
-                                {combiningPairIndex === pairIndex ? 'COMBINING...' : `DOWNLOAD COMBINED SEGMENT ${pairIndex + 1}`}
-                              </button>
-                            )}
-
-                            {/* Export to Character Sheet — only in fake_influencer tab */}
-                            {activeTab === 'fake_influencer' && url && (
-                              <button
-                                onClick={() => handleExportToCharSheet(url)}
-                                className={`w-full mt-2 py-3.5 rounded-xl border text-[10px] font-black flex items-center justify-center gap-2 transition-all tracking-widest uppercase shadow-sm ${t('bg-emerald-950/30 border-emerald-800/50 text-emerald-400 hover:border-emerald-500 hover:bg-emerald-900/30', 'bg-emerald-50 border-emerald-200 text-emerald-600 hover:border-emerald-400')}`}
-                              >
-                                <I name="UserPlus" size={14} className="text-emerald-400" /> EXPORT TO CHARACTER SHEET
-                              </button>
-                            )}
+                          )}
                         </div>
                       </div>
-                    )})}
-                  </div>
-                )}
-              </div>
+                    );
+                  })()}
 
               {/* === STORYBOARD TIMELINE VIEW === */}
               {generatedOutput && imageUrls.length > 0 && (generatedOutput.scenes || generatedOutput.productScenes || generatedOutput.ootdScenes) && (() => {
