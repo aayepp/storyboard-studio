@@ -5448,7 +5448,7 @@ ${aspectStr}`;
                        ))}
                      </div>
                      {/* Current status text */}
-                     <p className="relative text-sm font-black text-sky-500 tracking-widest uppercase leading-relaxed">{loadingText || 'Processing...'}</p>
+                     <p className="relative text-sm font-black text-sky-500 tracking-widest uppercase leading-relaxed text-center">{loadingText || 'Processing...'}</p>
                   </div>
                   );
                 })() : (
@@ -5519,14 +5519,14 @@ ${aspectStr}`;
                                 disabled={!url || regeneratingIndexes[index]}
                                 className={`flex-1 py-3 rounded-xl border text-[10px] font-black flex items-center justify-center gap-2 transition-all tracking-widest uppercase shadow-sm disabled:opacity-50 ${t('bg-[#11131a] border-gray-800 text-white hover:border-sky-500', 'bg-white border-gray-200 text-gray-700 hover:border-sky-400')}`}
                               >
-                                <I name="Download" size={14} className="text-sky-500" /> DL 4K
+                                <I name="Download" size={14} className="text-sky-500" /> DOWNLOAD 4K
                               </button>
                               <button
                                 onClick={() => handleDownloadHD(url, index, '2k')}
                                 disabled={!url || regeneratingIndexes[index]}
                                 className={`flex-1 py-3 rounded-xl border text-[10px] font-black flex items-center justify-center gap-2 transition-all tracking-widest uppercase shadow-sm disabled:opacity-50 ${t('bg-[#11131a] border-gray-800 text-white hover:border-cyan-400', 'bg-white border-gray-200 text-gray-700 hover:border-cyan-400')}`}
                               >
-                                <I name="Download" size={14} className="text-cyan-400" /> DL 2K
+                                <I name="Download" size={14} className="text-cyan-400" /> DOWNLOAD 2K
                               </button>
                             </div>
                             <button
@@ -5534,7 +5534,7 @@ ${aspectStr}`;
                               disabled={!url || regeneratingIndexes[index]}
                               className={`w-full py-3.5 rounded-xl border text-[10px] font-black flex items-center justify-center gap-2 transition-all tracking-widest uppercase shadow-sm disabled:opacity-50 ${t('bg-[#11131a] border-gray-800 text-white hover:border-cyan-400', 'bg-white border-gray-200 text-gray-700 hover:border-cyan-400')}`}
                             >
-                              <I name="RefreshCw" size={14} className={`${regeneratingIndexes[index] ? "animate-spin text-sky-500" : "text-gray-400"}`} /> ALT 2K
+                              <I name="RefreshCw" size={14} className={`${regeneratingIndexes[index] ? "animate-spin text-sky-500" : "text-gray-400"}`} /> ALTERNATIVE 2K
                             </button>
 
                             <button
