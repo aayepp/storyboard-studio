@@ -1347,8 +1347,8 @@ const generateFlowSegments = (scenes, durationStr, options = {}) => {
       identityBible ? `\n${identityBible}` : '',
       `\nVISUAL:\n${visuals}`,
       dialogues ? `\nDIALOGUE (BM):\n${dialogues}` : '',
-      `\nCONTINUITY: Same character, product, wardrobe, environment across ALL segments of this ${totalSec}s video.`,
-      `INSTRUCTIONS: Generate only the ${s}s–${e}s portion. Match prior segment identity if extending.`
+      `\nCONTINUITY: Same character, product, wardrobe, environment across ALL segments of this ${totalSec}s video. PRODUCT SIZE LOCK: maintain real-world accurate product size — do NOT oversize or shrink the product. Keep exact scale ratio vs human hands/body as shown in reference.`,
+      `INSTRUCTIONS: Generate only the ${s}s–${e}s portion. Match prior segment identity if extending. Product must appear in its REAL original size — never artificially enlarged.`
     ].filter(Boolean).join('\n');
 
     results.push({
@@ -1916,7 +1916,7 @@ return parsed;
         } else if (motionGraphicsMode) {
           parts[0].text += "\n\n[BRAND / PRODUCT GRAPHIC REFERENCE]: Use attached assets for logo, packaging colors, or product look inside motion-graphics composition. Do NOT force a human model holding the product unless the topic requires it.";
         } else {
-          parts[0].text += "\n\n[MANDATORY ITEM LOCK]: The human MUST wear/hold ONLY the product from the attached REFERENCE IMAGE. [CRITICAL PHYSICAL ACCURACY]: Replicate the EXACT physical layout of the product — all buttons, joysticks, logos, ports, and controls must be in their CORRECT original positions as shown in the reference. Do NOT mirror, flip, or swap left/right button positions. The product orientation must match reality exactly as a real photograph would show it. [STRICT NO-ADD RULE]: Do NOT add any accessories, items, jewelry, gadgets, bags, headphones, watches, glasses, or props that are NOT visible in the uploaded product reference image. The model should ONLY interact with the exact product shown — nothing else added by AI imagination.";
+          parts[0].text += "\n\n[MANDATORY ITEM LOCK]: The human MUST wear/hold ONLY the product from the attached REFERENCE IMAGE. [CRITICAL PHYSICAL ACCURACY]: Replicate the EXACT physical layout of the product — all buttons, joysticks, logos, ports, and controls must be in their CORRECT original positions as shown in the reference. Do NOT mirror, flip, or swap left/right button positions. The product orientation must match reality exactly as a real photograph would show it. [STRICT NO-ADD RULE]: Do NOT add any accessories, items, jewelry, gadgets, bags, headphones, watches, glasses, or props that are NOT visible in the uploaded product reference image. The model should ONLY interact with the exact product shown — nothing else added by AI imagination. [REAL-WORLD SIZE LOCK — CRITICAL]: The product MUST appear in its REAL-WORLD ACCURATE SIZE relative to human hands/body/face. Do NOT enlarge, oversized, or shrink the product. A palm-sized serum bottle must look palm-sized. A phone must look phone-sized. A small lipstick must look small. NEVER make the product look bigger than it actually is in reality. Match the exact scale ratio shown in the reference image. If the product is small, keep it small in frame — do NOT artificially inflate its size to fill the frame.";
         }
         activeProducts.forEach((p, indexSlot) => {
           parts.push({ text: `=== REFERENCE IMAGE ${indexSlot + 1} ===` });
