@@ -1533,7 +1533,7 @@ const getStoredGenerateMode = () => {
 };
 
 const getStoredKeyframeMode = () => {
-  try { return localStorage.getItem('keyframe_mode') || 'off'; } catch { return 'off'; }
+  try { return localStorage.getItem('keyframe_mode') || 'on'; } catch { return 'on'; }
 };
 const getStoredTimelineMode = () => {
   try { return localStorage.getItem('timeline_mode') || 'off'; } catch { return 'off'; }
@@ -2536,13 +2536,21 @@ return parsed;
         runLimit = Math.min(forcedLimit || 2, 2);
       }
 
-      // Smart Keyframe Mode: only generate 1 image (scene 1 keyframe), rest are text only
-      // Storyboard Timeline Mode: ON = generate all scenes, OFF (default) = only 1 image
-      const singleImageMode = (keyframeMode === 'on' || timelineMode === 'off') && timelineMode !== 'on';
-      if (singleImageMode && promptsToRun.length > 1 && !isRegenerate) {
-        promptsToRun = [promptsToRun[0]];
-        runLimit = 1;
-        setLoadingText(timelineMode === 'off' ? 'Storyboard Timeline OFF: Generating 1 image only...' : 'Smart Keyframe: Generating 1 keyframe only (rest = text prompts for Flow AI)...');
+      // Storyboard Timeline controls scene image generation:
+      // Timeline ON = generate all scenes (full storyboard images)
+      // Timeline OFF (default) = defer to Smart Keyframe
+      //   Smart Keyframe ON (default) = 1 keyframe image only
+      //   Smart Keyframe OFF = 0 images (text prompts only for Flow AI)
+      if (timelineMode === 'off' && !isRegenerate && promptsToRun.length > 1) {
+        if (keyframeMode === 'on') {
+          promptsToRun = [promptsToRun[0]];
+          runLimit = 1;
+          setLoadingText('Smart Keyframe: Generating 1 keyframe only (rest = text prompts for Flow AI)...');
+        } else {
+          promptsToRun = [];
+          runLimit = 0;
+          setLoadingText('Text-only: No scene images (enable Smart Keyframe or Storyboard Timeline)...');
+        }
       }
 
       const results = new Array(runLimit).fill(null);
@@ -4764,7 +4772,7 @@ ${newDialogue}`;
                     </button>
                     {timelineMode === 'off' && (
                       <span className={`text-[10px] font-medium ${t('text-sky-400', 'text-sky-600')}`}>
-                        Default: 1 gambar je. ON untuk semua scene
+                        OFF: Smart Keyframe je (1 gambar). ON untuk semua scene
                       </span>
                     )}
                   </div>
