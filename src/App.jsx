@@ -3878,7 +3878,7 @@ ${aspectStr}`;
               {activeProduct.base64 ? (
                 <img src={`data:${activeProduct.mimeType};base64,${activeProduct.base64}`} alt="preview" className="w-full h-full object-cover rounded-full p-1" />
               ) : (
-                <span style={{ fontSize: '24px', lineHeight: 1 }}>??</span>
+                <I name="Upload" size={24} className="text-sky-400" />
               )}
             </div>
             <div className="flex flex-col min-w-0">
@@ -3896,7 +3896,7 @@ ${aspectStr}`;
               onClick={(e) => { e.preventDefault(); handleRemoveProduct(0); }}
               className={`absolute right-4 top-4 sm:top-1/2 sm:-translate-y-1/2 p-2 rounded-full transition-colors z-20 shadow-sm border ${t('bg-red-900/30 text-red-400 border-red-900/50', 'bg-white text-red-500 border-red-105')}`}
             >
-              <span style={{ fontSize: '16px', lineHeight: 1 }}>??</span>
+              <I name="X" size={16} className="text-red-400" />
             </button>
           )}
         </div>
@@ -4220,7 +4220,7 @@ ${aspectStr}`;
         {(showApiKeyInput || !apiKey) && (
           <div className={`mb-6 p-4 rounded-2xl border flex flex-col sm:flex-row items-center gap-3 ${t('bg-[#11131a] border-yellow-900/50', 'bg-yellow-50 border-yellow-200')}`}>
             <div className="flex items-center gap-2 shrink-0">
-              <span style={{ fontSize: '16px' }}>??</span>
+              <I name="ShieldAlert" size={16} className="text-yellow-400" />
               <span className={`text-xs font-bold uppercase tracking-widest ${t('text-yellow-400', 'text-yellow-700')}`}>Gemini API Key</span>
             </div>
             <div className="flex-1 w-full relative">
@@ -4253,7 +4253,7 @@ ${aspectStr}`;
         {/* Arahan cara dapatkan Gemini API Key */}
         {(showApiKeyInput || !apiKey) && (
           <div className={`mb-6 p-5 rounded-2xl border ${t('bg-[#11131a] border-gray-800', 'bg-gray-50 border-gray-200')}`}>
-            <p className={`text-xs font-bold uppercase tracking-widest mb-3 ${t('text-gray-400', 'text-gray-500')}`}>?? Cara Dapatkan Gemini API Key</p>
+            <p className={`text-xs font-bold uppercase tracking-widest mb-3 ${t('text-gray-400', 'text-gray-500')}`}>Cara Dapatkan Gemini API Key</p>
             <ol className={`text-sm space-y-2 list-decimal list-inside leading-relaxed ${t('text-gray-300', 'text-gray-600')}`}>
               <li>Pergi ke <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" className="text-sky-400 underline hover:text-sky-300 font-bold">Google AI Studio ? API Keys</a></li>
               <li>Log masuk dengan akaun Google anda.</li>
@@ -4261,13 +4261,13 @@ ${aspectStr}`;
               <li>Pilih mana-mana Google Cloud project (atau buat baru jika tiada).</li>
               <li>Copy API key yang dipaparkan dan paste di ruangan atas. ??</li>
             </ol>
-            <p className={`text-[11px] mt-3 ${t('text-gray-500', 'text-gray-400')}`}>?? API key ini percuma (free tier). Pastikan jangan kongsi key anda dengan orang lain.</p>
+            <p className={`text-[11px] mt-3 ${t('text-gray-500', 'text-gray-400')}`}>API key ini percuma (free tier). Pastikan jangan kongsi key anda dengan orang lain.</p>
           </div>
         )}
         {apiKey && !showApiKeyInput && (
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <span className={`text-[10px] font-bold uppercase tracking-widest ${t('text-gray-500', 'text-gray-400')}`}>?? Model:</span>
+              <span className={`text-[10px] font-bold uppercase tracking-widest ${t('text-gray-500', 'text-gray-400')}`}><I name="Sparkles" size={12} className="text-sky-400" /> MODEL:/span>
               <select
                 value={selectedModel}
                 onChange={(e) => handleModelChange(e.target.value)}
@@ -4279,7 +4279,7 @@ ${aspectStr}`;
               </select>
             </div>
             <button onClick={() => setShowApiKeyInput(true)} className="text-[10px] text-gray-500 hover:text-sky-400 transition-colors uppercase tracking-widest font-bold">
-              ?? Change API Key
+              Change API Key
             </button>
           </div>
         )}
@@ -4291,19 +4291,19 @@ ${aspectStr}`;
               className={`w-full px-4 py-3 flex items-center justify-between text-left ${t('hover:bg-gray-800/50', 'hover:bg-gray-100')} transition-colors`}
             >
               <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest">
-                <span>??</span>
+                <span></span>
                 <span className={t('text-gray-500', 'text-gray-400')}>Provider:</span>
                 <span className={textProvider === 'genfity' ? 'text-purple-400' : 'text-emerald-400'}>{textProvider === 'genfity' ? 'Genfity' : 'Gemini'}</span>
                 <span className={t('text-gray-600', 'text-gray-400')}>·</span>
                 <span className={t('text-gray-500', 'text-gray-400')}>Mode:</span>
                 <span className={generateMode === 'text_only' ? 'text-purple-400' : 'text-sky-400'}>{generateMode === 'text_only' ? 'Text Only' : 'Text + Img'}</span>
               </div>
-              <span className={`text-[10px] ${t('text-gray-500', 'text-gray-400')}`}>{showProviderPanel ? '?' : '?'}</span>
+              <span className={`text-[10px] ${t('text-gray-500', 'text-gray-400')}`}>{showProviderPanel ? '▲' : '▼'}</span>
             </button>
             {showProviderPanel && (
               <div className="px-4 pb-4 pt-2 border-t border-gray-800/50 space-y-3">
                 <div className="flex flex-wrap items-center gap-3">
-                  <span className={`text-[10px] font-bold uppercase tracking-widest ${t('text-gray-500', 'text-gray-400')}`}>?? Text Provider:</span>
+                  <span className={`text-[10px] font-bold uppercase tracking-widest ${t('text-gray-500', 'text-gray-400')}`}><I name="Code" size={12} className="text-emerald-400" /> Text Provider:/span>
                   <select
                     value={textProvider}
                     onChange={(e) => handleTextProviderChange(e.target.value)}
@@ -4331,7 +4331,7 @@ ${aspectStr}`;
 
                 {textProvider === 'genfity' && (
                   <div className="flex items-center gap-2">
-                    <span className={`text-[10px] font-bold uppercase tracking-widest shrink-0 ${t('text-purple-400', 'text-purple-600')}`}>?? Genfity Key:</span>
+                    <span className={`text-[10px] font-bold uppercase tracking-widest shrink-0 ${t('text-purple-400', 'text-purple-600')}`}><I name="ShieldAlert" size={12} className="text-purple-400" /> Genfity Key:/span>
                     <div className="flex-1 relative">
                       <input
                         type={showGenfityKeyVisible ? "text" : "password"}
@@ -4355,19 +4355,19 @@ ${aspectStr}`;
                 )}
 
                 <div className="flex flex-wrap items-center gap-3">
-                  <span className={`text-[10px] font-bold uppercase tracking-widest ${t('text-gray-500', 'text-gray-400')}`}>?? Output:</span>
+                  <span className={`text-[10px] font-bold uppercase tracking-widest ${t('text-gray-500', 'text-gray-400')}`}><I name="Layers" size={12} className="text-sky-400" /> Output:/span>
                   <div className={`flex rounded-xl p-1 border ${t('bg-[#0a0c10] border-gray-700', 'bg-white border-gray-200')}`}>
                     <button
                       onClick={() => handleGenerateModeChange('text_and_images')}
                       className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${generateMode === 'text_and_images' ? 'bg-sky-500 text-white shadow-sm' : t('text-gray-400', 'text-gray-500')}`}
                     >
-                      ?? + ??? Text + Images
+                      Text + Images
                     </button>
                     <button
                       onClick={() => handleGenerateModeChange('text_only')}
                       className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${generateMode === 'text_only' ? 'bg-purple-500 text-white shadow-sm' : t('text-gray-400', 'text-gray-500')}`}
                     >
-                      ?? Text Only
+                      Text Only
                     </button>
                   </div>
                   {generateMode === 'text_only' && (
