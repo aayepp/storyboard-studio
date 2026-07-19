@@ -1596,6 +1596,9 @@ export default function App() {
   const [errorMessage, setErrorMessage] = useState('');
   const [progressStage, setProgressStage] = useState(0);
   const [progressPercent, setProgressPercent] = useState(0);
+  const [generationStartTime, setGenerationStartTime] = useState(null);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [expectedTotalScenes, setExpectedTotalScenes] = useState(0);
 
   const [generatedOutput, setGeneratedOutput] = useState(null);
   const [editableImagePrompt, setEditableImagePrompt] = useState('');
@@ -2342,6 +2345,10 @@ return parsed;
     setZoomedImages({});
     setShowMagicBox({});
     setMagicPrompts({});
+    setGenerationStartTime(Date.now());
+    setElapsedSeconds(0);
+    setProgressStage(0);
+    setProgressPercent(0);
 
     const activeRatio = overrideRatio || aspectRatio;
     setCurrentDisplayRatio(activeRatio);
@@ -2389,6 +2396,8 @@ return parsed;
       let completed = 0;
       const bumpProgress = () => {
         completed += 1;
+        setProgressPercent(Math.round((completed / runLimit) * 100));
+        setProgressStage(2);
         setLoadingText(
           isRegenerate
             ? `Regenerating Visual ${completed}/${runLimit}...`
@@ -2708,6 +2717,11 @@ Keep the subject person, face reference, background layout, and clothes identica
     setBoxEdits({});
     setEditModes({});
     setLoadingText('Analyzing assets & constructing storyboard architecture...');
+    setGenerationStartTime(Date.now());
+    setElapsedSeconds(0);
+    setProgressStage(0);
+    setProgressPercent(0);
+    setExpectedTotalScenes(0);
 
     const activeUploadData = getActiveUploadData();
     const refCount = (activeUploadData.products || []).filter(p => p.base64).length;
@@ -2773,6 +2787,8 @@ Keep the subject person, face reference, background layout, and clothes identica
         durationByMode[mode],
         mode === 'cinematic_pro' ? 'default' : mode
       );
+      setExpectedTotalScenes(expectedCount);
+      setProgressStage(0);
       let promptText = '';
       if (mode === 'cinematic_pro') promptText = getCinematicStoryboardPrompt(cinematicTopic, cinematicDuration, cinematicStyle, aspectRatio, cinematicAudience, refCount, identityBible, assetAnalysis);
       else if (mode === 'microimpact') promptText = getMicroImpactPrompt(microImpactTopic, aspectRatio, microImpactAudience, refCount, identityBible, assetAnalysis);
@@ -2782,6 +2798,7 @@ Keep the subject person, face reference, background layout, and clothes identica
       else if (mode === 'grafix') promptText = getGrafixPrompt(topicText, gfDuration, aspectRatio, gfStyle, "", refCount, identityBible, assetAnalysis);
 
       setLoadingText(isGrafix ? 'Generating Grafix framework series...' : 'Building JSON sequence array...');
+      setProgressStage(1);
       const parsed = await fetchStoryboardJson(promptText, expectedCount, signal);
       if (signal.aborted) return;
       const lockedSec = parseDurationToSeconds(durationByMode[mode]) || expectedCount * 5 || 30;
@@ -2933,6 +2950,11 @@ Keep the subject person, face reference, background layout, and clothes identica
     setBoxEdits({});
     setEditModes({});
     setLoadingText(activeTab === 'ugc' ? 'Mapping UGC sequence architecture...' : 'Generating premium visual assets...');
+    setGenerationStartTime(Date.now());
+    setElapsedSeconds(0);
+    setProgressStage(0);
+    setProgressPercent(0);
+    setExpectedTotalScenes(0);
     mainAbortController.current = new AbortController();
     const signal = mainAbortController.current.signal;
 
@@ -3622,6 +3644,7 @@ ${aspectStr}`;
       const imgCount = result.singleImage
         ? 1
         : (Array.isArray(promptInputForAI) ? promptInputForAI.length : 2);
+      setExpectedTotalScenes(imgCount);
       const allowWhite = activeTab === 'character' || (activeTab === 'fake_influencer' && String(fiFormat || '').includes('Character Sheet'));
       const envSuffix = allowWhite
         ? ''
@@ -5437,54 +5460,77 @@ ${aspectStr}`;
             <div className="space-y-16">
               <div>
                 {isGeneratingImage && imageUrls.length === 0 ? (() => {
-                  // Parse loadingText to determine current pipeline stage
                   const lt = String(loadingText || '').toLowerCase();
-                  let stage = 0; // 0=Analyzing, 1=Building, 2=Generating, 3=Done
+                  let stage = 0;
                   if (/analyz|extract|absorb|map/i.test(lt)) stage = 0;
                   else if (/build|construct|engineer|repair|json|sequence|framework|architecture/i.test(lt)) stage = 1;
                   else if (/generat|render|regen|visual|frame|deploy|synth/i.test(lt)) stage = 2;
                   const stages = ['Analyzing', 'Building', 'Generating', 'Done'];
+                  
+                  const displayPct = stage === 2 ? progressPercent : stage === 1 ? 35 : 10;
+                  const eta = displayPct > 5 && elapsedSeconds > 5
+                    ? Math.round((elapsedSeconds / displayPct) * (100 - displayPct))
+                    : null;
+                  
+                  const formatTime = (sec) => {
+                    if (!sec && sec !== 0) return '';
+                    if (sec < 60) return `${sec}s`;
+                    return `${Math.floor(sec/60)}m ${sec%60}s`;
+                  };
+                  
                   return (
-                  <div className={`w-full max-w-lg mx-auto border rounded-[3rem] p-10 flex flex-col items-center justify-center text-center aspect-[9/16] shadow-2xl relative overflow-hidden ${t('bg-[#11131a] border-gray-800 shadow-black/50', 'bg-white border-sky-100')}`}>
-                     {/* Animated gradient background */}
-                     <div className="absolute inset-0 opacity-20 pointer-events-none">
-                       <div className="absolute top-1/4 left-1/4 w-40 h-40 rounded-full bg-sky-500 blur-3xl animate-pulse"></div>
-                       <div className="absolute bottom-1/4 right-1/4 w-32 h-32 rounded-full bg-cyan-400 blur-3xl animate-pulse" style={{ animationDelay: '0.5s' }}></div>
-                     </div>
-                     {/* Central spinner */}
-                     <div className="relative mb-10">
-                       <div className="w-24 h-24 border-4 border-sky-100/20 border-t-sky-500 rounded-full animate-spin"></div>
-                       <div className="absolute inset-0 w-24 h-24 border-4 border-transparent border-b-cyan-400 rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
-                     </div>
-                     {/* Pipeline stages — centered below spinner */}
-                     <div className="relative w-full max-w-[200px] space-y-3 mb-6">
-                       {stages.slice(0, 3).map((s, i) => (
-                         <div key={i} className="flex items-center gap-3">
-                           <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black transition-all duration-500 ${
-                             i < stage ? 'bg-emerald-500 text-white' :
-                             i === stage ? 'bg-sky-500 text-white scale-110 shadow-lg shadow-sky-500/50' :
-                             t('bg-gray-800 text-gray-600', 'bg-gray-200 text-gray-400')
-                           }`}>
-                             {i < stage ? '✓' : i + 1}
-                           </div>
-                           <div className="flex-1 text-left">
-                             <span className={`text-sm font-bold transition-all duration-500 ${
-                               i < stage ? t('text-emerald-400', 'text-emerald-600') :
-                               i === stage ? 'text-sky-400 animate-pulse' :
-                               t('text-gray-600', 'text-gray-400')
-                             }`}>{s}</span>
-                             {i === stage && (
-                               <div className={`h-0.5 mt-1 rounded-full overflow-hidden ${t('bg-gray-800', 'bg-gray-200')}`}>
-                                 <div className="h-full w-full bg-gradient-to-r from-sky-500 to-cyan-400 animate-pulse"></div>
-                               </div>
-                             )}
-                           </div>
-                         </div>
-                       ))}
-                     </div>
-                     {/* Current status text */}
-                     <p className="relative text-sm font-black text-sky-500 tracking-widest uppercase leading-relaxed text-center">{loadingText || 'Processing...'}</p>
-                  </div>
+                    <div className={`w-full max-w-lg mx-auto border rounded-[3rem] p-10 flex flex-col items-center justify-center text-center aspect-[9/16] shadow-2xl relative overflow-hidden ${t('bg-[#11131a] border-gray-800 shadow-black/50', 'bg-white border-sky-100')}`}>
+                      <div className="absolute inset-0 opacity-20 pointer-events-none">
+                        <div className="absolute top-1/4 left-1/4 w-40 h-40 rounded-full bg-sky-500 blur-3xl animate-pulse" />
+                        <div className="absolute bottom-1/4 right-1/4 w-32 h-32 rounded-full bg-cyan-400 blur-3xl animate-pulse" style={{ animationDelay: '0.5s' }} />
+                      </div>
+                      
+                      <div className="relative mb-6">
+                        <svg className="w-28 h-28 -rotate-90" viewBox="0 0 120 120">
+                          <circle cx="60" cy="60" r="52" fill="none" stroke={isDarkMode ? '#1f2937' : '#e5e7eb'} strokeWidth="8" />
+                          <circle cx="60" cy="60" r="52" fill="none" stroke="url(#progGrad)" strokeWidth="8" strokeLinecap="round"
+                            strokeDasharray={`${326.7 * displayPct/100} 326.7`} className="transition-all duration-700 ease-out" />
+                          <defs>
+                            <linearGradient id="progGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                              <stop offset="0%" stopColor="#0ea5e9" />
+                              <stop offset="100%" stopColor="#22d3ee" />
+                            </linearGradient>
+                          </defs>
+                        </svg>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className={`text-2xl font-black ${U.c14}`}>{displayPct}%</span>
+                        </div>
+                      </div>
+                      
+                      <div className="relative w-full max-w-[220px] space-y-2 mb-5">
+                        {stages.map((s, i) => (
+                          <div key={i} className="flex items-center gap-3">
+                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black transition-all duration-500 ${
+                              i < stage ? 'bg-emerald-500 text-white' :
+                              i === stage ? 'bg-sky-500 text-white scale-110 shadow-lg shadow-sky-500/50' :
+                              t('bg-gray-800 text-gray-600', 'bg-gray-200 text-gray-400')
+                            }`}>
+                              {i < stage ? '✓' : i + 1}
+                            </div>
+                            <div className="flex-1 text-left">
+                              <span className={`text-xs font-bold transition-all duration-500 ${
+                                i < stage ? t('text-emerald-400', 'text-emerald-600') :
+                                i === stage ? 'text-sky-400 animate-pulse' :
+                                t('text-gray-600', 'text-gray-400')
+                              }`}>{s}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      {eta !== null && (
+                        <p className={`text-[10px] font-bold uppercase tracking-widest mb-3 ${t('text-gray-500', 'text-gray-400')}`}>
+                          ETA: {formatTime(eta)} remaining · {elapsedSeconds}s elapsed
+                        </p>
+                      )}
+                      
+                      <p className="text-sm font-black text-sky-500 tracking-widest uppercase leading-relaxed text-center">{loadingText || 'Processing...'}</p>
+                    </div>
                   );
                 })() : (
                   <div className={`grid grid-cols-1 ${imageUrls.length >= 6 ? 'md:grid-cols-3 max-w-6xl' : imageUrls.length === 3 ? 'md:grid-cols-3 max-w-6xl' : imageUrls.length > 1 ? 'md:grid-cols-2 max-w-4xl' : 'max-w-md'} mx-auto gap-6 lg:gap-10`}>
