@@ -2541,7 +2541,8 @@ return parsed;
       // Timeline OFF (default) = defer to Smart Keyframe
       //   Smart Keyframe ON (default) = 1 keyframe image only
       //   Smart Keyframe OFF = 0 images (text prompts only for Flow AI)
-      if (timelineMode === 'off' && !isRegenerate && promptsToRun.length > 1) {
+      // Storyboard Timeline OFF (or not explicitly ON) = defer to Smart Keyframe
+      if (timelineMode !== 'on' && !isRegenerate && promptsToRun.length > 1) {
         if (keyframeMode === 'on') {
           promptsToRun = [promptsToRun[0]];
           runLimit = 1;
@@ -2551,6 +2552,13 @@ return parsed;
           runLimit = 0;
           setLoadingText('Text-only: No scene images (enable Smart Keyframe or Storyboard Timeline)...');
         }
+      }
+
+      // Early exit if no images to generate
+      if (runLimit === 0 || promptsToRun.length === 0) {
+        setImageUrls([]);
+        setIsGeneratingImage(false);
+        return;
       }
 
       const results = new Array(runLimit).fill(null);
