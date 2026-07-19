@@ -2071,7 +2071,7 @@ return parsed;
         const base64Data = continuityDataUrl.split(',')[1];
         parts[0].text += motionGraphicsMode
           ? "\n\n[CONTINUITY ANCHOR — GRAFIX]: Match the SAME motion-graphics style, color palette, type treatment, and topic branding as the CONTINUITY FRAME. New scene layout/animation pose is OK; do not switch to unrelated live-action people."
-          : "\n\n[CONTINUITY ANCHOR]: Match the SAME person, face, wardrobe, product, and color grade as the CONTINUITY FRAME. Only change camera angle/pose/action as requested.";
+          : "\n\n[CONTINUITY ANCHOR]: Match the SAME person, face, wardrobe, product, color grade, AND background environment/location as the CONTINUITY FRAME. Keep the same room, lighting, props, and setting. Only change camera angle/pose/action as requested.";
         parts.push({ text: motionGraphicsMode ? "=== CONTINUITY FRAME (STYLE LOCK) ===" : "=== CONTINUITY FRAME (HERO LOCK) ===" });
         parts.push({ inlineData: { mimeType: mimeType || 'image/jpeg', data: base64Data } });
       }
