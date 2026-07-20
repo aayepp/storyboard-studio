@@ -1912,6 +1912,50 @@ export default function App() {
   const [selectedModel, setSelectedModel] = useState(getStoredModel);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [isChangelogOpen, setIsChangelogOpen] = useState(false);
+
+const CHANGELOG = [
+  {
+    version: 'v1.7', date: '20 Jul 2026', isNew: true,
+    changes: [
+      'Improved AI prompts — all 8 tabs (platform context, pacing, sound design, Flow AI hints)',
+      'Within-scene dialogue repetition rules (no more "Sumpah best gila. Sumpah best gila.")',
+      'Auto tone detection when dialog edited — injects [TONE] tag into segment prompt',
+      'Storyboard Timeline toggle — default OFF, Smart Keyframe default ON',
+      'Screen orientation lock — screen faces user not camera',
+      'Background/environment continuity anchor lock',
+    ]
+  },
+  {
+    version: 'v1.6', date: '20 Jul 2026', isNew: true,
+    changes: [
+      'UX improvements — sticky generate button, progress steps, tab descriptions',
+      'Keyboard shortcuts: Ctrl+Enter generate, Esc cancel',
+      'Mobile sidebar overlay, smooth dark mode transition',
+      'Recent history (last 3 generates) in sidebar',
+      'Sidebar collapsible layout (Layout A)',
+      '2-row grouped tabs (Video / Image & Tools)',
+    ]
+  },
+  {
+    version: 'v1.5', date: '19 Jul 2026', isNew: false,
+    changes: [
+      'Dialog edit syncs to segment prompt — full prompt preserved',
+      'Flow AI segment color highlights (amber=prompt, pink=dialog)',
+      'Scene count sync fix — eliminates dialogue repair pass repetition',
+      'esbuild regex fix — Vercel deployment restored',
+    ]
+  },
+  {
+    version: 'v1.4', date: '18 Jul 2026', isNew: false,
+    changes: [
+      'Flow AI segment donor logic — canvas-style, no dialogue modification',
+      'Single image viewer with prev/next navigation',
+      'Fake influencer tab — synthetic Malaysian persona generator',
+      'Character sheet multi-layout (human, product, vehicle, animal, mascot)',
+    ]
+  },
+];
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
 
   // Toast notifications
@@ -6830,6 +6874,57 @@ RULES:
                 ))}
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Floating Changelog Button */}
+      <button
+        onClick={() => setIsChangelogOpen(true)}
+        className={`fixed bottom-6 right-6 z-40 flex items-center gap-2 px-3.5 py-2 rounded-full shadow-xl border transition-all hover:scale-105 ${t('bg-[#11131a] border-gray-700 text-gray-300 hover:border-sky-500', 'bg-white border-gray-200 text-gray-600 hover:border-sky-400')}`}
+      >
+        <span className="text-sm">📋</span>
+        <span className="text-[10px] font-black uppercase tracking-widest">Changelog</span>
+        {CHANGELOG.some(c => c.isNew) && (
+          <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse" />
+        )}
+      </button>
+
+      {/* Changelog Modal */}
+      {isChangelogOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setIsChangelogOpen(false)}>
+          <div className={`rounded-3xl p-6 sm:p-8 max-w-lg w-full max-h-[80vh] overflow-y-auto relative shadow-2xl border custom-scrollbar ${t('bg-[#11131a] border-gray-800', 'bg-white border-gray-100')}`} onClick={e => e.stopPropagation()}>
+            <button onClick={() => setIsChangelogOpen(false)} className={`absolute top-5 right-5 p-2 rounded-full transition-colors ${t('bg-gray-800 hover:bg-gray-700 text-gray-400', 'bg-gray-50 hover:bg-gray-100')}`}>
+              <I name="X" size={18} />
+            </button>
+            <div className="flex items-center gap-3 mb-6">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${t('bg-sky-900/30', 'bg-sky-50')}`}>
+                <span className="text-lg">📋</span>
+              </div>
+              <div>
+                <h2 className={`text-lg font-black ${U.c14}`}>Changelog</h2>
+                <p className="text-[10px] text-gray-500 uppercase tracking-widest">Storyboard Studio AI — Update History</p>
+              </div>
+            </div>
+            <div className="space-y-6">
+              {CHANGELOG.map((entry, i) => (
+                <div key={i} className={`border rounded-2xl p-4 ${t('border-gray-800 bg-gray-900/30', 'border-gray-100 bg-gray-50')}`}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className={`text-sm font-black ${t('text-sky-400', 'text-sky-600')}`}>{entry.version}</span>
+                    {entry.isNew && <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-sky-500 text-white">NEW</span>}
+                    <span className={`text-[10px] ml-auto ${t('text-gray-600', 'text-gray-400')}`}>{entry.date}</span>
+                  </div>
+                  <ul className="space-y-1.5">
+                    {entry.changes.map((change, j) => (
+                      <li key={j} className={`text-xs flex items-start gap-2 ${t('text-gray-400', 'text-gray-600')}`}>
+                        <span className="text-sky-500 mt-0.5 shrink-0">•</span>
+                        {change}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}
