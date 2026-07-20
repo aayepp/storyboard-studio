@@ -1695,6 +1695,12 @@ const extractGeminiText = (data) => {
 export default function App() {
   const [hasAgreed, setHasAgreed] = useState(false);
   const [showLanding, setShowLanding] = useState(true);
+  const [landingExiting, setLandingExiting] = useState(false);
+
+  const handleLandingExit = () => {
+    setLandingExiting(true);
+    setTimeout(() => setShowLanding(false), 580);
+  };
   const [activeTab, setActiveTab] = useState('cinematic_pro');
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -4301,44 +4307,74 @@ ${aspectStr}`;
 
   if (showLanding && !hasAgreed) {
     return (
-      <div className={`min-h-screen flex items-center justify-center p-4 font-sans relative overflow-hidden ${t('bg-[#0a0c10]', 'bg-[#f8fafc]')}`}>
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-sky-500/20 blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full bg-cyan-400/15 blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-        </div>
-        <div className="relative z-10 max-w-4xl w-full text-center animate-fade-in-up">
-          <div className="flex justify-center mb-8">
-            <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-sky-500 to-cyan-400 flex items-center justify-center shadow-2xl shadow-sky-500/30">
-              <I name="Clapperboard" size={40} className="text-white" />
-            </div>
+      <div className={`min-h-screen flex items-center justify-center p-4 font-sans relative overflow-hidden bg-[#060810]${landingExiting ? ' aww-exit' : ''}`}>
+        {/* Orbs */}
+        <div className="aww-orb aww-orb-1 pointer-events-none" />
+        <div className="aww-orb aww-orb-2 pointer-events-none" />
+        <div className="aww-orb aww-orb-3 pointer-events-none" />
+
+        {/* Grid overlay */}
+        <div className="absolute inset-0 pointer-events-none opacity-[0.03]" style={{backgroundImage:'linear-gradient(rgba(255,255,255,0.5) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.5) 1px,transparent 1px)',backgroundSize:'80px 80px'}} />
+
+        <div className="relative z-10 max-w-5xl w-full text-center px-4">
+          {/* Badge */}
+          <div className="aww-stagger-1 inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-sky-500/30 bg-sky-500/10 text-sky-400 text-xs font-bold uppercase tracking-widest mb-10">
+            <I name="Sparkles" size={12} /> AI Storyboard Generator · 2026
           </div>
-          <h1 className={`text-4xl sm:text-6xl font-black tracking-tight mb-6 ${U.c14}`}>
-            Generate AI Storyboards
-            <span className="block mt-2 bg-gradient-to-r from-sky-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent">in 60 Seconds</span>
+
+          {/* Hero text — Awwwards mixed typography */}
+          <h1 className="aww-stagger-2 aww-hero-text font-black text-white mb-0 leading-none">
+            Generate
           </h1>
-          <p className={`text-lg sm:text-xl mb-10 max-w-2xl mx-auto leading-relaxed ${t('text-gray-300', 'text-gray-600')}`}>
-            Professional storyboard generation for Malaysian TikTok, Reels & Shopee Live creators. AI-powered scenes, dialogue, and visuals — ready for Flow AI video generation.
+          <h1 className="aww-stagger-2 aww-hero-text aww-italic text-transparent mb-0" style={{WebkitTextStroke:'1.5px rgba(255,255,255,0.25)'}}>
+            AI Storyboards
+          </h1>
+          <h1 className="aww-stagger-3 aww-hero-text font-black mb-8" style={{background:'linear-gradient(90deg,#0ea5e9,#22d3ee,#34d399)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>
+            in 60 Seconds.
+          </h1>
+
+          {/* Subtext */}
+          <p className="aww-stagger-3 text-lg text-gray-400 max-w-xl mx-auto leading-relaxed mb-12">
+            Professional scene-by-scene storyboards for Malaysian TikTok, Reels &amp; Shopee Live — AI-powered visuals ready for Flow AI video generation.
           </p>
-          <div className={`flex flex-wrap items-center justify-center gap-6 mb-12 px-6 py-4 rounded-2xl border ${t('bg-[#11131a]/50 border-gray-800', 'bg-white border-gray-200')}`}>
-            <div className="flex items-center gap-2"><I name="UserCheck" size={18} className="text-emerald-400" /><span className={`text-sm font-bold ${t('text-gray-300', 'text-gray-700')}`}>500+ Malaysian creators</span></div>
-            <div className={`w-px h-5 ${t('bg-gray-700', 'bg-gray-300')}`}></div>
-            <div className="flex items-center gap-2"><I name="Zap" size={18} className="text-amber-400" /><span className={`text-sm font-bold ${t('text-gray-300', 'text-gray-700')}`}>11 generation modes</span></div>
-            <div className={`w-px h-5 ${t('bg-gray-700', 'bg-gray-300')}`}></div>
-            <div className="flex items-center gap-2"><I name="ShieldCheck" size={18} className="text-sky-400" /><span className={`text-sm font-bold ${t('text-gray-300', 'text-gray-700')}`}>Free to start</span></div>
+
+          {/* CTA */}
+          <div className="aww-stagger-4">
+            <button onClick={handleLandingExit} className="aww-cta">
+              <div className="aww-cta-shine" />
+              <span className="aww-cta-inner">
+                <I name="Sparkles" size={18} /> Start Creating Free
+              </span>
+            </button>
           </div>
-          <button onClick={() => setShowLanding(false)} className="group relative px-10 py-5 rounded-2xl bg-gradient-to-r from-sky-500 to-cyan-400 text-white font-black text-lg tracking-wider uppercase shadow-2xl shadow-sky-500/40 transition-all transform hover:scale-105">
-            <span className="relative flex items-center gap-3 justify-center"><I name="Sparkles" size={22} />Start Creating Free</span>
-          </button>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-12 max-w-3xl mx-auto">
-            {[{ icon: 'Video', label: 'Cinematic Storyboards', desc: 'Full scene-by-scene breakdown' },{ icon: 'Image', label: 'AI Visual Generation', desc: '4K quality storyboard frames' },{ icon: 'Film', label: 'Flow AI Ready', desc: 'Segmented prompts for I2V' }].map((f, i) => (
-              <div key={i} className={`p-4 rounded-2xl border transition-all hover:scale-105 ${t('bg-[#11131a]/50 border-gray-800 hover:border-sky-500/50', 'bg-white border-gray-200 hover:border-sky-300')}`}>
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 mx-auto ${t('bg-sky-900/40', 'bg-sky-50')}`}><I name={f.icon} size={20} className="text-sky-400" /></div>
-                <p className={`text-sm font-bold mb-1 ${U.c14}`}>{f.label}</p>
-                <p className="text-xs text-gray-400">{f.desc}</p>
+
+          {/* Stats row */}
+          <div className="aww-stagger-5 flex flex-wrap items-center justify-center gap-8 mt-14 text-sm">
+            <div className="flex items-center gap-2 text-gray-400"><I name="UserCheck" size={15} className="text-emerald-400" /><span>500+ Malaysian creators</span></div>
+            <div className="w-px h-4 bg-gray-700" />
+            <div className="flex items-center gap-2 text-gray-400"><I name="Zap" size={15} className="text-amber-400" /><span>11 generation modes</span></div>
+            <div className="w-px h-4 bg-gray-700" />
+            <div className="flex items-center gap-2 text-gray-400"><I name="ShieldCheck" size={15} className="text-sky-400" /><span>Free to start</span></div>
+          </div>
+
+          {/* Feature cards */}
+          <div className="aww-stagger-5 grid grid-cols-1 sm:grid-cols-3 gap-4 mt-14 max-w-3xl mx-auto">
+            {[
+              { icon:'Video',  label:'Cinematic Storyboards', desc:'Full scene-by-scene breakdown' },
+              { icon:'Image',  label:'AI Visual Generation',  desc:'Storyboard frames per scene' },
+              { icon:'Film',   label:'Flow AI Ready',         desc:'Segmented prompts for I2V' },
+            ].map((f,i) => (
+              <div key={i} className="p-5 rounded-2xl border border-gray-800 bg-white/[0.03] backdrop-blur-sm hover:border-sky-500/40 hover:bg-white/[0.06] transition-all duration-300 hover:-translate-y-1">
+                <div className="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center mb-3 mx-auto">
+                  <I name={f.icon} size={18} className="text-sky-400" />
+                </div>
+                <p className="text-sm font-bold text-white mb-1">{f.label}</p>
+                <p className="text-xs text-gray-500">{f.desc}</p>
               </div>
             ))}
           </div>
-          <p className="text-xs text-gray-500 mt-10">© 2026 Storyboard Studio · Made for Malaysian content creators</p>
+
+          <p className="text-xs text-gray-600 mt-12">© 2026 Storyboard Studio · Made for Malaysian content creators</p>
         </div>
       </div>
     );
