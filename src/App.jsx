@@ -4461,11 +4461,36 @@ Pick the ONE that best fits. No explanation, just the tag.`;
       <div className={`border p-5 rounded-2xl shadow-sm relative overflow-hidden group transition-colors mt-4 ${t('bg-[#1a1c23]', 'bg-white border-gray-200')}`}>
         <div className="absolute top-0 left-0 w-1 h-full bg-sky-500"></div>
 
-
+        <div className="flex items-center justify-between pl-2">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-pink-500 rounded-lg text-white shadow-sm shadow-pink-500/30">
+              <I name="ShieldAlert" size={20} />
+            </div>
+            <div>
+                  <label className={`block text-sm font-black ${t('text-pink-400', 'text-pink-700')}`}>
+                    Biometric Face Lock Engine
+                  </label>
+                </div>
+          </div>
+          <span className="px-2 py-1 rounded-full text-[9px] font-black uppercase bg-pink-500 text-white tracking-widest">Active</span>
+        </div>
 
         {activeUploadData.useCustomFace && (
           <>
-
+          <div className="flex items-center justify-between mb-4 pl-2">
+            <div className="flex items-center gap-3">
+                <div className="p-2 bg-sky-500 rounded-lg text-white shadow-sm shadow-sky-500/30">
+                  <I name="ShieldAlert" size={20} />
+                </div>
+                <div>
+                  <label className={`block text-sm font-black ${t('text-sky-400', 'text-sky-700')}`}>
+                    Biometric Face Lock Engine
+                  </label>
+                  <p className={`text-[10px] mt-0.5 ${t('text-sky-500/80', 'text-sky-600')}`}>System maps physical proportions from reference facial source.</p>
+                </div>
+            </div>
+            <span className="px-2 py-1 rounded-full text-[9px] font-black uppercase bg-sky-500 text-white tracking-widest">Active</span>
+          </div>
 
           <div className="relative animate-fade-in-up mt-4 pl-2">
             <input
