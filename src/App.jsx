@@ -1916,7 +1916,14 @@ export default function App() {
 
 const CHANGELOG = [
   {
-    version: 'v1.9', date: '20 Jul 2026', isNew: true,
+    version: 'v2.0', date: '20 Jul 2026', isNew: true,
+    changes: [
+      'Dialog Re-Gen ikut durasi segment — 10s = max 25 words, 30s = max 75 words',
+      'Watak tak lagi bercakap laju/rush untuk video pendek',
+    ]
+  },
+  {
+    version: 'v1.9', date: '20 Jul 2026', isNew: false,
     changes: [
       'Dialog/VO sync ke Segment Prompt — fix Windows line ending bug (\\r\\n)',
       'UGC + OOTD dialog save sync ke scenes array',
@@ -6360,6 +6367,11 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                                               const storyContext = generatedOutput?.videoPrompt || '';
                                               const segVisual = currentPromptVal || '';
                                               const prevDialogue = currentDialogueVal || '';
+                                              // Calculate word limit based on segment duration
+                                              const segDurSec = seg.end - seg.start;
+                                              const wordsPerSec = 2.5; // natural BM speech pace
+                                              const maxWords = Math.floor(segDurSec * wordsPerSec);
+                                              const maxWordsPerLine = Math.floor(maxWords / Math.max(1, (prevDialogue.split('\n').filter(Boolean).length)));
                                               const regenPrompt = `You are a Malaysian TikTok/Reels scriptwriter. Rewrite the DIALOGUE below in fresh, natural, trendy Bahasa Melayu (BM). Keep the same story beat and emotional arc — just make the words different, more engaging, and more human.
 
 STORY CONTEXT (for continuity — do NOT change the story):
@@ -6371,13 +6383,20 @@ ${segVisual.slice(0, 400)}
 CURRENT DIALOGUE TO REWRITE:
 ${prevDialogue}
 
+SEGMENT DURATION: ${segDurSec}s
+SPEECH PACE: ~${wordsPerSec} words/sec for natural BM
+TOTAL MAX WORDS: ${maxWords} words for this entire segment
+MAX WORDS PER LINE: ${maxWordsPerLine} words per dialogue line
+
 RULES:
 - Output ONLY the new dialogue lines in BM (no JSON, no labels, no explanation)
 - Keep same number of lines/scenes
+- STRICT WORD LIMIT: Each line MAX ${maxWordsPerLine} words — dialogue MUST fit within ${segDurSec}s when spoken naturally
+- Short punchy sentences preferred — especially for 10s segments
 - Must feel like kawan sembang — natural fillers (eh, kan, tau tak, sumpah, weh)
-- Each line max 15 words for natural speech pace
 - Must connect logically to the visual described above
-- Different word choices from original but same story beat`;
+- Different word choices from original but same story beat
+- NEVER repeat the same word or phrase twice in a row`;
 
                                               const data = await callTextApi(regenPrompt, null, { temperature: 0.85 });
                                               const newDialogue = extractGeminiText(data).trim();
