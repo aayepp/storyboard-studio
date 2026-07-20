@@ -1778,7 +1778,7 @@ const extractGeminiText = (data) => {
 };
 
 export default function App() {
-  const [hasAgreed, setHasAgreed] = useState(false);
+  const [hasAgreed, setHasAgreed] = useState(true);
   const [showLanding, setShowLanding] = useState(true);
   const [activeTab, setActiveTab] = useState('cinematic_pro');
   const [isDarkMode, setIsDarkMode] = useState(true);
@@ -4624,52 +4624,6 @@ Pick the ONE that best fits. No explanation, just the tag.`;
             ))}
           </div>
           <p className="text-xs text-gray-500 mt-10">© 2026 Storyboard Studio · Made for Malaysian content creators</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!hasAgreed) {
-    return (
-      <div className={`min-h-screen flex items-center justify-center p-4 font-sans transition-colors duration-300 ${t('bg-[#0a0c10]', 'bg-[#f8fafc]')}`}>
-        <div className={`rounded-3xl p-8 sm:p-12 max-w-2xl w-full animate-fade-in-up border shadow-2xl ${t('bg-[#11131a] border-gray-800 shadow-black/50', 'bg-white border-gray-100')}`}>
-          <div className={`flex items-center gap-5 mb-10 border-b pb-6 ${U.c15}`}>
-            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 border shadow-sm ${t('bg-red-500/10 border-red-500/20', 'bg-red-50 border-red-100')}`}>
-              <I name="ShieldAlert" className="text-red-500" size={28} />
-            </div>
-            <h1 className={`text-2xl sm:text-3xl font-black tracking-wide ${U.c14}`}>
-              USER LICENSE AGREEMENT
-            </h1>
-          </div>
-
-          <div className={`space-y-6 text-sm sm:text-base mb-10 ${U.c16}`}>
-            <div className={`p-5 rounded-2xl border relative overflow-hidden ${t('bg-red-950/30 border-red-900/50', 'bg-red-50 border-red-200')}`}>
-              <div className="absolute left-0 top-0 w-1 h-full bg-red-500"></div>
-              <p className={`font-black text-lg mb-2 uppercase tracking-widest ${t('text-red-500', 'text-red-600')}`}>
-                STRICTLY FORBIDDEN TO RESELL!
-              </p>
-              <p className={`font-medium leading-relaxed ${t('text-red-200', 'text-red-800')}`}>
-                This platform is protected by the exclusive license of the developer. You are
-                <strong className="inline-block px-2 py-1 mx-1 rounded text-white font-black tracking-widest bg-red-600 shadow-sm">
-                  NOT PERMITTED
-                </strong>
-                to redistribute, resell, or share the source code of this application without explicit written consent.
-              </p>
-            </div>
-
-            <p>By confirming access below, you agree to the following terms:</p>
-            <ul className="list-disc pl-6 space-y-3 marker:text-sky-500 text-gray-500">
-              <li>Respect the developer's exclusive rights of Storyboard Studio by Ayep.</li>
-              <li>Remain morally responsible for the advertising materials created and processed.</li>
-            </ul>
-          </div>
-
-          <button
-            onClick={() => setHasAgreed(true)}
-            className="w-full bg-gradient-to-r from-blue-500 to-cyan-400 hover:from-pink-600 hover:to-cyan-500 text-white font-black py-5 rounded-2xl shadow-xl shadow-sky-500/20 transition-all transform hover:-translate-y-1 text-lg tracking-widest uppercase border-0"
-          >
-            I AGREE & CONTINUE
-          </button>
         </div>
       </div>
     );
