@@ -1552,9 +1552,9 @@ const GENFITY_MODELS = [
 ];
 
 const IMAGE_MODELS = [
-  'gemini-2.5-flash-preview-04-17',
-  'gemini-3.1-flash-image',
-  'gemini-2.0-flash-exp',
+  'gemini-3.1-flash-image',   // Nano Banana 2 — fast, stable, primary
+  'gemini-3-pro-image',       // Nano Banana Pro — best quality, fallback
+  'gemini-2.5-flash-image',   // last resort
 ];
 
 const callGeminiImageApi = async (payload, signal = null) => {
