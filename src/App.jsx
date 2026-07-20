@@ -73,7 +73,7 @@ const ASPECT_RATIOS = [
 ];
 
 // Added backgrounds array to store multiple environment images
-const EMPTY_UPLOAD = { products: [{ name: '', base64: null, mimeType: null }], backgrounds: [], faceFileName: '', uploadedFaceBase64: null, uploadedFaceMimeType: null, useCustomFace: false };
+const EMPTY_UPLOAD = { products: [{ name: '', base64: null, mimeType: null }], backgrounds: [], faceFileName: '', uploadedFaceBase64: null, uploadedFaceMimeType: null, useCustomFace: true };
 const TAB_UPLOAD_KEYS = ['cinematic_pro', 'microimpact', 'narrativearc', 'talkinghead', 'product', 'ootd', 'ugc', 'stopmotion', 'grafix', 'character', 'fake_influencer'];
 const makeEmptyTabUploads = () => Object.fromEntries(TAB_UPLOAD_KEYS.map((k) => [k, { ...EMPTY_UPLOAD, products: [{ name: '', base64: null, mimeType: null }], backgrounds: [] }]));
 
@@ -1916,7 +1916,16 @@ export default function App() {
 
 const CHANGELOG = [
   {
-    version: 'v1.7', date: '20 Jul 2026', isNew: true,
+    version: 'v1.8', date: '20 Jul 2026', isNew: true,
+    changes: [
+      'Biometric Face Lock Engine sentiasa enabled — no more toggle, always active',
+      'Changelog floating button — version history dengan NEW badge',
+      'Within-scene dialogue repetition rules — ban same sentence twice',
+      'Improved AI prompts semua 8 tabs (platform context, pacing, Flow AI hints)',
+    ]
+  },
+  {
+    version: 'v1.7', date: '20 Jul 2026', isNew: false,
     changes: [
       'Improved AI prompts — all 8 tabs (platform context, pacing, sound design, Flow AI hints)',
       'Within-scene dialogue repetition rules (no more "Sumpah best gila. Sumpah best gila.")',
@@ -4408,30 +4417,20 @@ Pick the ONE that best fits. No explanation, just the tag.`;
       <div className={`border p-5 rounded-2xl shadow-sm relative overflow-hidden group transition-colors mt-4 ${t('bg-[#1a1c23]', 'bg-white border-gray-200')}`}>
         <div className="absolute top-0 left-0 w-1 h-full bg-sky-500"></div>
 
-        {!activeUploadData.useCustomFace && (
-          <div className="flex items-center justify-between pl-2">
-              <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg ${t('bg-sky-500/10 text-sky-400', 'bg-sky-50 text-sky-500')}`}>
-                  <I name="ShieldAlert" size={20} />
-                </div>
-                <div>
-                  <label className={`block text-sm font-black ${t('text-gray-200', 'text-gray-800')}`}>
-                    Biometric Identity Face Lock
-                  </label>
-                  <p className="text-[10px] mt-0.5 text-gray-500">Activate to hold and lock a consistent facial blueprint</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className={`text-[9px] font-bold uppercase tracking-widest ${t('text-gray-500', 'text-gray-400')}`}>Disabled</span>
-                <button
-                  onClick={() => updateTabUpload('useCustomFace', true)}
-                  className={`w-12 h-6 rounded-full relative transition-colors border ${t('bg-gray-800 border-gray-600', 'bg-gray-200 border-gray-300')}`}
-                >
-                  <div className="w-4 h-4 bg-white rounded-full shadow-sm absolute top-[3px] left-1 transition-transform translate-x-0" />
-                </button>
-              </div>
+        <div className="flex items-center justify-between pl-2">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-pink-500 rounded-lg text-white shadow-sm shadow-pink-500/30">
+              <I name="ShieldAlert" size={20} />
+            </div>
+            <div>
+              <label className={`block text-sm font-black ${t('text-pink-400', 'text-pink-700')}`}>
+                Biometric Face Lock Engine
+              </label>
+              <p className={`text-[10px] mt-0.5 ${t('text-pink-500/80', 'text-pink-600')}`}>Always enabled — upload face reference for consistent identity lock</p>
+            </div>
           </div>
-        )}
+          <span className="px-2 py-1 rounded-full text-[9px] font-black uppercase bg-pink-500 text-white tracking-widest">Active</span>
+        </div>
 
         {activeUploadData.useCustomFace && (
           <>
@@ -4447,15 +4446,7 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                   <p className={`text-[10px] mt-0.5 ${t('text-sky-500/80', 'text-sky-600')}`}>System maps physical proportions from reference facial source.</p>
                 </div>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-[9px] font-bold uppercase tracking-widest text-sky-500">Enabled</span>
-              <button
-                onClick={() => { updateTabUpload('useCustomFace', false); handleRemoveFace(); }}
-                className="w-12 h-6 rounded-full relative transition-colors border bg-sky-500 border-sky-500"
-              >
-                <div className="w-4 h-4 bg-white rounded-full shadow-sm absolute top-[3px] left-1 transition-transform translate-x-6" />
-              </button>
-            </div>
+            <span className="px-2 py-1 rounded-full text-[9px] font-black uppercase bg-sky-500 text-white tracking-widest">Active</span>
           </div>
 
           <div className="relative animate-fade-in-up mt-4 pl-2">
