@@ -765,8 +765,21 @@ RULES:
 - Exactly ${sceneCount} scenes, ${perScene}s each. Timecodes must be continuous with no gaps.
 - Dialogue / Script / Voice Over MUST be written in conversational, casual, trendy, relatable BAHASA MELAYU (Malay). Keep visual/camera/image fields in English.
 - Scene 1: HOOK — stop scrolling immediately. MANDATORY HOOK ANGLE: ${getRandomHookAngle()}
-- Middle scenes: build interest, showcase material textures, demonstration or benefits.
-- Final scene: clear CTA pointing to the bottom yellow basket ("beg kuning").
+- Middle scenes — DEMO SEQUENCE (follow this order strictly):
+  1. UNBOX/REVEAL: First look at product — packaging opening or product held up
+  2. TEXTURE/DETAIL: Extreme close-up of material, texture, quality detail
+  3. APPLICATION/USE: Product being used/applied/worn in real environment
+  4. RESULT/TRANSFORMATION: Before-after or "after using" reaction shot
+  Middle scenes must follow this demo progression, not random product angles.
+- SOCIAL PROOF SCENE (insert in scene 4 or 5):
+  Show: phone screen with review rating, or creator reaction after using, or "days later" transformation
+  Dialogue: authentic reaction, not scripted endorsement. e.g. "Serious lepas seminggu pakai, kulit aku..."
+  Must feel organic, not like an ad read.
+- Final scene: CTA — pick the most contextually appropriate variant:
+  SHOPEE CTA: "Klik beg kuning bawah ni — free shipping harini je" / "Link ada dekat bio, grab sebelum stok habis"
+  TIKTOK SHOP CTA: "Tap the link below / Check the product card" / "Dah ada dekat TikTok Shop — swipe up!"
+  URGENCY CTA: "Stock tinggal sikit — aku tengok sendiri dah low" / "Promo habis malam ni je"
+  SOCIAL PROOF CTA: "5000+ dah order — join sekali la" / "Rating 4.9 — korang pun boleh try"
 ${DIALOGUE_AUTHENTICITY_RULES}
 - Keep the SAME influencer face, outfit palette, product packaging across all scenes.
 - Environment baseline: ${environment} — each image_prompt must show this (or progressive angles of it) with furniture/props/lighting, never plain white.
@@ -831,6 +844,11 @@ const getCinematicStoryboardPrompt = (topic, duration, style, aspect, audience, 
 
   return `You are a VIRAL MALAYSIA TIKTOK/REELS STORYBOARD DIRECTOR who speaks like a real human, not AI. Create a ${sec}s ${aspect} storyboard about: ${topic}${style !== 'auto' ? ` in ${style} style` : ''}${audience ? `. Target: ${audience}` : ''}.
 
+PLATFORM CONTEXT (${aspect}):
+${aspect === '9:16' ? 'TikTok/Reels: Hook must land in <1.5s. Mobile-native vertical. Pattern interrupt first frame.' : aspect === '16:9' ? 'YouTube Shorts: Hook can be 2s. Title card friendly. Slightly wider narrative.' : 'Instagram Feed: Visual-first aesthetic. Colour/composition hooks work well.'}
+
+PACING: Mark each scene with pace tag — FAST (cut <2s), MEDIUM (2-4s), SLOW (4s+). Hook=FAST, reveal=SLOW.
+
 CRITICAL RULES — Your life depends on following these:
 1. Exactly ${sceneCount} scenes, ~${perScene}s each. Continuous story with no gaps.
 2. ${sec <= 15 ? 'This is a SHORT video — every second counts. No filler scenes.' : 'Build a proper narrative arc with rising tension.'}
@@ -891,7 +909,7 @@ ${SCENE_ENVIRONMENT_RULES}
 ${SCENE_JSON_CONTRACT}
 
 Return ONLY valid JSON — no markdown, no commentary:
-{"title":"🎬 [organic-sounding title in BM]","duration":"${sec}s","style":"[chosen style]","audio_direction":"[mood]","identity_bible":"[lock string]","scenes":[{"scene_num":1,"timecode":"0s–${perScene}s","visual":"[English with LOCATION + lighting + concrete details]","camera":"[specific shot type + movement — VARY each scene]","action":"[what happens — include movement]","emotion":"[facial expression + body language]","dialogue":"[NATURAL BM max ${Math.round(parseFloat(perScene) * 3)} words — or empty string for visual-only scenes]","image_prompt":"[English still with full environment]","i2v_prompt":"[English motion prompt]","negative":"${DEFAULT_NEGATIVE}"}]}`;
+{"title":"🎬 [organic-sounding title in BM]","duration":"${sec}s","style":"[chosen style]","audio_direction":"[mood]","identity_bible":"[lock string]","scenes":[{"scene_num":1,"timecode":"0s–${perScene}s","visual":"[English with LOCATION + lighting + concrete details]","camera":"[specific shot type + movement — VARY each scene]","action":"[what happens — include movement]","emotion":"[facial expression + body language]","dialogue":"[NATURAL BM max ${Math.round(parseFloat(perScene) * 3)} words — or empty string for visual-only scenes]","image_prompt":"[English still with full environment]","i2v_prompt":"[English motion prompt]","negative":"${DEFAULT_NEGATIVE}","sound_design":"[BGM mood + SFX suggestion]"}]}`;
 };
 
 const getMicroImpactPrompt = (topic, aspect, audience, refCount, identityBible = '', assetAnalysis = '') =>
@@ -900,15 +918,25 @@ ${assetAnalysis ? `ASSET:\n${assetAnalysis}\n` : ''}${identityBible ? identityBi
 ${SCENE_JSON_CONTRACT}
 Dialogue BM; visuals EN; each image_prompt must include a vivid environment matching the topic (never plain white).
 
+HOOK FORMULA (pick strongest for topic):
+- CURIOSITY GAP: "Korang tau tak kenapa [surprising thing]? Jawapan dia akan buat korang terkejut..."
+- SHOCK STAT: Lead with a number nobody expects. e.g. "97% orang buat benda ni salah cara..."
+- BOLD CLAIM: Controversial opener. e.g. "Stop beli [X]. Aku dah buktikan ia tak berbaloi."
+- VISUAL HOOK: Scene 1 = extreme close-up of result/transformation, no dialogue
+
+THUMBNAIL RULE: Scene 1 image_prompt MUST also work as a standalone scroll-stopping thumbnail — high contrast, clear subject, emotion visible.
+
+WORD COUNT CAP: Max 10 words per scene dialogue (3.3s / 3 words per sec). Keep it punchy.
+
 SCENE STRUCTURE (3 scenes for 10s):
 - Scene 1: HOOK — stop-scroll moment. Provocative question or shocking statement in BM.
 - Scene 2: PAYOFF/DEMO — deliver the hook's promise immediately. Show key detail/result.
-- Scene 3: CTA — urgency-driven close pointing to beg kuning. No dead-end "ok tu je".
+- Scene 3: CTA — urgency-driven close. No dead-end "ok tu je".
 
 ${DIALOGUE_AUTHENTICITY_RULES}
 
 JSON only:
-{"title":"⚡ ${topic}","duration":"10s","identity_bible":"[lock]","scenes":[{"scene_num":1,"timecode":"0s–3.3s","visual":"[EN + location]","camera":"[shot]","action":"[action]","emotion":"[face]","dialogue":"[BM]","image_prompt":"[still with environment]","i2v_prompt":"[motion]","negative":"${DEFAULT_NEGATIVE}"}]}`;
+{"title":"⚡ ${topic}","duration":"10s","identity_bible":"[lock]","scenes":[{"scene_num":1,"timecode":"0s–3.3s","visual":"[EN + location]","camera":"[shot]","action":"[action]","emotion":"[face]","dialogue":"[BM max 10 words]","image_prompt":"[still with environment — scroll-stopping thumbnail quality]","i2v_prompt":"[motion]","negative":"${DEFAULT_NEGATIVE}"}]}`;
 
 const getNarrativeArcPrompt = (topic, aspect, audience, refCount, identityBible = '', assetAnalysis = '') => {
   return `You are a professional FLOW AI & IMAGE-TO-VIDEO CINEMATIC DIRECTOR. Create a continuous 30-second storyboard with exactly 6 scenes (5 seconds each) optimized for Flow AI.
@@ -919,13 +947,23 @@ ${refCount > 0 ? 'Reference assets loaded.' : ''}
 ${assetAnalysis ? `ASSET ANALYSIS:\n${assetAnalysis}\n` : ''}
 ${identityBible ? `${identityBible}\n` : ''}
 
+FLOW AI TECHNICAL REQUIREMENTS:
+- Each scene's i2v_prompt must specify: motion direction, speed, camera movement, and subject action
+- Use "seamless loop" language: end of scene N motion must connect to start of scene N+1
+- Subject position at END of scene N should match START position of scene N+1
+- Avoid hard teleportation between scenes — use transitional actions (walking through door, turning head, etc.)
+
 3-ACT STRUCTURE (mandatory — each scene must serve its act):
 Scene 1: ACT 1 — HOOK: visual pattern interrupt, grab attention in 1 second. Unexpected angle or extreme close-up.
 Scene 2: ACT 1 — SETUP: establish world, character, and stakes. Viewer must understand what this is about.
 Scene 3: ACT 2 — CONFLICT: introduce tension, problem, challenge, or desire. Emotional pull begins.
 Scene 4: ACT 2 — BUILD: deepen conflict or demonstrate solution building. Energy escalates.
 Scene 5: ACT 3 — RESOLUTION: breakthrough moment, transformation, or answer revealed. Emotional peak.
-Scene 6: ACT 3 — PAYOFF: strong close — satisfaction, CTA, or lingering emotional image. No dead ending.
+Scene 6 — PAYOFF (pick one):
+  A) EMOTIONAL CLOSE: Character reaction shot, face showing satisfaction/relief/joy. Hold 2s.
+  B) PRODUCT HERO: Product/result in perfect lighting, camera slowly pulls back. Reveal moment.
+  C) CTA DIRECT: Character looks straight to camera, speaks CTA line with genuine energy. Point gesture.
+  D) LINGERING VISUAL: Beautiful environmental/atmospheric shot that encapsulates the story emotion. No dialogue.
 Emotional arc: Curiosity → Tension → Release. Action in scene N must flow naturally into scene N+1.
 
 ${SCENE_ENVIRONMENT_RULES}
@@ -940,7 +978,7 @@ CAMERA VARIETY (MANDATORY):
 ${DIALOGUE_AUTHENTICITY_RULES}
 
 Return ONLY valid JSON:
-{"title": "🎬 30s Narrative: [Topic]", "duration": "30s", "style": "Flow AI Optimized", "identity_bible":"[lock]", "scenes": [{"scene_num":1,"timecode":"0s–5s","visual":"[English + location/lighting]","camera":"[movement]","action":"[continuous action]","emotion":"[emotion]","dialogue":"[BM]","image_prompt":"[still with full environment]","i2v_prompt":"[motion]","negative":"${DEFAULT_NEGATIVE}"}]}`;
+{"title": "🎬 30s Narrative: [Topic]", "duration": "30s", "style": "Flow AI Optimized", "identity_bible":"[lock]", "scenes": [{"scene_num":1,"timecode":"0s–5s","visual":"[English + location/lighting]","camera":"[movement]","action":"[continuous action]","emotion":"[emotion]","dialogue":"[BM]","image_prompt":"[still with full environment]","i2v_prompt":"[motion]","transition_to_next":"cut|dissolve|wipe_left|zoom_in|match_cut","negative":"${DEFAULT_NEGATIVE}"}]}`;
 };
 
 const getTalkingHeadPrompt = (topic, duration, tone, aspect, audience, refCount, identityBible = '', assetAnalysis = '') => {
@@ -961,6 +999,23 @@ SCENE 1 HOOK — MANDATORY (pick the strongest hook type for this topic):
 - STORY HOOK: Drop straight into a relatable micro-story mid-action, no intro. e.g. "Semalam aku kat kedai, tetiba nampak benda ni..."
 Scene 1 dialogue MUST use one of these hooks. No generic intros like "Hai korang, hari ni aku nak cakap pasal...".
 
+TELEPROMPTER PACING RULES:
+- Break dialogue into breath groups: max 8-10 words per natural pause
+- Mark natural pauses with " / " in dialogue: "Korang tau tak / benda ni dah viral gila / sebab satu sebab je"
+- Each breath group = 1.5-2s speak time
+- Scene dialogue total = ${Math.round(parseFloat(perScene) * 2.5)} words max
+
+EYE CONTACT DIRECTION (vary per scene):
+- Scene 1 HOOK: Direct camera eye contact — creates intimacy, stops scroll
+- Middle scenes: Mix of camera, product demo look-down, side glance for authenticity
+- CTA scene: Direct camera + hand gesture pointing down
+Add "eye_contact": "camera_direct" | "product_demo" | "side_authentic" | "camera_cta" to each scene
+
+B-ROLL INSERTION RULE:
+- Every 2-3 talking head scenes, AI MUST suggest 1 B-roll cutaway scene
+- B-roll scene: visual="[cutaway: product detail/environment/action]", dialogue="" (carry VO from previous scene)
+- Mark B-roll scenes with "scene_type": "talking_head" | "broll_cutaway"
+
 STORY STRUCTURE for remaining scenes:
 - Middle scenes: deliver the value/story/demo promised by the hook. Build curiosity → answer → deeper insight.
 - Final scene: strong close — emotional payoff, clear CTA, or memorable punchline. Not just "ok tu je dari aku".
@@ -978,7 +1033,7 @@ CAMERA VARIETY (MANDATORY):
 ${DIALOGUE_AUTHENTICITY_RULES}
 
 Return ONLY valid JSON:
-{"title":"🤳 [topic]","duration":"${sec}s","style":"${tone}","identity_bible":"[lock]","scenes":[{"scene_num":1,"timecode":"0s–${perScene}s","visual":"[English + room/location]","camera":"[shot]","action":"[action]","emotion":"[facial]","dialogue":"[BM hook — question/bold claim/stat/story]","image_prompt":"[still with environment]","i2v_prompt":"[motion]","negative":"${DEFAULT_NEGATIVE}"}]}`;
+{"title":"🤳 [topic]","duration":"${sec}s","style":"${tone}","identity_bible":"[lock]","scenes":[{"scene_num":1,"timecode":"0s–${perScene}s","visual":"[English + room/location]","camera":"[shot]","action":"[action]","emotion":"[facial]","dialogue":"[BM hook — question/bold claim/stat/story]","image_prompt":"[still with environment]","i2v_prompt":"[motion]","eye_contact":"camera_direct|product_demo|side_authentic|camera_cta","scene_type":"talking_head|broll_cutaway","negative":"${DEFAULT_NEGATIVE}"}]}`;
 };
 
 const getStopMotionPrompt = (product, duration, style, aspect, audience, refCount, identityBible = '', assetAnalysis = '') => {
@@ -993,6 +1048,28 @@ RULES:
 - Each scene has ONE dominant stop-motion action only.
 - Prefer movements: Slide, Jump, Rotate, Assemble, Appear, Flip, Stack, Pop Up, Spin, Expand, Collapse, Roll, Snap Into Place, Split, Merge, Unfold, Scatter, Gather, Pour, Drop, Rise, Orbit, Swap, Reveal.
 - Keep actions easy to animate (frame-by-frame repositioning, rotation, scale, practical tabletop stop motion).
+
+EASING & TIMING PER MOVEMENT:
+- Slide: ease-in-out (slow start, fast middle, slow end) — 12-15 frames at 12fps
+- Jump: ease-out on rise, ease-in on land — sharp arc
+- Rotate: linear for mechanical products, ease-in-out for organic objects
+- Snap Into Place: fast ease-out (object arrives quickly, slight overshoot bounce)
+- Pour/Drop: gravity ease-in (accelerating)
+- Reveal/Appear: ease-out (smooth entrance)
+Add "easing": "[easing type]" and "frame_count": "[N frames at 12fps]" to each scene.
+
+PROPS BY PRODUCT CATEGORY (infer from product name):
+- Beauty/Skincare: marble slab, dried flowers, pearl beads, gold coins, rose petals
+- Tech/Gadgets: geometric shapes, cables, LED strips, brushed metal surfaces
+- Food/Drink: ice cubes, herbs, spices, cutting board, fabric napkin
+- Fashion/Accessories: fabric swatches, buttons, thread spools, jewelry elements
+- Generic: confetti, sand, powder, small geometric blocks
+Add "props_suggestion": "[product-appropriate props]" to each scene JSON.
+
+COLOR PALETTE LOCK (maintain across all 10 scenes):
+- Extract dominant color from product reference or infer from product name/category
+- Background/surface color must complement product (contrast or analogous)
+Add "color_palette": "primary: [hex/name], accent: [hex/name], surface: [hex/name]" to the JSON root.
 ${refCount > 0 ? 'Note: Product reference image is loaded for visual consistency.' : ''}
 ${assetAnalysis ? `PRODUCT ANALYSIS:\n${assetAnalysis}\n` : ''}
 ${identityBible ? `${identityBible}\n` : ''}
@@ -1008,11 +1085,12 @@ Return ONLY valid JSON:
 "style": "Stop Motion",
 "identity_bible": "[product lock]",
 "scenes": [
-{"scene_num": 1, "timecode": "0s–1s", "visual": "[English]", "camera": "[Top Down / Close Up / Macro / Hero Shot]", "action": "[One stop-motion movement]", "emotion": "[mood]", "dialogue": "", "image_prompt": "[still]", "i2v_prompt": "[frame-by-frame motion]", "negative": "${DEFAULT_NEGATIVE}"}
+{"scene_num": 1, "timecode": "0s–1s", "visual": "[English]", "camera": "[Top Down / Close Up / Macro / Hero Shot]", "action": "[One stop-motion movement]", "emotion": "[mood]", "dialogue": "", "easing": "[easing type]", "frame_count": "[N frames at 12fps]", "props_suggestion": "[product-appropriate props]", "image_prompt": "[still]", "i2v_prompt": "[frame-by-frame motion]", "negative": "${DEFAULT_NEGATIVE}"}
 ],
 "props": ["[props]"],
 "visual_mood": "[mood]",
-"transition_style": ["[transitions]"]
+"transition_style": ["[transitions]"],
+"color_palette": "primary: [hex/name], accent: [hex/name], surface: [hex/name]"
 }`;
 };
 
@@ -1048,6 +1126,27 @@ HARD RULES:
 7. image_prompt = production-ready still of that motion-graphics frame (English), topic-locked, with a COLORED designed environment/set (gradients, desk, city skyline UI, abstract 3D space) — NOT plain white empty canvas.
 8. i2v_prompt = how the graphics animate (scale, wipe, count-up, parallax, type-on).
 9. negative must include: live-action influencer, random person portrait, fashion photoshoot, plain white background, empty white void (unless topic needs human).
+
+DATA VISUALIZATION TYPES (use when topic involves numbers/stats/comparisons):
+- Bar chart animation: numbers counting up, bars growing
+- Pie/donut chart: segments appearing one by one
+- Timeline: events appearing left to right with connecting line
+- Comparison table: columns sliding in, checkmarks appearing
+- Progress meter: fill animation with percentage counter
+- Map highlight: region/country lighting up
+- Icon grid: multiple icons animating in simultaneously
+When topic involves data, specify "viz_type" field with most appropriate type.
+
+BRAND COLOR INTEGRATION:
+${assetAnalysis ? "Reference image analyzed — extract dominant brand colors: use in typography, icons, backgrounds throughout. Maintain brand palette consistency across all scenes." : "No brand reference — choose a cohesive color palette that matches the topic mood (tech=blue/dark, finance=green/gold, lifestyle=warm tones, etc.)"}
+Add "brand_palette": "[primary color + accent color]" to JSON root.
+
+LOWER-THIRD TEXT RULES:
+- Every scene that introduces a new concept MUST have a lower-third text overlay
+- Max 5 words per lower-third
+- Format: "HEADLINE / supporting stat or label"
+- Lower-third appears in first 1s of scene, holds 2s, fades out
+Add "lower_third": "[text]" | null to each scene JSON.
 ${SCENE_ENVIRONMENT_RULES}
 
 ${SCENE_JSON_CONTRACT}
@@ -1070,9 +1169,12 @@ Return ONLY valid JSON (no markdown):
 "dialogue": "[short BM on-screen or VO related to topic]",
 "image_prompt": "[still frame prompt; MUST include topic keywords]",
 "i2v_prompt": "[motion graphics animation prompt about topic]",
+"viz_type": "[bar_chart|pie_chart|timeline|comparison_table|progress_meter|map_highlight|icon_grid|none]",
+"lower_third": "[max 5 words]",
 "negative": "${DEFAULT_NEGATIVE}, live-action influencer, random portrait, fashion model"
 }
-]
+],
+"brand_palette": "[primary color + accent color]"
 }`;
 };
 
@@ -1095,12 +1197,12 @@ const buildSheetPrompt = (subjectType, name, charGenderLabel, hijabModifier, cha
     HUMAN_CHARACTER: {
       topRow: 'TOP ROW — TURNAROUND VIEWS: Front View, 3/4 Left View, Side View, Back View, 3/4 Right View. Requirements: Same person, same outfit, same hairstyle, same body proportions, same scale, consistent camera height, consistent studio lighting, clear separation between panels.',
       middleRow: 'MIDDLE ROW — EXPRESSIONS: Neutral Expression, Smile Expression, Serious Expression, Thinking Expression. Requirements: Preserve facial identity, preserve hairstyle, preserve skin tone, change only expression and natural expression-related muscle movement, avoid identity drift.',
-      bottomRow: 'BOTTOM ROW — REFERENCE DETAILS: Full Body Reference, Close-Up Face Reference, Hair Reference, Outfit Reference, Accessories Reference. Use a professional visual-development sheet layout.'
+      bottomRow: 'BOTTOM ROW — REFERENCE DETAILS: Full Body Reference, Close-Up Face Reference, Hair Reference, Outfit Reference, Accessories Reference. Use a professional visual-development sheet layout.\n\nBOTTOM SECTION — COLOR PALETTE STRIP: Add a horizontal color swatch strip at the very bottom of the sheet showing: skin tone swatch, hair color swatch, eye color swatch, outfit primary color swatch, outfit accent color swatch. Label each swatch with a descriptive color name.'
     },
     PRODUCT_CHARACTER: {
       topRow: 'TOP ROW — PRIMARY VIEWS: Front View, 3/4 Front View, Left Side View, Right Side View, Back View.',
       middleRow: 'MIDDLE ROW — TECHNICAL VIEWS: Top View, Bottom View, 3/4 Rear View, Packaging View.',
-      bottomRow: 'BOTTOM ROW — DETAIL REFERENCES: Label Close-Up, Material Close-Up, Texture Reference, Logo Detail, Scale Reference. Requirements: Preserve exact product identity, proportions, brand colors, visible logo design, label hierarchy, packaging geometry, consistent material rendering.'
+      bottomRow: 'BOTTOM ROW — DETAIL REFERENCES: Label Close-Up, Material Close-Up, Texture Reference, Logo Detail, Scale Reference. Requirements: Preserve exact product identity, proportions, brand colors, visible logo design, label hierarchy, packaging geometry, consistent material rendering.\n\nSCALE REFERENCE PANEL: In the bottom-right corner, show the product next to a common reference object (human hand for handheld products, desk for large products, coin for small products) to establish real-world scale.'
     },
     VEHICLE_CHARACTER: {
       topRow: 'PRIMARY VIEWS: Front View, Rear View, Left Side View, Right Side View, Top View, 3/4 Front View, 3/4 Rear View.',
@@ -1174,6 +1276,7 @@ Do not redesign branding.`,
 SUBJECT: ${name}
 CATEGORY: ${category}${genderLine}
 DESCRIPTION: ${characterDescription || 'No extra description provided.'}${shotLine}
+${characterDescription && characterDescription.length < 20 ? '\nAUTO-DETECT MODE: No detailed description provided. Analyze the uploaded reference image and extract all visual characteristics automatically. Generate the character sheet based purely on what you observe in the reference.' : ''}
 
 === AUTOMATIC CATEGORY: ${category} ===
 
