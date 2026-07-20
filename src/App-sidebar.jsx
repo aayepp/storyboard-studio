@@ -1551,7 +1551,30 @@ const GENFITY_MODELS = [
   { v: 'genfity/gpt-5.5', l: 'GPT 5.5 (Genfity)' },
 ];
 
-const IMAGE_MODEL = 'gemini-3.1-flash-image';
+const IMAGE_MODELS = [
+  'gemini-2.5-flash-preview-04-17',
+  'gemini-3.1-flash-image',
+  'gemini-2.0-flash-exp',
+];
+
+const callGeminiImageApi = async (payload, signal = null) => {
+  let lastErr;
+  for (const model of IMAGE_MODELS) {
+    try {
+      const data = await callGeminiApi(model, payload, false, signal);
+      const img = data?.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
+      if (img) return data; // success
+      // model returned no image — try next
+      lastErr = new Error(`${model} returned no image`);
+    } catch (err) {
+      if (err.name === 'AbortError') throw err;
+      // 400/401/403 on this model → try next; others bubble up after all exhausted
+      console.warn(`Image model ${model} failed:`, err.message);
+      lastErr = err;
+    }
+  }
+  throw lastErr || new Error('All image models exhausted.');
+};
 
 const getStoredModel = () => {
   try { return localStorage.getItem('gemini_selected_model') || 'gemini-3.5-flash'; } catch { return 'gemini-3.5-flash'; }
@@ -1601,7 +1624,13 @@ const getStoredGenfityModel = () => {
     } catch (error) {
       if (error.name === 'AbortError') throw error;
       if (error.message && /HTTP (400|401|403)/.test(error.message)) throw error;
-      if (error.message && error.message.includes('429')) throw error; // 429 sudah retry loop
+      // 429 as exception — apply same backoff retry, don't rethrow immediately
+      if (error.message && error.message.includes('429')) {
+        if (i >= 6) throw new Error('HTTP 429: Too Many Requests. Sila tunggu sebentar atau guna API key lain.');
+        console.warn(`Rate limited (429 exception) on attempt ${i + 1}. Waiting ${delays[i] || 60000}ms...`);
+        await new Promise((resolve) => setTimeout(resolve, delays[i] || 60000));
+        continue;
+      }
       if (i === 6) throw error;
       await new Promise((resolve) => setTimeout(resolve, delays[i] || 2000));
     }
@@ -2081,7 +2110,7 @@ return parsed;
           contents: [{ role: 'user', parts }],
           generationConfig: { responseModalities: ['IMAGE'] }
         };
-        const data = await callGeminiApi(IMAGE_MODEL, payload, false, signal);
+        const data = await callGeminiImageApi(payload, signal);
         const newBase64 = data?.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
         if (!newBase64) throw new Error('Gemini Image Model did not return an image.');
         return `data:image/jpeg;base64,${newBase64}`;
@@ -2090,7 +2119,7 @@ return parsed;
           contents: [{ role: 'user', parts }],
           generationConfig: { responseModalities: ['IMAGE'] }
         };
-        const data = await callGeminiApi(IMAGE_MODEL, payload, false, signal);
+        const data = await callGeminiImageApi(payload, signal);
         const newBase64 = data?.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
         if (!newBase64) throw new Error('Gemini did not return an image.');
         return `data:image/jpeg;base64,${newBase64}`;
@@ -2747,7 +2776,7 @@ Keep the subject person, face reference, background layout, and clothes identica
         generationConfig: { responseModalities: ['IMAGE'] }
       };
 
-      const data = await callGeminiApi(IMAGE_MODEL, payload, false, gridAbortControllers.current[index].signal);
+      const data = await callGeminiImageApi(payload, gridAbortControllers.current[index].signal);
       const partsList = data?.candidates?.[0]?.content?.parts || [];
       const newBase64 = partsList.find(p => p.inlineData && p.inlineData.data)?.inlineData?.data;
 
