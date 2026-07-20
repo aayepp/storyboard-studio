@@ -77,14 +77,14 @@ const EMPTY_UPLOAD = { products: [{ name: '', base64: null, mimeType: null }], b
 const TAB_UPLOAD_KEYS = ['cinematic_pro', 'microimpact', 'narrativearc', 'talkinghead', 'product', 'ootd', 'ugc', 'stopmotion', 'grafix', 'character', 'fake_influencer'];
 const makeEmptyTabUploads = () => Object.fromEntries(TAB_UPLOAD_KEYS.map((k) => [k, { ...EMPTY_UPLOAD, products: [{ name: '', base64: null, mimeType: null }], backgrounds: [] }]));
 
-const _baseCard = 'border rounded-[32px] p-6 sm:p-10 shadow-sm relative overflow-hidden transition-colors duration-300 card-hover scroll-reveal';
+const _baseCard = 'border rounded-[32px] p-6 sm:p-10 shadow-sm relative overflow-hidden transition-colors duration-300 card-hover scroll-reveal backdrop-blur-xl';
 const _baseIn = 'w-full rounded-2xl px-5 py-4 text-sm focus:outline-none focus:ring-1 focus:ring-sky-300 border';
 const C = {
   card: (d, mb = 'mb-8') => `${_baseCard} ${mb} ${d ? 'bg-[#11131a] border-gray-800' : 'bg-white border-gray-100'}`,
   label: 'block text-[11px] font-bold mb-2.5 uppercase tracking-wide text-gray-300',
   input: (d) => `${_baseIn} transition-all ${d ? 'bg-[#0a0c10] border-gray-700 text-white placeholder-gray-600' : 'bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400'}`,
   select: (d) => `${_baseIn} appearance-none ${d ? 'bg-[#0a0c10] border-gray-700 text-white' : 'bg-gray-50 border-gray-200 text-gray-800'}`,
-  h2: (d) => `text-2xl font-bold tracking-tight ${d ? 'text-white' : 'text-gray-800'}`,
+  h2: (d) => `text-2xl font-bold tracking-tight bg-gradient-to-r from-sky-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent ${d ? '' : 'text-gray-800'}`,
   panel: (d) => d ? 'bg-[#0a0c10] border-gray-700' : 'bg-white border-gray-200',
   muted: (d) => d ? 'text-gray-400' : 'text-gray-500',
   field: (d) => d ? 'bg-[#0a0c10] border-gray-700 text-white' : 'bg-gray-50 border-gray-200 text-gray-800',
@@ -96,7 +96,7 @@ const PINK_GRAD = 'bg-gradient-to-r from-blue-500 to-cyan-400 text-white';
 
 const U = {
   c1: 'absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none',
-  c2: 'w-full bg-gradient-to-r from-blue-500 to-cyan-400 text-white font-black py-4 rounded-2xl text-lg disabled:opacity-70',
+  c2: 'w-full bg-gradient-to-r from-blue-500 to-cyan-400 text-white font-black py-4 rounded-2xl text-lg disabled:opacity-70 btn-shine btn-pulse-valid',
   c3: 'w-10 h-10 rounded-full bg-sky-500 flex items-center justify-center text-white font-bold',
   c4: 'block text-[11px] font-bold mb-2.5 uppercase tracking-wide flex items-center gap-1.5 text-gray-300',
   c5: 'text-sm font-bold uppercase tracking-widest text-sky-500 mb-6 flex items-center gap-2',
@@ -1924,6 +1924,19 @@ const CHANGELOG = [
     ]
   },
   {
+    version: 'v2.2', date: '21 Jul 2026', isNew: true,
+    changes: [
+      'Glassmorphism cards — backdrop-blur-xl pada semua card',
+      'Gradient text headings — h2 & title pakai sky→cyan→emerald gradient',
+      'Enhanced progress bar — gradient bar animated',
+      'Branded loading animation — clapperboard icon + recording dot',
+      'Image viewer upgrade — wheel zoom, arrow nav, keyboard support, image counter',
+      'Micro-interactions — btn-shine glow sweep + pulse ring',
+      'Empty state illustration — floating sparkles, guide text',
+      'Toast notifications stlh generate — auto pop success toast',
+    ]
+  },
+  {
     version: 'v2.0', date: '20 Jul 2026', isNew: false,
     changes: [
       'Dialog Re-Gen ikut durasi segment — 10s = max 25 words, 30s = max 75 words',
@@ -3315,7 +3328,8 @@ Keep the subject person, face reference, background layout, and clothes identica
         mode
       };
       setGeneratedOutput(combinedRes);
-      setGenerateHistory(prev => [{ tab: activeTab, topic: cinematicTopic || productName || thTopic || gfTopic || smProduct || narrativeArcTopic || microImpactTopic || characterName || fiName || '', output: combinedRes, timestamp: Date.now() }, ...prev].slice(0, 3));
+      addToast('Storyboard siap dijana!', 'success', 4000);
+      setGenerateHistory(prev => [{ tab: activeTab, topic: cinematicTopic || productName || thTopic || gfTopic || smProduct || narrativeArcTopic || characterName || fiName, timestamp: Date.now() }, ...prev.slice(0, 4)]);
       setEditableImagePrompt(imagePrompts);
       setBoxEdits({
         videoPrompt: vp,
@@ -3776,10 +3790,11 @@ CAMERA SYSTEM: Ultra-stable static tripod shot.`;
           });
 
           setGeneratedOutput(result);
+          addToast('Storyboard siap dijana!', 'success', 4000);
           setEditableImagePrompt(promptInputForAI);
           setCurrentDisplayRatio(aspectRatio);
           await generateVisual(promptInputForAI, false, aspectRatio, result.scenes.length, {
-            identityBible,
+              identityBible,
           useContinuity: true,
           concurrency: 2,
           topicLock: safeProductName,
@@ -3857,6 +3872,7 @@ CAMERA SYSTEM: Ultra-stable static tripod shot.`;
         });
 
         setGeneratedOutput(result);
+        addToast('Storyboard siap dijana!', 'success', 4000);
         setEditableImagePrompt(promptInputForAI);
         setCurrentDisplayRatio(aspectRatio);
         await generateVisual(promptInputForAI, false, aspectRatio, normalizedScenes.length, {
@@ -4057,6 +4073,7 @@ ${aspectStr}`;
       }
 
       setGeneratedOutput(result);
+      addToast('Storyboard siap dijana!', 'success', 4000);
       setEditableImagePrompt(promptInputForAI);
 
       setBoxEdits({
@@ -4755,9 +4772,9 @@ Pick the ONE that best fits. No explanation, just the tag.`;
               )}
             </div>
             <div className="flex flex-col justify-center">
-              <h1 className={`text-xl font-black tracking-tight leading-none ${U.c14}`}>
-                Storyboard Studio AI
-              </h1>
+              <h1 className={`text-xl font-black tracking-tight leading-none bg-gradient-to-r from-sky-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent`}>
+                              Storyboard Studio AI
+                            </h1>
               <p className="text-[9px] font-bold tracking-widest uppercase mt-1 text-gray-400">
                 PRO CONTENT & VISUAL ENGINE
               </p>
@@ -5125,16 +5142,36 @@ Pick the ONE that best fits. No explanation, just the tag.`;
 
               <div className="sticky bottom-4 z-30 pt-4">
                 {isGeneratingAll && (
-                  <div className="flex items-center gap-2 mb-3 p-3 rounded-xl bg-sky-500/10 border border-sky-500/20">
-                    {['Menganalisis', 'Membina Cerita', 'Menjana Visual', 'Memproses'].map((step, i) => (
-                      <div key={i} className={`flex items-center gap-1.5 text-[10px] font-bold ${i <= generationStep ? 'text-sky-400' : 'text-gray-600'}`}>
-                        <div className={`w-2 h-2 rounded-full ${i < generationStep ? 'bg-sky-400' : i === generationStep ? 'bg-sky-400 animate-pulse' : 'bg-gray-700'}`} />
-                        {step}
-                        {i < 3 && <span className="text-gray-700 mx-0.5">{'→'}</span>}
-                      </div>
-                    ))}
-                  </div>
-                )}
+                                  <div className="space-y-2 mb-3 p-3 rounded-xl bg-sky-500/10 border border-sky-500/20">
+                                    {/* Gradient Progress Bar */}
+                                    <div className="w-full h-2 rounded-full bg-gray-800 overflow-hidden">
+                                      <div
+                                        className="h-full rounded-full bg-gradient-to-r from-sky-400 via-cyan-400 to-emerald-400 transition-all duration-700 ease-out relative"
+                                        style={{ width: `${((generationStep + 1) / 4) * 100}%` }}
+                                      >
+                                        <div className="absolute inset-0 bg-white/20 animate-pulse rounded-full"></div>
+                                      </div>
+                                    </div>
+                                    {/* Step Labels */}
+                                    <div className="flex items-center justify-between">
+                                      {['Menganalisis', 'Membina', 'Menjana', 'Memproses'].map((step, i) => (
+                                        <div key={i} className={`flex items-center gap-1 text-[10px] font-bold transition-all duration-500 ${
+                                          i < generationStep ? 'text-emerald-400' :
+                                          i === generationStep ? 'text-sky-400' :
+                                          'text-gray-600'
+                                        }`}>
+                                          <span className={
+                                            i < generationStep ? '' :
+                                            i === generationStep ? 'animate-spin text-[8px]' : ''
+                                          }>
+                                            {i < generationStep ? '✅' : i === generationStep ? '●' : '○'}
+                                          </span>
+                                          {step}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
                 <button
                   onClick={() => generateNewMode('cinematic_pro')}
                   disabled={isGeneratingAll || !cinematicTopic.trim()}
@@ -5958,10 +5995,26 @@ Pick the ONE that best fits. No explanation, just the tag.`;
         )}
 
         {/* Dynamic Display Canvas & Final Pipeline Results */}
-        {(generatedOutput || isGeneratingImage || Object.values(regeneratingIndexes).some(v => v) || Object.keys(showMagicBox).length > 0) && (
-          <div ref={outputRef} className="animate-fade-in-up mt-20 pt-10">
+        {/* Empty State */}
+                {!generatedOutput && !isGeneratingImage && Object.values(regeneratingIndexes).every(v => !v) && Object.keys(showMagicBox).length === 0 && (
+                  <div className="flex flex-col items-center justify-center py-20 text-center animate-fade-in">
+                    <div className="w-20 h-20 rounded-[2rem] bg-gradient-to-br from-sky-500/20 to-cyan-400/20 flex items-center justify-center mb-6 border border-sky-500/20 animate-float-subtle">
+                      <I name="Sparkles" size={36} className="text-sky-400/60" />
+                    </div>
+                    <h3 className={`text-lg font-black mb-2 ${U.c14}`}>Belum Ada Output</h3>
+                    <p className={`text-sm max-w-xs leading-relaxed ${t('text-gray-500', 'text-gray-400')}`}>
+                      Pilih tab dari sidebar, isi form, lepastu tekan <span className="font-bold text-sky-400">Generate</span> untuk mulakan!
+                    </p>
+                    <div className="flex items-center gap-2 mt-6 px-4 py-2 rounded-full border border-gray-700/50 bg-gray-800/30 text-gray-500 text-[10px] font-bold">
+                      <I name="Keyboard" size={12} /> <span>Ctrl+Enter untuk generate</span>
+                    </div>
+                  </div>
+                )}
+
+                {(generatedOutput || isGeneratingImage || Object.values(regeneratingIndexes).some(v => v) || Object.keys(showMagicBox).length > 0) && (
+                  <div ref={outputRef} className="animate-fade-in-up mt-20 pt-10">
             <div className="text-center mb-16 relative">
-               <h2 className={`text-4xl font-black tracking-wide mb-4 ${U.c14}`}>
+               <h2 className={`text-4xl font-black tracking-wide mb-4 bg-gradient-to-r from-sky-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent`}>
                  {activeTab === 'character' ? 'Character Blueprint Reference' : activeTab === 'cinematic_pro' ? 'Cinematic Storyboard Details' : activeTab === 'microimpact' ? '10s Micro-Impact Suite' : activeTab === 'narrativearc' ? '30s Narrative Arc Pipeline' : activeTab === 'talkinghead' ? 'Talking Head Board Mapping' : activeTab === 'stopmotion' ? 'Stop Motion Frame Sequencing' : activeTab === 'grafix' ? 'Motion Graphics Deck' : 'Unified Workspace Canvas'}
                </h2>
                <div className="w-16 h-1.5 bg-gradient-to-r from-blue-500 to-cyan-400 mx-auto rounded-full mb-6"></div>
@@ -6007,10 +6060,21 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                         <div className="absolute bottom-1/4 right-1/4 w-32 h-32 rounded-full bg-cyan-400 blur-3xl animate-pulse" style={{ animationDelay: '0.5s' }} />
                       </div>
                       
+                      {/* Branded Clapperboard Loading */}
                       <div className="relative mb-6">
-                        <svg className="w-28 h-28 -rotate-90" viewBox="0 0 120 120">
-                          <circle cx="60" cy="60" r="52" fill="none" stroke={isDarkMode ? '#1f2937' : '#e5e7eb'} strokeWidth="8" />
-                          <circle cx="60" cy="60" r="52" fill="none" stroke="url(#progGrad)" strokeWidth="8" strokeLinecap="round"
+                        <div className="w-28 h-28 rounded-[2rem] bg-gradient-to-br from-sky-500 to-cyan-400 flex items-center justify-center shadow-2xl shadow-sky-500/30 animate-bounce-once">
+                          <I name="Clapperboard" size={48} className="text-white" />
+                        </div>
+                        {/* Recording dot */}
+                        <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 animate-ping" />
+                        <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500" />
+                      </div>
+                      
+                      {/* Progress ring */}
+                      <div className="relative mb-4">
+                        <svg className="w-24 h-24 -rotate-90" viewBox="0 0 120 120">
+                          <circle cx="60" cy="60" r="52" fill="none" stroke={isDarkMode ? '#1f2937' : '#e5e7eb'} strokeWidth="6" />
+                          <circle cx="60" cy="60" r="52" fill="none" stroke="url(#progGrad)" strokeWidth="6" strokeLinecap="round"
                             strokeDasharray={`${326.7 * displayPct/100} 326.7`} className="transition-all duration-700 ease-out" />
                           <defs>
                             <linearGradient id="progGrad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -6020,22 +6084,23 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                           </defs>
                         </svg>
                         <div className="absolute inset-0 flex items-center justify-center">
-                          <span className={`text-2xl font-black ${U.c14}`}>{displayPct}%</span>
+                          <span className={`text-xl font-black ${U.c14}`}>{displayPct}%</span>
                         </div>
                       </div>
-                      
-                      <div className="relative w-full max-w-[220px] space-y-2 mb-5">
+
+                      {/* Stages */}
+                      <div className="relative w-full max-w-[220px] space-y-2 mb-4">
                         {stages.map((s, i) => (
                           <div key={i} className="flex items-center gap-3">
-                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black transition-all duration-500 ${
+                            <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black transition-all duration-500 ${
                               i < stage ? 'bg-emerald-500 text-white' :
                               i === stage ? 'bg-sky-500 text-white scale-110 shadow-lg shadow-sky-500/50' :
                               t('bg-gray-800 text-gray-600', 'bg-gray-200 text-gray-400')
                             }`}>
-                              {i < stage ? '✓' : i + 1}
+                              {i < stage ? '✓' : ''}
                             </div>
                             <div className="flex-1 text-left">
-                              <span className={`text-xs font-bold transition-all duration-500 ${
+                              <span className={`text-[11px] font-bold transition-all duration-500 ${
                                 i < stage ? t('text-emerald-400', 'text-emerald-600') :
                                 i === stage ? 'text-sky-400 animate-pulse' :
                                 t('text-gray-600', 'text-gray-400')
@@ -6045,13 +6110,17 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                         ))}
                       </div>
                       
+                      {/* Loading text — typewriter style */}
+                      <p className="text-sm font-black text-sky-500 tracking-wide uppercase leading-relaxed text-center min-h-[20px]">
+                        {loadingText || 'Generating...'}
+                        <span className="animate-pulse">_</span>
+                      </p>
+                      
                       {eta !== null && (
-                        <p className={`text-[10px] font-bold uppercase tracking-widest mb-3 ${t('text-gray-500', 'text-gray-400')}`}>
-                          ETA: {formatTime(eta)} remaining · {elapsedSeconds}s elapsed
+                        <p className={`text-[10px] font-bold tracking-widest mt-2 ${t('text-gray-500', 'text-gray-400')}`}>
+                          ETA: {formatTime(eta)} &middot; {elapsedSeconds}s
                         </p>
                       )}
-                      
-                      <p className="text-sm font-black text-sky-500 tracking-widest uppercase leading-relaxed text-center">{loadingText || 'Processing...'}</p>
                     </div>
                   );
                 })() : (
@@ -6848,25 +6917,80 @@ RULES:
 
       {/* Fullscreen Image Lightbox */}
       {fullscreenImage && (
-        <div
-          className="fixed inset-0 z-[70] bg-black/90 backdrop-blur-sm flex items-start justify-center overflow-auto animate-fade-in"
-          onClick={() => setFullscreenImage(null)}
-        >
-          <button
-            onClick={() => setFullscreenImage(null)}
-            className="fixed top-5 right-5 z-[80] w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors border border-white/20"
-          >
-            <I name="X" size={20} />
-          </button>
-          <img
-            src={fullscreenImage}
-            alt="Fullscreen preview"
-            className="max-w-[95vw] w-auto my-6 rounded-xl shadow-2xl"
-            style={{ maxHeight: 'none' }}
-            onClick={(e) => e.stopPropagation()}
-          />
-        </div>
-      )}
+              <div
+                className="fixed inset-0 z-[70] bg-black/90 backdrop-blur-sm flex items-center justify-center overflow-hidden animate-fade-in"
+                onClick={() => setFullscreenImage(null)}
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') setFullscreenImage(null);
+                  if (e.key === 'ArrowLeft' && lightboxIndex !== null && lightboxIndex > 0) {
+                    setFullscreenImage(imageUrls[lightboxIndex - 1]);
+                    setLightboxIndex(lightboxIndex - 1);
+                  }
+                  if (e.key === 'ArrowRight' && lightboxIndex !== null && lightboxIndex < imageUrls.length - 1) {
+                    setFullscreenImage(imageUrls[lightboxIndex + 1]);
+                    setLightboxIndex(lightboxIndex + 1);
+                  }
+                }}
+                ref={el => el?.focus()}
+              >
+                {/* Close button */}
+                <button
+                  onClick={() => setFullscreenImage(null)}
+                  className="fixed top-5 right-5 z-[80] w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors border border-white/20"
+                >
+                  <I name="X" size={20} />
+                </button>
+                {/* Nav arrows */}
+                {lightboxIndex !== null && lightboxIndex > 0 && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setFullscreenImage(imageUrls[lightboxIndex - 1]); setLightboxIndex(lightboxIndex - 1); }}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 z-[80] w-12 h-12 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center text-white transition-all border border-white/20 backdrop-blur-sm"
+                  >
+                    <I name="ChevronLeft" size={24} />
+                  </button>
+                )}
+                {lightboxIndex !== null && lightboxIndex < imageUrls.length - 1 && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setFullscreenImage(imageUrls[lightboxIndex + 1]); setLightboxIndex(lightboxIndex + 1); }}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 z-[80] w-12 h-12 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center text-white transition-all border border-white/20 backdrop-blur-sm"
+                  >
+                    <I name="ChevronRight" size={24} />
+                  </button>
+                )}
+                {/* Zoom container */}
+                <div className="flex items-center justify-center w-full h-full p-8 overflow-auto cursor-grab active:cursor-grabbing"
+                  onWheel={(e) => {
+                    e.stopPropagation();
+                    const img = e.currentTarget.querySelector('img');
+                    if (!img) return;
+                    const scale = parseFloat(img.dataset.scale || '1');
+                    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+                    const newScale = Math.max(0.5, Math.min(3, scale + delta));
+                    img.style.transform = `scale(${newScale})`;
+                    img.dataset.scale = newScale;
+                    const zoomLabel = e.currentTarget.querySelector('.zoom-label');
+                    if (zoomLabel) zoomLabel.textContent = `${Math.round(newScale * 100)}%`;
+                  }}
+                >
+                  <img
+                    src={fullscreenImage}
+                    alt="Fullscreen preview"
+                    className="max-w-[95vw] max-h-[95vh] w-auto h-auto rounded-xl shadow-2xl transition-transform duration-200"
+                    style={{ transform: 'scale(1)' }}
+                    data-scale="1"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                  <span className="zoom-label fixed bottom-6 right-6 px-3 py-1.5 rounded-xl bg-white/10 backdrop-blur-sm text-white text-[10px] font-bold tracking-widest border border-white/20 z-[80]">100%</span>
+                </div>
+                {/* Image counter */}
+                {lightboxIndex !== null && (
+                  <div className="fixed bottom-6 left-6 px-3 py-1.5 rounded-xl bg-white/10 backdrop-blur-sm text-white text-[10px] font-bold tracking-widest border border-white/20 z-[80]">
+                    {lightboxIndex + 1} / {imageUrls.length}
+                  </div>
+                )}
+              </div>
+            )}
 
       {/* Success Popup — Center Modal Overlay */}
       {showSuccessPopup && (
@@ -7046,6 +7170,13 @@ animation: bounceOnce 0.6s cubic-bezier(0.36, 0.07, 0.19, 0.97) forwards;
 @keyframes pulseGlow { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.8; } }
 @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
 @keyframes gradientShift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+/* --- MICRO-INTERACTIONS --- */
+.btn-shine { position: relative; overflow: hidden; }
+.btn-shine::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent); transition: left 0.5s; }
+.btn-shine:hover::before { left: 100%; }
+.btn-pulse-valid:not(:disabled) { animation: pulseRing 2s infinite; }
+@keyframes pulseRing { 0% { box-shadow: 0 0 0 0 rgba(56,189,248,0.4); } 70% { box-shadow: 0 0 0 12px rgba(56,189,248,0); } 100% { box-shadow: 0 0 0 0 rgba(56,189,248,0); } }
 
 /* --- GLASSMORPHISM ORBS --- */
 .bg-orb {
