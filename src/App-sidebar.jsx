@@ -436,10 +436,26 @@ const parseModelJson = (rawText) => {
       }
     }
     const repaired = cleanText
-      .replace(/,\s*([}\]])/g, '$1')
+      // smart quotes
       .replace(/[\u201C\u201D]/g, '"')
-      .replace(/[\u2018\u2019]/g, "'");
-    return JSON.parse(repaired);
+      .replace(/[\u2018\u2019]/g, "'")
+      // trailing commas
+      .replace(/,\s*([}\]])/g, '$1')
+      // fix missing commas between } and { or ] and [ or } and " or ] and "
+      .replace(/}\s*({|\[|")/g, '},$1')
+      .replace(/]\s*({|\[|")/g, '],$1')
+      .replace(/"\s*({|\[)/g, '",$1')
+      // strip unescaped control chars inside strings (newlines, tabs)
+      .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, ' ')
+      // fix double-escaped quotes
+      .replace(/\\{2,}"/g, '\\"');
+    try {
+      return JSON.parse(repaired);
+    } catch (e) {
+      // last resort: extract whatever arrays/objects we can find
+      console.warn('parseModelJson final fallback — returning raw text wrapper', e.message);
+      return { error: 'parse_failed', rawText: cleanText.substring(0, 5000) };
+    }
   }
 };
 
