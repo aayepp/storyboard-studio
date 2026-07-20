@@ -1916,7 +1916,15 @@ export default function App() {
 
 const CHANGELOG = [
   {
-    version: 'v1.8', date: '20 Jul 2026', isNew: true,
+    version: 'v1.9', date: '20 Jul 2026', isNew: true,
+    changes: [
+      'Dialog/VO sync ke Segment Prompt — fix Windows line ending bug (\\r\\n)',
+      'UGC + OOTD dialog save sync ke scenes array',
+      'Semua tab dialog edit sekarang update segment prompt correctly',
+    ]
+  },
+  {
+    version: 'v1.8', date: '20 Jul 2026', isNew: false,
     changes: [
       'Biometric Face Lock Engine sentiasa enabled — no more toggle, always active',
       'Changelog floating button — version history dengan NEW badge',
@@ -4116,6 +4124,34 @@ ${aspectStr}`;
     if (sectionId === 'videoPrompt' || sectionId === 'video') {
       setEditableImagePrompt(editedValues[sectionId]);
     }
+    // Sync UGC scene dialogue → update editedValues.scenes array
+    const ugcDlgMatch = sectionId.match(/^ugc_scene_(\d+)_dialogue$/);
+    if (ugcDlgMatch) {
+      const idx = parseInt(ugcDlgMatch[1]);
+      const newDialogue = editedValues[sectionId] || '';
+      setBoxEdits(prev => {
+        const scenes = [...(prev.scenes || generatedOutput?.scenes || [])];
+        if (scenes[idx]) {
+          scenes[idx] = { ...scenes[idx], dialogue: newDialogue };
+        }
+        return { ...prev, scenes };
+      });
+    }
+
+    // Sync OOTD scene dialogue → update editedValues.ootdScenes array
+    const ootdDlgMatch = sectionId.match(/^ootd_scene_(\d+)_dialogue$/);
+    if (ootdDlgMatch) {
+      const idx = parseInt(ootdDlgMatch[1]);
+      const newDialogue = editedValues[sectionId] || '';
+      setBoxEdits(prev => {
+        const scenes = [...(prev.ootdScenes || generatedOutput?.ootdScenes || [])];
+        if (scenes[idx]) {
+          scenes[idx] = { ...scenes[idx], script: newDialogue };
+        }
+        return { ...prev, ootdScenes: scenes };
+      });
+    }
+
     // Sync dialogue edit → segment prompt (update DIALOGUE (BM) block + auto tone detection)
     const dlgMatch = sectionId.match(/^flow_seg_dialogue_(\d+)$/);
     if (dlgMatch) {
@@ -4143,9 +4179,10 @@ ${aspectStr}`;
       // Update prompt with new dialogue immediately
       setBoxEdits(prev => {
         const currentPrompt = prev[promptKey] || originalPrompt;
-        const dlgRegex = new RegExp('\nDIALOGUE \\(BM\\):[\\s\\S]*?(?=\nCONTINUITY:|\nINSTRUCTIONS:|$)');
+        // Use flexible line ending match (handles both \n and \r\n)
+        const dlgRegex = new RegExp('[\r\n]+DIALOGUE \\(BM\\):[\\s\\S]*?(?=[\r\n]+CONTINUITY:|[\r\n]+INSTRUCTIONS:|$)');
         // Remove old TONE tag if exists
-        const toneRegex = new RegExp('\[TONE:[^\]]*\]\s*', 'g');
+        const toneRegex = new RegExp('\[TONE:[^\]]*\][\r\n]*', 'g');
         const cleanedPrompt = currentPrompt.replace(toneRegex, '');
         const updated = cleanedPrompt.includes('DIALOGUE (BM):')
           ? cleanedPrompt.replace(dlgRegex, `
