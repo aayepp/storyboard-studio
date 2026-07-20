@@ -315,6 +315,14 @@ DIALOGUE RULES (MANDATORY):
 - Each scene's dialogue must have DIFFERENT emotional energy than the previous scene.
 - NEVER start consecutive scenes with the same word or phrase type (question, statement, filler).
 
+WITHIN-SCENE REPETITION RULES (CRITICAL):
+- NEVER repeat the same sentence or phrase within a single scene's dialogue.
+- NEVER write: "Sumpah best gila. Sumpah best gila." — same sentence twice is FORBIDDEN.
+- NEVER write partial repeats: "Eh korang. Eh korang tau tak." — starting two sentences with same fragment is FORBIDDEN.
+- Each sentence within a scene dialogue MUST be unique and add new information.
+- Read each scene's dialogue out loud mentally — if any two sentences sound like echoes of each other, REWRITE.
+- NEVER repeat the same word twice consecutively (e.g. "best best", "gila gila", "baru baru") — use a different word.
+
 ZERO REPETITION RULES (CRITICAL FOR FLOW AI):
 - Every sentence of dialogue across ALL scenes must be UNIQUE.
 - NEVER reuse the same phrase, sentence structure, or wording pattern in any two scenes.
