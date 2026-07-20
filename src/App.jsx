@@ -4467,11 +4467,10 @@ Pick the ONE that best fits. No explanation, just the tag.`;
               <I name="ShieldAlert" size={20} />
             </div>
             <div>
-              <label className={`block text-sm font-black ${t('text-pink-400', 'text-pink-700')}`}>
-                Biometric Face Lock Engine
-              </label>
-              <p className={`text-[10px] mt-0.5 ${t('text-pink-500/80', 'text-pink-600')}`}>Always enabled — upload face reference for consistent identity lock</p>
-            </div>
+                  <label className={`block text-sm font-black ${t('text-pink-400', 'text-pink-700')}`}>
+                    Biometric Face Lock Engine
+                  </label>
+                </div>
           </div>
           <span className="px-2 py-1 rounded-full text-[9px] font-black uppercase bg-pink-500 text-white tracking-widest">Active</span>
         </div>
