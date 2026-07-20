@@ -539,3 +539,45 @@ main {
   background:linear-gradient(90deg,transparent,rgba(255,255,255,0.28),transparent);
   animation:awwShine 3.5s ease-in-out infinite;
 }
+
+/* ===== CUSTOM CURSOR ===== */
+*, *::before, *::after { cursor: none !important; }
+.kiro-cursor {
+  position:fixed; z-index:99999; pointer-events:none;
+  width:12px; height:12px; border-radius:50%;
+  background:#0ea5e9; mix-blend-mode:difference;
+  transform:translate(-50%,-50%);
+  transition:transform 0.1s ease, width 0.25s ease, height 0.25s ease, opacity 0.25s ease;
+}
+.kiro-cursor-ring {
+  position:fixed; z-index:99998; pointer-events:none;
+  width:40px; height:40px; border-radius:50%;
+  border:1.5px solid rgba(14,165,233,0.5);
+  transform:translate(-50%,-50%);
+  transition:transform 0.18s ease, width 0.3s ease, height 0.3s ease, opacity 0.3s ease, border-color 0.3s ease;
+}
+.kiro-cursor.is-hovering { width:20px; height:20px; background:#22d3ee; }
+.kiro-cursor-ring.is-hovering { width:60px; height:60px; border-color:rgba(34,211,238,0.7); }
+.kiro-cursor.is-clicking { transform:translate(-50%,-50%) scale(0.7); }
+
+/* ===== CIRCLE MORPH EXIT ===== */
+@keyframes morphExpand {
+  0%   { transform:translate(-50%,-50%) scale(0); opacity:1; }
+  100% { transform:translate(-50%,-50%) scale(80); opacity:1; }
+}
+.morph-circle {
+  position:fixed; z-index:99997; pointer-events:none;
+  width:60px; height:60px; border-radius:50%;
+  background:linear-gradient(135deg,#0ea5e9,#22d3ee);
+  top:var(--cy,50%); left:var(--cx,50%);
+  transform:translate(-50%,-50%) scale(0);
+  animation:morphExpand 0.75s cubic-bezier(0.76,0,0.24,1) forwards;
+}
+
+/* ===== 3D TILT CARD ===== */
+.tilt-card {
+  transform-style:preserve-3d;
+  transition:transform 0.12s ease, box-shadow 0.3s ease;
+  will-change:transform;
+}
+.tilt-card:hover { box-shadow:0 20px 60px rgba(14,165,233,0.15); }

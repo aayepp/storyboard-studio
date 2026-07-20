@@ -66,6 +66,52 @@ const ChevronDown = ({ className = '', size = 16 }) => (
   </span>
 );
 
+// ===== CUSTOM CURSOR =====
+const KiroCursor = () => {
+  const dot = useRef(null), ring = useRef(null);
+  const pos = useRef({x:0,y:0}), rpos = useRef({x:0,y:0}), raf = useRef(null);
+  useEffect(() => {
+    const move = (e) => {
+      pos.current = {x:e.clientX,y:e.clientY};
+      if (dot.current) { dot.current.style.left=e.clientX+'px'; dot.current.style.top=e.clientY+'px'; }
+    };
+    const tick = () => {
+      rpos.current.x += (pos.current.x - rpos.current.x) * 0.12;
+      rpos.current.y += (pos.current.y - rpos.current.y) * 0.12;
+      if (ring.current) { ring.current.style.left=rpos.current.x+'px'; ring.current.style.top=rpos.current.y+'px'; }
+      raf.current = requestAnimationFrame(tick);
+    };
+    const over = (e) => { if (e.target.closest('button,a,input,select,textarea,[role="button"]')) { dot.current?.classList.add('is-hovering'); ring.current?.classList.add('is-hovering'); } };
+    const out  = ()  => { dot.current?.classList.remove('is-hovering'); ring.current?.classList.remove('is-hovering'); };
+    const down = ()  => dot.current?.classList.add('is-clicking');
+    const up   = ()  => dot.current?.classList.remove('is-clicking');
+    window.addEventListener('mousemove',move); window.addEventListener('mouseover',over);
+    window.addEventListener('mouseout',out);   window.addEventListener('mousedown',down); window.addEventListener('mouseup',up);
+    raf.current = requestAnimationFrame(tick);
+    return () => { window.removeEventListener('mousemove',move); window.removeEventListener('mouseover',over); window.removeEventListener('mouseout',out); window.removeEventListener('mousedown',down); window.removeEventListener('mouseup',up); cancelAnimationFrame(raf.current); };
+  },[]);
+  return (<><div ref={dot} className="kiro-cursor"/><div ref={ring} className="kiro-cursor-ring"/></>);
+};
+
+// ===== TEXT SCRAMBLE HOOK =====
+const useScramble = (text, delay = 0) => {
+  const [display, setDisplay] = useState('');
+  useEffect(() => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%&*';
+    let iter = 0, t = null;
+    const start = () => {
+      const iv = setInterval(() => {
+        setDisplay(text.split('').map((ch,i) => ch===' ' ? ' ' : i < iter ? ch : chars[Math.floor(Math.random()*chars.length)]).join(''));
+        iter += 0.5;
+        if (iter >= text.length) { setDisplay(text); clearInterval(iv); }
+      }, 30);
+    };
+    t = setTimeout(start, delay);
+    return () => { clearTimeout(t); };
+  },[text, delay]);
+  return display;
+};
+
 const ASPECT_RATIOS = [
   { v: '9:16', l: '9:16' },
   { v: '16:9', l: '16:9' },
@@ -1696,10 +1742,16 @@ export default function App() {
   const [hasAgreed, setHasAgreed] = useState(false);
   const [showLanding, setShowLanding] = useState(true);
   const [landingExiting, setLandingExiting] = useState(false);
+  const [morphPos, setMorphPos] = useState({x:'50%',y:'50%'});
+  const scramble1 = useScramble('Generate', 200);
+  const scramble2 = useScramble('AI Storyboards', 500);
+  const scramble3 = useScramble('in 60 Seconds.', 900);
 
-  const handleLandingExit = () => {
+  const handleLandingExit = (e) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    setMorphPos({x: r.left + r.width/2 + 'px', y: r.top + r.height/2 + 'px'});
     setLandingExiting(true);
-    setTimeout(() => setShowLanding(false), 580);
+    setTimeout(() => setShowLanding(false), 750);
   };
   const [activeTab, setActiveTab] = useState('cinematic_pro');
   const [isDarkMode, setIsDarkMode] = useState(true);
@@ -4308,47 +4360,35 @@ ${aspectStr}`;
   if (showLanding && !hasAgreed) {
     return (
       <div className={`min-h-screen flex items-center justify-center p-4 font-sans relative overflow-hidden bg-[#060810]${landingExiting ? ' aww-exit' : ''}`}>
-        {/* Orbs */}
+        <KiroCursor />
+        {landingExiting && <div className="morph-circle" style={{'--cx':morphPos.x,'--cy':morphPos.y}} />}
         <div className="aww-orb aww-orb-1 pointer-events-none" />
         <div className="aww-orb aww-orb-2 pointer-events-none" />
         <div className="aww-orb aww-orb-3 pointer-events-none" />
-
-        {/* Grid overlay */}
         <div className="absolute inset-0 pointer-events-none opacity-[0.03]" style={{backgroundImage:'linear-gradient(rgba(255,255,255,0.5) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.5) 1px,transparent 1px)',backgroundSize:'80px 80px'}} />
 
         <div className="relative z-10 max-w-5xl w-full text-center px-4">
-          {/* Badge */}
           <div className="aww-stagger-1 inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-sky-500/30 bg-sky-500/10 text-sky-400 text-xs font-bold uppercase tracking-widest mb-10">
             <I name="Sparkles" size={12} /> AI Storyboard Generator · 2026
           </div>
-
-          {/* Hero text — Awwwards mixed typography */}
-          <h1 className="aww-stagger-2 aww-hero-text font-black text-white mb-0 leading-none">
-            Generate
+          <h1 className="aww-stagger-2 aww-hero-text font-black text-white mb-0 leading-none" style={{fontFamily:'monospace'}}>
+            {scramble1||'\u00a0'}
           </h1>
-          <h1 className="aww-stagger-2 aww-hero-text aww-italic text-transparent mb-0" style={{WebkitTextStroke:'1.5px rgba(255,255,255,0.25)'}}>
-            AI Storyboards
+          <h1 className="aww-stagger-2 aww-hero-text aww-italic text-transparent mb-0" style={{WebkitTextStroke:'1.5px rgba(255,255,255,0.25)',fontFamily:'monospace'}}>
+            {scramble2||'\u00a0'}
           </h1>
-          <h1 className="aww-stagger-3 aww-hero-text font-black mb-8" style={{background:'linear-gradient(90deg,#0ea5e9,#22d3ee,#34d399)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>
-            in 60 Seconds.
+          <h1 className="aww-stagger-3 aww-hero-text font-black mb-8" style={{background:'linear-gradient(90deg,#0ea5e9,#22d3ee,#34d399)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text',fontFamily:'monospace'}}>
+            {scramble3||'\u00a0'}
           </h1>
-
-          {/* Subtext */}
           <p className="aww-stagger-3 text-lg text-gray-400 max-w-xl mx-auto leading-relaxed mb-12">
             Professional scene-by-scene storyboards for Malaysian TikTok, Reels &amp; Shopee Live — AI-powered visuals ready for Flow AI video generation.
           </p>
-
-          {/* CTA */}
           <div className="aww-stagger-4">
             <button onClick={handleLandingExit} className="aww-cta">
               <div className="aww-cta-shine" />
-              <span className="aww-cta-inner">
-                <I name="Sparkles" size={18} /> Start Creating Free
-              </span>
+              <span className="aww-cta-inner"><I name="Sparkles" size={18} /> Start Creating Free</span>
             </button>
           </div>
-
-          {/* Stats row */}
           <div className="aww-stagger-5 flex flex-wrap items-center justify-center gap-8 mt-14 text-sm">
             <div className="flex items-center gap-2 text-gray-400"><I name="UserCheck" size={15} className="text-emerald-400" /><span>500+ Malaysian creators</span></div>
             <div className="w-px h-4 bg-gray-700" />
@@ -4356,15 +4396,15 @@ ${aspectStr}`;
             <div className="w-px h-4 bg-gray-700" />
             <div className="flex items-center gap-2 text-gray-400"><I name="ShieldCheck" size={15} className="text-sky-400" /><span>Free to start</span></div>
           </div>
-
-          {/* Feature cards */}
           <div className="aww-stagger-5 grid grid-cols-1 sm:grid-cols-3 gap-4 mt-14 max-w-3xl mx-auto">
             {[
-              { icon:'Video',  label:'Cinematic Storyboards', desc:'Full scene-by-scene breakdown' },
-              { icon:'Image',  label:'AI Visual Generation',  desc:'Storyboard frames per scene' },
-              { icon:'Film',   label:'Flow AI Ready',         desc:'Segmented prompts for I2V' },
+              { icon:'Video', label:'Cinematic Storyboards', desc:'Full scene-by-scene breakdown' },
+              { icon:'Image', label:'AI Visual Generation',  desc:'Storyboard frames per scene' },
+              { icon:'Film',  label:'Flow AI Ready',         desc:'Segmented prompts for I2V' },
             ].map((f,i) => (
-              <div key={i} className="p-5 rounded-2xl border border-gray-800 bg-white/[0.03] backdrop-blur-sm hover:border-sky-500/40 hover:bg-white/[0.06] transition-all duration-300 hover:-translate-y-1">
+              <div key={i} className="tilt-card p-5 rounded-2xl border border-gray-800 bg-white/[0.03] backdrop-blur-sm hover:border-sky-500/40 hover:bg-white/[0.06] transition-colors duration-300"
+                onMouseMove={e=>{const r=e.currentTarget.getBoundingClientRect();const x=((e.clientX-r.left)/r.width-0.5)*18;const y=((e.clientY-r.top)/r.height-0.5)*-18;e.currentTarget.style.transform=`perspective(600px) rotateY(${x}deg) rotateX(${y}deg) translateZ(10px)`;}}
+                onMouseLeave={e=>{e.currentTarget.style.transform='perspective(600px) rotateY(0deg) rotateX(0deg) translateZ(0px)';}}>
                 <div className="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center mb-3 mx-auto">
                   <I name={f.icon} size={18} className="text-sky-400" />
                 </div>
@@ -4373,7 +4413,6 @@ ${aspectStr}`;
               </div>
             ))}
           </div>
-
           <p className="text-xs text-gray-600 mt-12">© 2026 Storyboard Studio · Made for Malaysian content creators</p>
         </div>
       </div>
