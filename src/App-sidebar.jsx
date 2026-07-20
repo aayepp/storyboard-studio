@@ -4444,7 +4444,7 @@ ${aspectStr}`;
       <div className="bg-particle"></div>
       <div className="bg-particle"></div>
       <div className="bg-particle"></div>
-      <header className={`backdrop-blur-xl border-b sticky top-0 z-40 transition-colors duration-300 ${t('bg-[#11131a]/90 border-gray-800', 'bg-white/80 border-gray-100')}`}>
+      <header className={`app-header-glass backdrop-blur-xl border-b sticky top-0 z-40 transition-colors duration-300 ${t('bg-[#11131a]/90 border-gray-800', 'bg-white/80 border-gray-100')}`}>
         <div className="max-w-[1200px] mx-auto px-5 sm:px-8 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
           <button
             onClick={() => {
@@ -4516,7 +4516,6 @@ ${aspectStr}`;
 
       <div className="flex min-h-[calc(100vh-64px)] relative z-10">
 
-        {/* SIDEBAR */}
         <aside className={`shrink-0 transition-all duration-300 overflow-hidden ${sidebarOpen ? 'w-56' : 'w-0'} ${t('bg-[#0d0f14] border-r border-gray-800', 'bg-gray-50 border-r border-gray-200')} sticky top-[65px] h-[calc(100vh-65px)] overflow-y-auto`}>
           <div className="p-3 pt-4 min-w-[224px]">
             {[
@@ -4548,7 +4547,7 @@ ${aspectStr}`;
               }
             ].map(({ group, tabs }) => (
               <div key={group} className="mb-4">
-                <p className={`text-[9px] font-black uppercase tracking-widest px-2 mb-1.5 ${t('text-gray-600', 'text-gray-400')}`}>{group}</p>
+                <p className={`sidebar-group-label text-[9px] font-black uppercase tracking-widest px-2 mb-1.5 ${t('text-gray-600', 'text-gray-400')}`}>{group}</p>
                 <div className="space-y-0.5">
                   {tabs.map(tab => (
                     <button
@@ -4763,7 +4762,7 @@ ${aspectStr}`;
 
 
         {activeTab === 'cinematic_pro' && (
-          <div className={C.card(isDarkMode)}>
+          <div className={`${C.card(isDarkMode)} tab-content-in`}>
             <div className="flex items-center gap-4 mb-6">
               <div className={U.c3}><I name="Clapperboard" size={20} /></div>
               <h2 className={C.h2(isDarkMode)}>Cinematic Pro — Universal Storyboard</h2>
@@ -4821,7 +4820,7 @@ ${aspectStr}`;
               <button
                 onClick={() => generateNewMode('cinematic_pro')}
                 disabled={isGeneratingAll || !cinematicTopic.trim()}
-                className={`${U.c2} mt-4 active:scale-[0.98] hover:opacity-90 disabled:opacity-50`}
+                className={`generate-btn ${U.c2} mt-4 active:scale-[0.98] hover:opacity-90 disabled:opacity-50`}
               >
                 {isGeneratingAll ? 'Processing Storyboard...' : 'Generate Cinematic Storyboard'}
               </button>
@@ -4830,7 +4829,7 @@ ${aspectStr}`;
         )}
 
         {activeTab === 'microimpact' && (
-          <div className={C.card(isDarkMode)}>
+          <div className={`${C.card(isDarkMode)} tab-content-in`}>
             <div className="flex items-center gap-4 mb-6">
               <div className={U.c3}><I name="Zap" size={20} /></div>
               <h2 className={C.h2(isDarkMode)}>10s Micro — Maximum Rapid Impact</h2>
@@ -4867,7 +4866,7 @@ ${aspectStr}`;
               <button
                 onClick={() => generateNewMode('microimpact')}
                 disabled={isGeneratingAll || !microImpactTopic.trim()}
-                className={`${U.c2} mt-4`}
+                className={`generate-btn ${U.c2} mt-4`}
               >
                 {isGeneratingAll ? 'Processing...' : 'Generate 10s Micro-Impact Suite'}
               </button>
@@ -4876,7 +4875,7 @@ ${aspectStr}`;
         )}
 
         {activeTab === 'narrativearc' && (
-          <div className={C.card(isDarkMode)}>
+          <div className={`${C.card(isDarkMode)} tab-content-in`}>
             <div className="flex items-center gap-4 mb-6">
               <div className={U.c3}><I name="Film" size={20} /></div>
               <h2 className={C.h2(isDarkMode)}>30s Narrative Arc — Smooth Storytelling</h2>
@@ -4913,7 +4912,7 @@ ${aspectStr}`;
               <button
                 onClick={() => generateNewMode('narrativearc')}
                 disabled={isGeneratingAll || !narrativeArcTopic.trim()}
-                className={`${U.c2} mt-4`}
+                className={`generate-btn ${U.c2} mt-4`}
               >
                 {isGeneratingAll ? 'Processing...' : 'Generate 30s Narrative Arc'}
               </button>
@@ -4922,7 +4921,7 @@ ${aspectStr}`;
         )}
 
         {activeTab === 'talkinghead' && (
-          <div className={C.card(isDarkMode)}>
+          <div className={`${C.card(isDarkMode)} tab-content-in`}>
             <div className="flex items-center gap-4 mb-6">
               <div className={U.c3}><I name="User" size={20} /></div>
               <h2 className={C.h2(isDarkMode)}>Talking Head — Direct Presenter Focus</h2>
@@ -4981,7 +4980,7 @@ ${aspectStr}`;
               <button
                 onClick={() => generateNewMode('talkinghead')}
                 disabled={isGeneratingAll || !thTopic.trim()}
-                className={`${U.c2} mt-4`}
+                className={`generate-btn ${U.c2} mt-4`}
               >
                 {isGeneratingAll ? 'Processing...' : 'Generate Talking Head Profile'}
               </button>
@@ -4990,7 +4989,7 @@ ${aspectStr}`;
         )}
 
         {activeTab === 'product' && (
-          <div className={C.card(isDarkMode)}>
+          <div className={`${C.card(isDarkMode)} tab-content-in`}>
             <div className="flex items-center gap-4 mb-6">
               <div className={U.c3}><I name="Box" size={20} /></div>
               <h2 className={C.h2(isDarkMode)}>Product POV — Showcase & Unboxing</h2>
@@ -5088,7 +5087,7 @@ ${aspectStr}`;
               <button
                 onClick={generateAllContent}
                 disabled={isGeneratingAll || !productName.trim()}
-                className={`${U.c2} mt-4`}
+                className={`generate-btn ${U.c2} mt-4`}
               >
                 {isGeneratingAll ? 'Rendering Product Elements...' : 'Build Visual Concept & Sequence'}
               </button>
@@ -5097,7 +5096,7 @@ ${aspectStr}`;
         )}
 
         {activeTab === 'ootd' && (
-          <div className={C.card(isDarkMode)}>
+          <div className={`${C.card(isDarkMode)} tab-content-in`}>
             <div className="flex items-center gap-4 mb-6">
               <div className={U.c3}><I name="Shirt" size={20} /></div>
               <h2 className={C.h2(isDarkMode)}>OOTD — Fashion & Apparel Profile</h2>
@@ -5195,7 +5194,7 @@ ${aspectStr}`;
               <button
                 onClick={generateAllContent}
                 disabled={isGeneratingAll || !productName.trim()}
-                className={`${U.c2} mt-4`}
+                className={`generate-btn ${U.c2} mt-4`}
               >
                 {isGeneratingAll ? 'Generating Elements...' : 'Build OOTD Fashion Concept'}
               </button>
@@ -5204,7 +5203,7 @@ ${aspectStr}`;
         )}
 
         {activeTab === 'ugc' && (
-          <div className={C.card(isDarkMode)}>
+          <div className={`${C.card(isDarkMode)} tab-content-in`}>
             <div className="flex items-center gap-4 mb-6">
               <div className={U.c3}><I name="Video" size={20} /></div>
               <h2 className={C.h2(isDarkMode)}>Affiliate UGC — Lifestyle Creator Pipeline</h2>
@@ -5274,7 +5273,7 @@ ${aspectStr}`;
               <button
                 onClick={generateAllContent}
                 disabled={isGeneratingAll || !productName.trim()}
-                className={`${U.c2} mt-4`}
+                className={`generate-btn ${U.c2} mt-4`}
               >
                 {isGeneratingAll ? 'Generating Architecture...' : 'Process UGC Workflow Timeline'}
               </button>
@@ -5283,7 +5282,7 @@ ${aspectStr}`;
         )}
 
         {activeTab === 'stopmotion' && (
-          <div className={C.card(isDarkMode)}>
+          <div className={`${C.card(isDarkMode)} tab-content-in`}>
             <div className="flex items-center gap-4 mb-6">
               <div className={U.c3}><I name="Box" size={20} /></div>
               <h2 className={C.h2(isDarkMode)}>Stop Motion — Creative Product Assembly</h2>
@@ -5339,7 +5338,7 @@ ${aspectStr}`;
               <button
                 onClick={() => generateNewMode('stopmotion')}
                 disabled={isGeneratingAll || !smProduct.trim()}
-                className={`${U.c2} mt-4`}
+                className={`generate-btn ${U.c2} mt-4`}
               >
                 {isGeneratingAll ? 'Processing Sequences...' : 'Build Stop Motion Framework'}
               </button>
@@ -5348,7 +5347,7 @@ ${aspectStr}`;
         )}
 
         {activeTab === 'grafix' && (
-          <div className={C.card(isDarkMode)}>
+          <div className={`${C.card(isDarkMode)} tab-content-in`}>
             <div className="flex items-center gap-4 mb-6">
               <div className={U.c3}><I name="PenTool" size={20} /></div>
               <h2 className={C.h2(isDarkMode)}>Grafix — Kinetic Motion Graphics</h2>
@@ -5400,7 +5399,7 @@ ${aspectStr}`;
               <button
                 onClick={() => generateNewMode('grafix')}
                 disabled={isGeneratingAll || !gfTopic.trim()}
-                className={`${U.c2} mt-4`}
+                className={`generate-btn ${U.c2} mt-4`}
               >
                 {isGeneratingAll ? 'Constructing Explainer...' : 'Initialize Grafix Framework'}
               </button>
@@ -5409,7 +5408,7 @@ ${aspectStr}`;
         )}
 
         {activeTab === 'character' && (
-          <div className={C.card(isDarkMode)}>
+          <div className={`${C.card(isDarkMode)} tab-content-in`}>
             <div className="flex items-center gap-4 mb-6">
               <div className={U.c3}><I name="User" size={20} /></div>
               <h2 className={C.h2(isDarkMode)}>Character Sheet — Visual Consistency Vault</h2>
@@ -5489,7 +5488,7 @@ ${aspectStr}`;
         )}
 
         {activeTab === 'fake_influencer' && (
-          <div className={C.card(isDarkMode)}>
+          <div className={`${C.card(isDarkMode)} tab-content-in`}>
             <div className="flex items-center gap-4 mb-6">
               <div className={U.c3}><I name="UserPlus" size={20} /></div>
               <h2 className={C.h2(isDarkMode)}>Fake Influencer — Synthetic Digital Human</h2>

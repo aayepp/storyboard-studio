@@ -561,3 +561,75 @@ main {
   will-change:transform;
 }
 .tilt-card:hover { box-shadow:0 20px 60px rgba(14,165,233,0.15); }
+
+/* ===== MAIN APP UI POLISH ===== */
+
+/* Header glassmorphism */
+.app-header-glass {
+  background: rgba(10,12,16,0.85) !important;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+  box-shadow: 0 1px 40px rgba(0,0,0,0.5);
+}
+
+/* Input focus glow — applied via selector */
+input.input-glow:focus,
+textarea.input-glow:focus,
+input:focus-visible,
+textarea:focus-visible {
+  border-color: rgba(14,165,233,0.5) !important;
+  box-shadow: 0 0 0 3px rgba(14,165,233,0.1), 0 0 20px rgba(14,165,233,0.06) !important;
+  outline: none;
+}
+
+/* Tab content transition */
+@keyframes tabIn {
+  from { opacity:0; transform:translateY(10px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.tab-content-in { animation: tabIn 0.35s cubic-bezier(0.16,1,0.3,1) forwards; }
+
+/* Upload zone hover */
+.upload-zone {
+  transition: border-color 0.25s ease, background 0.25s ease, transform 0.2s ease;
+}
+.upload-zone:hover {
+  border-color: rgba(14,165,233,0.4) !important;
+  background: rgba(14,165,233,0.04) !important;
+  transform: translateY(-2px);
+}
+
+/* Generate button premium pulse */
+@keyframes genBtnPulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(14,165,233,0), 0 4px 15px rgba(14,165,233,0.2); }
+  50%     { box-shadow: 0 0 28px rgba(14,165,233,0.35), 0 8px 30px rgba(14,165,233,0.25); }
+}
+.generate-btn {
+  animation: genBtnPulse 3s ease-in-out infinite;
+  transition: transform 0.2s cubic-bezier(0.16,1,0.3,1) !important;
+}
+.generate-btn:hover  { transform: translateY(-2px) scale(1.015) !important; }
+.generate-btn:active { transform: translateY(0) scale(0.985) !important; animation: none; }
+
+/* Section cards */
+.section-card-hover {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+.section-card-hover:hover {
+  border-color: rgba(14,165,233,0.18) !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.35) !important;
+}
+
+/* Sidebar group label accent */
+.sidebar-group-label {
+  position: relative;
+  padding-left: 10px !important;
+}
+.sidebar-group-label::before {
+  content:'';
+  position:absolute; left:0; top:50%;
+  transform:translateY(-50%);
+  width:2px; height:10px; border-radius:2px;
+  background:rgba(255,255,255,0.12);
+}
