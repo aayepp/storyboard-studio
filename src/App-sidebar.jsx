@@ -4422,6 +4422,7 @@ ${aspectStr}`;
   if (!hasAgreed) {
     return (
       <div className={`min-h-screen flex items-center justify-center p-4 font-sans transition-colors duration-300 ${t('bg-[#0a0c10]', 'bg-[#f8fafc]')}`}>
+        <KiroCursor />
         <div className={`rounded-3xl p-8 sm:p-12 max-w-2xl w-full animate-fade-in-up border shadow-2xl ${t('bg-[#11131a] border-gray-800 shadow-black/50', 'bg-white border-gray-100')}`}>
           <div className={`flex items-center gap-5 mb-10 border-b pb-6 ${U.c15}`}>
             <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 border shadow-sm ${t('bg-red-500/10 border-red-500/20', 'bg-red-50 border-red-100')}`}>
@@ -4467,7 +4468,7 @@ ${aspectStr}`;
 
   return (
     <div className={`min-h-screen font-sans pb-20 transition-colors duration-300 relative ${t('bg-[#0a0c10]', 'bg-[#f8fafc]')}`}>
-      {/* Floating Background Particles */}
+      <KiroCursor />
       <div className="bg-particle"></div>
       <div className="bg-particle"></div>
       <div className="bg-particle"></div>
