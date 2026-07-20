@@ -6389,6 +6389,8 @@ RULES:
                                               const newDialogue = extractGeminiText(data).trim();
                                               if (newDialogue) {
                                                 handleBoxValueChange(segKey, newDialogue);
+                                                // Auto-sync to segment prompt after regen
+                                                setTimeout(() => saveBoxValue(segKey), 50);
                                               }
                                             } catch (err) {
                                               console.warn('Dialogue regen failed:', err);
