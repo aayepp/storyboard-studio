@@ -66,33 +66,6 @@ const ChevronDown = ({ className = '', size = 16 }) => (
   </span>
 );
 
-// ===== CUSTOM CURSOR =====
-const KiroCursor = () => {
-  const dot = useRef(null), ring = useRef(null);
-  const pos = useRef({x:0,y:0}), rpos = useRef({x:0,y:0}), raf = useRef(null);
-  useEffect(() => {
-    const move = (e) => {
-      pos.current = {x:e.clientX,y:e.clientY};
-      if (dot.current) { dot.current.style.left=e.clientX+'px'; dot.current.style.top=e.clientY+'px'; }
-    };
-    const tick = () => {
-      rpos.current.x += (pos.current.x - rpos.current.x) * 0.12;
-      rpos.current.y += (pos.current.y - rpos.current.y) * 0.12;
-      if (ring.current) { ring.current.style.left=rpos.current.x+'px'; ring.current.style.top=rpos.current.y+'px'; }
-      raf.current = requestAnimationFrame(tick);
-    };
-    const over = (e) => { if (e.target.closest('button,a,input,select,textarea,[role="button"]')) { dot.current?.classList.add('is-hovering'); ring.current?.classList.add('is-hovering'); } };
-    const out  = ()  => { dot.current?.classList.remove('is-hovering'); ring.current?.classList.remove('is-hovering'); };
-    const down = ()  => dot.current?.classList.add('is-clicking');
-    const up   = ()  => dot.current?.classList.remove('is-clicking');
-    window.addEventListener('mousemove',move); window.addEventListener('mouseover',over);
-    window.addEventListener('mouseout',out);   window.addEventListener('mousedown',down); window.addEventListener('mouseup',up);
-    raf.current = requestAnimationFrame(tick);
-    return () => { window.removeEventListener('mousemove',move); window.removeEventListener('mouseover',over); window.removeEventListener('mouseout',out); window.removeEventListener('mousedown',down); window.removeEventListener('mouseup',up); cancelAnimationFrame(raf.current); };
-  },[]);
-  return (<><div ref={dot} className="kiro-cursor"/><div ref={ring} className="kiro-cursor-ring"/></>);
-};
-
 // ===== TEXT SCRAMBLE HOOK =====
 const useScramble = (text, delay = 0) => {
   const [display, setDisplay] = useState('');
@@ -4360,7 +4333,6 @@ ${aspectStr}`;
   if (showLanding && !hasAgreed) {
     return (
       <div className={`min-h-screen flex items-center justify-center p-4 font-sans relative overflow-hidden bg-[#060810]${landingExiting ? ' aww-exit' : ''}`}>
-        <KiroCursor />
         {landingExiting && <div className="morph-circle" style={{'--cx':morphPos.x,'--cy':morphPos.y}} />}
         <div className="aww-orb aww-orb-1 pointer-events-none" />
         <div className="aww-orb aww-orb-2 pointer-events-none" />
@@ -4422,7 +4394,6 @@ ${aspectStr}`;
   if (!hasAgreed) {
     return (
       <div className={`min-h-screen flex items-center justify-center p-4 font-sans transition-colors duration-300 ${t('bg-[#0a0c10]', 'bg-[#f8fafc]')}`}>
-        <KiroCursor />
         <div className={`rounded-3xl p-8 sm:p-12 max-w-2xl w-full animate-fade-in-up border shadow-2xl ${t('bg-[#11131a] border-gray-800 shadow-black/50', 'bg-white border-gray-100')}`}>
           <div className={`flex items-center gap-5 mb-10 border-b pb-6 ${U.c15}`}>
             <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 border shadow-sm ${t('bg-red-500/10 border-red-500/20', 'bg-red-50 border-red-100')}`}>
@@ -4468,7 +4439,6 @@ ${aspectStr}`;
 
   return (
     <div className={`min-h-screen font-sans pb-20 transition-colors duration-300 relative ${t('bg-[#0a0c10]', 'bg-[#f8fafc]')}`}>
-      <KiroCursor />
       <div className="bg-particle"></div>
       <div className="bg-particle"></div>
       <div className="bg-particle"></div>
