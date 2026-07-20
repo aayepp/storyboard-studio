@@ -81,7 +81,7 @@ const _baseCard = 'border rounded-[32px] p-6 sm:p-10 shadow-sm relative overflow
 const _baseIn = 'w-full rounded-2xl px-5 py-4 text-sm focus:outline-none focus:ring-1 focus:ring-sky-300 border';
 const C = {
   card: (d, mb = 'mb-8') => `${_baseCard} ${mb} ${d ? 'bg-[#11131a] border-gray-800' : 'bg-white border-gray-100'}`,
-  label: 'block text-[10px] font-bold mb-2.5 uppercase tracking-widest text-gray-400',
+  label: 'block text-[11px] font-bold mb-2.5 uppercase tracking-wide text-gray-300',
   input: (d) => `${_baseIn} transition-all ${d ? 'bg-[#0a0c10] border-gray-700 text-white placeholder-gray-600' : 'bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400'}`,
   select: (d) => `${_baseIn} appearance-none ${d ? 'bg-[#0a0c10] border-gray-700 text-white' : 'bg-gray-50 border-gray-200 text-gray-800'}`,
   h2: (d) => `text-2xl font-bold tracking-tight ${d ? 'text-white' : 'text-gray-800'}`,
@@ -98,12 +98,12 @@ const U = {
   c1: 'absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none',
   c2: 'w-full bg-gradient-to-r from-blue-500 to-cyan-400 text-white font-black py-4 rounded-2xl text-lg disabled:opacity-70',
   c3: 'w-10 h-10 rounded-full bg-sky-500 flex items-center justify-center text-white font-bold',
-  c4: 'block text-[10px] font-bold mb-2.5 uppercase tracking-widest flex items-center gap-1.5 text-gray-400',
+  c4: 'block text-[11px] font-bold mb-2.5 uppercase tracking-wide flex items-center gap-1.5 text-gray-300',
   c5: 'text-sm font-bold uppercase tracking-widest text-sky-500 mb-6 flex items-center gap-2',
-  c6: 'block text-[10px] font-bold mb-2.5 uppercase tracking-widest text-sky-400',
-  c7: 'px-2 py-0.5 rounded text-[10px] bg-sky-900/40 text-sky-400 font-bold',
-  c8: 'px-2 py-0.5 rounded text-[10px] bg-gray-700 text-gray-300 font-bold',
-  c9: 'px-2 py-0.5 rounded text-[10px] bg-green-500 text-white font-bold',
+  c6: 'block text-[11px] font-bold mb-2.5 uppercase tracking-wide text-sky-400',
+  c7: 'px-2 py-0.5 rounded text-[11px] bg-sky-900/40 text-sky-400 font-bold',
+  c8: 'px-2 py-0.5 rounded text-[11px] bg-gray-700 text-gray-300 font-bold',
+  c9: 'px-2 py-0.5 rounded text-[11px] bg-green-500 text-white font-bold',
   c10: 'font-bold text-base text-sky-500 mb-2 flex items-center gap-1.5',
   c11: 'absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10',
   c12: 'flex justify-between items-center mb-1',
@@ -111,8 +111,8 @@ const U = {
   c14: 'text-gray-800 dark:text-white',
   c15: 'border-gray-100 dark:border-gray-800',
   c16: 'text-gray-600 dark:text-gray-300',
-  c17: 'text-gray-500 dark:text-gray-400',
-  c18: 'text-gray-400 dark:text-gray-600'
+  c17: 'text-gray-400 dark:text-gray-300',
+  c18: 'text-gray-500 dark:text-gray-400'
 };
 
 const getRandomElement = (arr) => arr[Math.floor(Math.random() * arr.length)];
