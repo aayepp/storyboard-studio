@@ -1816,6 +1816,7 @@ export default function App() {
   const [logoError, setLogoError] = useState(false);
 
   const outputRef = useRef(null);
+  const bgCanvasRef = useRef(null);
   const mainAbortController = useRef(null);
   const gridAbortControllers = useRef({});
   const generationAborted = useRef(false);
@@ -1916,7 +1917,14 @@ export default function App() {
 
 const CHANGELOG = [
   {
-    version: 'v2.0', date: '20 Jul 2026', isNew: true,
+    version: 'v2.1', date: '20 Jul 2026', isNew: true,
+    changes: [
+      '3D animated background — particle universe + glassmorphism orbs + mouse parallax',
+      'License/agreement page removed — straight to app',
+    ]
+  },
+  {
+    version: 'v2.0', date: '20 Jul 2026', isNew: false,
     changes: [
       'Dialog Re-Gen ikut durasi segment — 10s = max 25 words, 30s = max 75 words',
       'Watak tak lagi bercakap laju/rush untuk video pendek',
@@ -2492,6 +2500,78 @@ return parsed;
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [isGeneratingAll, isGeneratingImage, activeTab]);
+
+  // 3D Particle Universe + Mouse Parallax Background
+  useEffect(() => {
+    const canvas = bgCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let animId;
+    let mouseX = window.innerWidth / 2;
+    let mouseY = window.innerHeight / 2;
+    const PARTICLE_COUNT = 80;
+    const CONNECT_DIST = 120;
+
+    const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
+    resize();
+    window.addEventListener('resize', resize);
+
+    const onMouse = (e) => { mouseX = e.clientX; mouseY = e.clientY; };
+    window.addEventListener('mousemove', onMouse);
+
+    const particles = Array.from({ length: PARTICLE_COUNT }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      vx: (Math.random() - 0.5) * 0.5,
+      vy: (Math.random() - 0.5) * 0.5,
+      r: Math.random() * 2 + 1,
+      opacity: Math.random() * 0.5 + 0.2
+    }));
+
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const mxRatio = (mouseX - canvas.width / 2) / canvas.width;
+      const myRatio = (mouseY - canvas.height / 2) / canvas.height;
+
+      particles.forEach(p => {
+        p.x += p.vx + mxRatio * 0.3;
+        p.y += p.vy + myRatio * 0.3;
+        if (p.x < 0) p.x = canvas.width;
+        if (p.x > canvas.width) p.x = 0;
+        if (p.y < 0) p.y = canvas.height;
+        if (p.y > canvas.height) p.y = 0;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(56, 189, 248, ${p.opacity})`;
+        ctx.fill();
+      });
+
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < CONNECT_DIST) {
+            const alpha = (1 - dist / CONNECT_DIST) * 0.15;
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.strokeStyle = `rgba(56, 189, 248, ${alpha})`;
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+          }
+        }
+      }
+      animId = requestAnimationFrame(draw);
+    };
+    draw();
+
+    return () => {
+      cancelAnimationFrame(animId);
+      window.removeEventListener('resize', resize);
+      window.removeEventListener('mousemove', onMouse);
+    };
+  }, []);
 
   const handleTabChange = (tab) => {
     if (activeTab === tab) return;
@@ -4631,12 +4711,14 @@ Pick the ONE that best fits. No explanation, just the tag.`;
 
   return (
     <div className={`min-h-screen font-sans pb-20 transition-all duration-500 relative ${t('bg-[#0a0c10]', 'bg-[#f8fafc]')}`}>
-      {/* Floating Background Particles */}
-      <div className="bg-particle"></div>
-      <div className="bg-particle"></div>
-      <div className="bg-particle"></div>
-      <div className="bg-particle"></div>
-      <div className="bg-particle"></div>
+      {/* 3D Animated Background — Particles + Glassmorphism Orbs */}
+      <canvas ref={bgCanvasRef} className="fixed inset-0 w-full h-full pointer-events-none z-0" />
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <div className="bg-orb bg-orb-1"></div>
+        <div className="bg-orb bg-orb-2"></div>
+        <div className="bg-orb bg-orb-3"></div>
+        <div className="bg-orb bg-orb-4"></div>
+      </div>
       <header className={`backdrop-blur-xl border-b sticky top-0 z-40 transition-colors duration-300 ${t('bg-[#11131a]/90 border-gray-800', 'bg-white/80 border-gray-100')}`}>
         <div className="max-w-[1200px] mx-auto px-5 sm:px-8 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
           <button
@@ -6960,26 +7042,28 @@ animation: bounceOnce 0.6s cubic-bezier(0.36, 0.07, 0.19, 0.97) forwards;
 }
 
 /* --- FLOATING PARTICLES --- */
-@keyframes float1 { 0%, 100% { transform: translate(0, 0) rotate(0deg); } 33% { transform: translate(30px, -30px) rotate(120deg); } 66% { transform: translate(-20px, 20px) rotate(240deg); } }
-@keyframes float2 { 0%, 100% { transform: translate(0, 0) rotate(0deg); } 33% { transform: translate(-25px, -35px) rotate(-120deg); } 66% { transform: translate(35px, 15px) rotate(-240deg); } }
-@keyframes float3 { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(20px, -25px) scale(1.15); } }
+
 @keyframes pulseGlow { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.8; } }
 @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
 @keyframes gradientShift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
 
-/* --- FLOATING BG PARTICLES --- */
-.bg-particle {
-  position: fixed;
+/* --- GLASSMORPHISM ORBS --- */
+.bg-orb {
+  position: absolute;
   border-radius: 50%;
-  pointer-events: none;
-  z-index: 0;
-  opacity: 0.15;
+  background: radial-gradient(circle, rgba(56,189,248,0.12) 0%, rgba(6,182,212,0.06) 40%, transparent 70%);
+  backdrop-filter: blur(60px);
+  -webkit-backdrop-filter: blur(60px);
+  border: 1px solid rgba(56,189,248,0.08);
 }
-.bg-particle:nth-child(1) { width: 300px; height: 300px; top: -50px; right: -80px; background: radial-gradient(circle, rgba(56,189,248,0.3) 0%, transparent 70%); animation: float1 25s ease-in-out infinite; }
-.bg-particle:nth-child(2) { width: 200px; height: 200px; bottom: 10%; left: -60px; background: radial-gradient(circle, rgba(6,182,212,0.25) 0%, transparent 70%); animation: float2 20s ease-in-out infinite; }
-.bg-particle:nth-child(3) { width: 150px; height: 150px; top: 40%; right: 10%; background: radial-gradient(circle, rgba(99,102,241,0.2) 0%, transparent 70%); animation: float3 18s ease-in-out infinite; }
-.bg-particle:nth-child(4) { width: 100px; height: 100px; top: 20%; left: 20%; background: radial-gradient(circle, rgba(56,189,248,0.2) 0%, transparent 70%); animation: float1 22s ease-in-out infinite 5s; }
-.bg-particle:nth-child(5) { width: 180px; height: 180px; bottom: 30%; right: 30%; background: radial-gradient(circle, rgba(6,182,212,0.15) 0%, transparent 70%); animation: float2 28s ease-in-out infinite 3s; }
+.bg-orb-1 { width: 400px; height: 400px; top: -80px; right: -100px; animation: orbFloat1 30s ease-in-out infinite; background: radial-gradient(circle, rgba(56,189,248,0.15) 0%, rgba(6,182,212,0.05) 50%, transparent 70%); }
+.bg-orb-2 { width: 300px; height: 300px; bottom: 10%; left: -80px; animation: orbFloat2 25s ease-in-out infinite 3s; background: radial-gradient(circle, rgba(99,102,241,0.12) 0%, rgba(6,182,212,0.04) 50%, transparent 70%); }
+.bg-orb-3 { width: 250px; height: 250px; top: 45%; right: 5%; animation: orbFloat3 22s ease-in-out infinite 7s; background: radial-gradient(circle, rgba(16,185,129,0.1) 0%, rgba(56,189,248,0.04) 50%, transparent 70%); }
+.bg-orb-4 { width: 180px; height: 180px; top: 15%; left: 25%; animation: orbFloat1 28s ease-in-out infinite 12s; background: radial-gradient(circle, rgba(139,92,246,0.1) 0%, rgba(56,189,248,0.03) 50%, transparent 70%); }
+
+@keyframes orbFloat1 { 0%, 100% { transform: translate(0, 0) scale(1); } 33% { transform: translate(40px, -30px) scale(1.05); } 66% { transform: translate(-20px, 20px) scale(0.95); } }
+@keyframes orbFloat2 { 0%, 100% { transform: translate(0, 0) scale(1); } 33% { transform: translate(-30px, 40px) scale(1.08); } 66% { transform: translate(25px, -15px) scale(0.92); } }
+@keyframes orbFloat3 { 0%, 100% { transform: translate(0, 0) scale(1); } 33% { transform: translate(20px, 30px) scale(0.96); } 66% { transform: translate(-35px, -20px) scale(1.04); } }
 
 /* --- GLASS CARD --- */
 .glass-card {
