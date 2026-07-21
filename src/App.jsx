@@ -2003,6 +2003,35 @@ const CHANGELOG = [
 ];
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
 
+  // Sound effects (Web Audio API — no external files)
+  const [soundEnabled, setSoundEnabled] = useState(() => {
+    try { return localStorage.getItem('sound_enabled') !== 'false'; } catch { return true; }
+  });
+  const soundCtxRef = useRef(null);
+  const playSound = (type) => {
+    if (!soundEnabled) return;
+    try {
+      const ctx = soundCtxRef.current || new (window.AudioContext || window.webkitAudioContext)();
+      soundCtxRef.current = ctx;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      gain.gain.value = 0.08;
+      if (type === 'click') { osc.frequency.value = 600; osc.type = 'sine'; gain.gain.value = 0.04; osc.start(); osc.stop(ctx.currentTime + 0.05); }
+      else if (type === 'success') { osc.frequency.value = 523; osc.type = 'sine'; gain.gain.value = 0.06; osc.start(); setTimeout(() => { try { const o2 = ctx.createOscillator(); const g2 = ctx.createGain(); o2.connect(g2); g2.connect(ctx.destination); g2.gain.value = 0.06; o2.frequency.value = 659; o2.type = 'sine'; o2.start(); o2.stop(ctx.currentTime + 0.15); } catch {} }, 120); osc.stop(ctx.currentTime + 0.12); }
+      else if (type === 'start') { osc.frequency.value = 440; osc.type = 'sine'; gain.gain.value = 0.05; osc.start(); osc.stop(ctx.currentTime + 0.08); }
+      else if (type === 'error') { osc.frequency.value = 220; osc.type = 'square'; gain.gain.value = 0.03; osc.start(); osc.stop(ctx.currentTime + 0.2); }
+      else { osc.frequency.value = 500; osc.type = 'sine'; osc.start(); osc.stop(ctx.currentTime + 0.06); }
+    } catch {}
+  };
+  const handleSoundToggle = () => {
+    const next = !soundEnabled;
+    setSoundEnabled(next);
+    try { localStorage.setItem('sound_enabled', String(next)); } catch {}
+    if (next) playSound('click');
+  };
+
   // Toast notifications
   const [toasts, setToasts] = useState([]);
   const addToast = (message, type = 'info', duration = 4000) => {
@@ -2498,6 +2527,7 @@ return parsed;
     const handler = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
         e.preventDefault();
+        playSound('click');
         if (!isGeneratingAll && !isGeneratingImage) {
           if (['cinematic_pro','microimpact','narrativearc','talkinghead','stopmotion','grafix'].includes(activeTab)) {
             generateNewMode(activeTab);
@@ -3152,6 +3182,7 @@ Keep the subject person, face reference, background layout, and clothes identica
     }
 
     setIsGeneratingAll(true);
+    playSound('start');
     setGeneratedOutput(null);
     setImageUrls([]);
     setShowMagicBox({});
@@ -3329,6 +3360,7 @@ Keep the subject person, face reference, background layout, and clothes identica
       };
       setGeneratedOutput(combinedRes);
       addToast('Storyboard siap dijana!', 'success', 4000);
+      playSound('success');
       setGenerateHistory(prev => [{ tab: activeTab, topic: cinematicTopic || productName || thTopic || gfTopic || smProduct || narrativeArcTopic || characterName || fiName, timestamp: Date.now() }, ...prev.slice(0, 4)]);
       setEditableImagePrompt(imagePrompts);
       setBoxEdits({
@@ -3352,6 +3384,7 @@ Keep the subject person, face reference, background layout, and clothes identica
         const msg = String(err.message || 'Unknown network error.');
         const friendly = 'Failed to construct architecture: ' + msg;
         setErrorMessage(friendly);
+        playSound('error');
         setTimeout(() => setErrorMessage(''), 8000);
       }
     } finally {
@@ -3390,6 +3423,7 @@ Keep the subject person, face reference, background layout, and clothes identica
     }
 
     setIsGeneratingAll(true);
+    playSound('start');
     setGeneratedOutput(null);
     setImageUrls([]);
     setZoomedImages({});
@@ -3791,6 +3825,7 @@ CAMERA SYSTEM: Ultra-stable static tripod shot.`;
 
           setGeneratedOutput(result);
           addToast('Storyboard siap dijana!', 'success', 4000);
+      playSound('success');
           setEditableImagePrompt(promptInputForAI);
           setCurrentDisplayRatio(aspectRatio);
           await generateVisual(promptInputForAI, false, aspectRatio, result.scenes.length, {
@@ -3873,6 +3908,7 @@ CAMERA SYSTEM: Ultra-stable static tripod shot.`;
 
         setGeneratedOutput(result);
         addToast('Storyboard siap dijana!', 'success', 4000);
+      playSound('success');
         setEditableImagePrompt(promptInputForAI);
         setCurrentDisplayRatio(aspectRatio);
         await generateVisual(promptInputForAI, false, aspectRatio, normalizedScenes.length, {
@@ -4074,6 +4110,7 @@ ${aspectStr}`;
 
       setGeneratedOutput(result);
       addToast('Storyboard siap dijana!', 'success', 4000);
+      playSound('success');
       setEditableImagePrompt(promptInputForAI);
 
       setBoxEdits({
@@ -4795,6 +4832,13 @@ Pick the ONE that best fits. No explanation, just the tag.`;
               <span>Gemini Auto Integrated</span>
             </div>
 
+            <button
+              onClick={handleSoundToggle}
+              title={soundEnabled ? 'Sound ON' : 'Sound OFF'}
+              className={`flex items-center px-3 py-2 rounded-full border transition-all duration-300 ${soundEnabled ? 'bg-sky-500/20 border-sky-500/40 text-sky-400' : t('bg-[#0a0c10] border-gray-700 text-gray-500', 'bg-gray-50 border-gray-200 text-gray-400')}`}
+            >
+              <I name="Volume2" className="w-4 h-4" />
+            </button>
             <button
               onClick={() => setIsDarkMode(!isDarkMode)}
               className={`flex items-center px-3 py-2 rounded-full border transition-all duration-300 ${t('bg-[#0a0c10] border-gray-700 text-gray-300', 'bg-gray-50 border-gray-200 text-gray-400')}`}
@@ -6265,6 +6309,28 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                         </div>
                       </div>
                     )})}
+                    {/* Skeleton shimmer cards for remaining images still being generated */}
+                    {isGeneratingImage && expectedTotalScenes > imageUrls.length && Array.from({ length: Math.min(expectedTotalScenes - imageUrls.length, 6) }).map((_, skIdx) => (
+                      <div key={`skeleton-${skIdx}`} className="flex flex-col group animate-fade-in" style={{ animationDelay: `${skIdx * 100}ms` }}>
+                        <div className="flex gap-4 mb-6 px-2">
+                          <div className="w-12 h-12 shrink-0 rounded-full bg-gray-700/50 animate-pulse" />
+                          <div className="flex-1 space-y-2 py-2">
+                            <div className="h-3 bg-gray-700/50 rounded-full animate-pulse w-3/4" />
+                            <div className="h-2 bg-gray-700/30 rounded-full animate-pulse w-1/2" />
+                          </div>
+                        </div>
+                        <div className={`relative border-[8px] rounded-[3rem] shadow-2xl overflow-hidden ${t('border-[#1a1c23] bg-[#1a1c23]', 'border-gray-900 bg-gray-900')}`}>
+                          <div className="absolute top-0 inset-x-0 h-6 flex justify-center z-30">
+                            <div className={`w-32 h-6 rounded-b-2xl ${t('bg-[#1a1c23]', 'bg-gray-900')}`} />
+                          </div>
+                          <div className={`w-full ${containerAspectClass} skeleton-shimmer`} />
+                        </div>
+                        <div className="flex flex-col gap-2 mt-6">
+                          <div className="h-10 rounded-xl bg-gray-700/30 animate-pulse" />
+                          <div className="h-10 rounded-xl bg-gray-700/20 animate-pulse" />
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
@@ -7257,6 +7323,14 @@ animation: bounceOnce 0.6s cubic-bezier(0.36, 0.07, 0.19, 0.97) forwards;
   display: inline-flex;
   animation: pulseGlow 2s ease-in-out infinite;
 }
+
+/* --- SKELETON SHIMMER --- */
+.skeleton-shimmer {
+  background: linear-gradient(90deg, rgba(55,65,81,0.3) 25%, rgba(75,85,99,0.5) 50%, rgba(55,65,81,0.3) 75%);
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.5s ease-in-out infinite;
+}
+@keyframes skeletonShimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
 /* --- SCROLLBAR --- */
 .custom-scrollbar::-webkit-scrollbar { width: 6px; }
