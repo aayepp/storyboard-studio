@@ -67,9 +67,9 @@ const ChevronDown = ({ className = '', size = 16 }) => (
 );
 
 const ASPECT_RATIOS = [
-  { v: '9:16', l: '9:16' },
-  { v: '16:9', l: '16:9' },
-  { v: '1:1', l: '1:1' }
+  { v: '9:16', l: '9:16 · TikTok/Reels' },
+  { v: '16:9', l: '16:9 · YouTube' },
+  { v: '1:1', l: '1:1 · Instagram' }
 ];
 
 // Added backgrounds array to store multiple environment images
@@ -4789,9 +4789,9 @@ Pick the ONE that best fits. No explanation, just the tag.`;
             </div>
             <div className="flex flex-col min-w-0">
               <span className={`text-base font-bold truncate ${activeProduct.name ? 'text-gray-200' : 'text-gray-500'}`}>
-                {activeProduct.name ? activeProduct.name : 'Upload Product Reference'}
+                {activeProduct.name ? activeProduct.name : '📦 Upload Product Reference'}
               </span>
-              {!activeProduct.name && <span className="text-xs mt-1 text-gray-400 font-bold">Locks consistency metric automatically inside active tab</span>}
+              {!activeProduct.name && <span className="text-xs mt-1 text-gray-400 font-bold">Upload gambar produk — AI lock visual consistency merentas semua scene</span>}
             </div>
           </div>
           <span className={`text-[10px] font-black tracking-widest uppercase px-4 py-2 rounded-full border shadow-sm whitespace-nowrap ${isDarkMode ? 'bg-sky-900/30 border-pink-800/50 text-sky-400' : 'bg-sky-100 border-sky-200 text-sky-600'}`}>
@@ -4816,7 +4816,7 @@ Pick the ONE that best fits. No explanation, just the tag.`;
 
     return (
       <div className="mt-4">
-        <label className={C.label}>Environment / Background Reference (Optional)</label>
+        <label className={C.label}>Environment / Background / Environment Reference (Optional)</label>
         <div className={`w-full border border-dashed rounded-3xl p-6 transition-all duration-300 ${backgrounds.length > 0 ? t('border-sky-500/50 bg-sky-900/10', 'border-sky-300 bg-sky-50') : t('border-gray-700 bg-gray-800/30', 'border-gray-300 bg-gray-50')}`}>
           
           {backgrounds.length > 0 && (
@@ -4881,7 +4881,7 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                   <label className={`block text-sm font-black ${t('text-sky-400', 'text-sky-700')}`}>
                     Biometric Face Lock Engine
                   </label>
-                  <p className={`text-[10px] mt-0.5 ${t('text-sky-500/80', 'text-sky-600')}`}>System maps physical proportions from reference facial source.</p>
+                  <p className={`text-[10px] mt-0.5 ${t('text-sky-500/80', 'text-sky-600')}`}>Upload gambar muka — AI kunci wajah sama merentas semua scene yang dijana.</p>
                 </div>
             </div>
             <span className="px-2 py-1 rounded-full text-[9px] font-black uppercase bg-sky-500 text-white tracking-widest">Active</span>
