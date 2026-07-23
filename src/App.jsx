@@ -1285,8 +1285,8 @@ Return ONLY valid JSON (no markdown):
 const FI_SKIN_TONE_OPTIONS = ['Malay warm fair (putih gading)', 'Malay natural medium (sawo matang)', 'Malay golden tan glow', 'Malaysian Chinese fair porcelain', 'Malaysian Chinese warm ivory', 'Malaysian Indian warm brown', 'Mixed Malaysian golden beige', 'Deep warm bronze Malaysian', 'Light cool beige KL office look'];
 const FI_HAIR_HEADWEAR_FEMALE = ['Long straight black hair (Raya sleek)', 'Soft wavy brown-black hair', 'Shoulder-length layered hair', 'Sleek high ponytail', 'Curtain bangs soft black hair', 'Tudung bawal pastel aesthetic', 'Tudung labuh plain premium', 'Inner + shawl hijab modern', 'Sporty instant tudung', 'Satin scarf headwrap casual', 'Half-up claw clip hair (cafe OOTD)'];
 const FI_HAIR_HEADWEAR_MALE = ['Short neat black hair (kerap potong)', 'Korean soft middle part', 'Textured crop / french crop', 'Combed side part clean', 'Undercut modern', 'Messy natural waves', 'Buzz cut clean', 'Songkok formal Raya (optional props)', 'Baseball cap street casual', 'Kopiah plain (soft lighting portrait)'];
-const FI_OUTFIT_VIBE_FEMALE = ['Casual MY OOTD (cotton tee + jeans)', 'Hijab modest pastel set', 'Raya kurung modern soft color', 'Office lady blouse + slacks (KL)', 'Cafe soft girl cardigan look', 'Shopee Live comfy loungewear', 'Baju Melayu inspired chic top', 'Streetwear baggy tee + cargo', 'Skincare GRWM robe + headband', 'Premium modest blazer set', 'Sporty activewear Uniqlo vibe', 'Date night simple midi dress'];
-const FI_OUTFIT_VIBE_MALE = ['Casual MY OOTD (plain tee + jeans)', 'Baju Melayu modern slim fit', 'Office smart casual (oxford + chinos)', 'Shopee Live comfy polo', 'Streetwear oversized tee', 'Kopitiam uncle-chic button shirt', 'Gym / activewear clean', 'Raya songket accent formal', 'Campus hoodie casual', 'Premium blazer date look', 'Product review plain white tee', 'Techwear light jacket outdoor'];
+const FI_OUTFIT_VIBE_FEMALE = ['Dark Streetwear — black oversized hoodie + cargo pants', 'All-Black Minimal — fitted black turtleneck + tailored trousers', 'Dark Academia — charcoal blazer + dark midi skirt', 'Monochrome Navy — navy co-ord set, structured', 'Dark Modest Chic — deep burgundy modest blouse + wide-leg pants', 'Hijab modest pastel set', 'Casual MY OOTD (cotton tee + jeans)', 'Raya kurung modern soft color', 'Office lady blouse + slacks (KL)', 'Cafe soft girl cardigan look', 'Premium modest blazer set', 'Date night simple midi dress'];
+const FI_OUTFIT_VIBE_MALE = ['Dark Streetwear — black oversized tee + black cargo pants', 'All-Black Minimal — black fitted crewneck + slim trousers', 'Techwear Dark — dark grey tech jacket + joggers', 'Monochrome Charcoal — charcoal co-ord set, clean cut', 'Dark Smart Casual — navy slim shirt + dark chinos', 'Streetwear oversized tee', 'Casual MY OOTD (plain tee + jeans)', 'Office smart casual (oxford + chinos)', 'Premium blazer date look', 'Baju Melayu modern slim fit', 'Campus hoodie casual', 'Techwear light jacket outdoor'];
 const FI_LOCATION_OPTIONS = ['Bilik tidur aesthetic Malaysia (fairy lights)', 'Mirror OOTD corner rumah', 'Ruang tamu minimal KL condo', 'Meja vanity skincare setup', 'Cafe aesthetic Malaysia (natural light)', 'Kopitiam classic wooden interior', 'Mall corridor (Pavilion / Mid Valley vibe)', 'Jalan Bukit Bintang night bokeh', 'Masjid courtyard soft daylight', 'Taman / park green Malaysia', 'Shopee Live desk setup rumah', 'Kitchen counter product unboxing', 'Balcony condo golden hour', 'University campus walkway', 'Pasar malam colorful stalls (blurred)', 'Clean white content studio MY'];
 const FI_NICHE_OPTIONS = ['TikTok Malaysia Affiliate', 'Shopee Live Host', 'Skincare / Beauty MY', 'Hijab Fashion MY', 'Foodie Malaysia', 'OOTD & Lifestyle MY', 'Tech Gadget Review MY', 'Fitness / Gym MY', 'Mom Life / Family MY', 'Travel Dalam Malaysia'];
 const FI_VIBE_OPTIONS_FEMALE = ['Malaysia Local Influencer (main)', 'Kakak Affiliate Shopee vibe', 'Hijabi aesthetic soft', 'KL Clean Girl', 'Cafe soft girl MY', 'Raya glam modest', 'Campus girl natural', 'Premium beauty creator'];
@@ -2035,6 +2035,58 @@ export default function App() {
   const [editableImagePrompt, setEditableImagePrompt] = useState('');
   const [imageUrls, setImageUrls] = useState([]);
   // Sound alert toggle (persisted). Default ON.
+  // Save draft — persist inputs to localStorage
+  const saveDraft = () => {
+    try {
+      const draft = {
+        cinematicTopic, cinematicDuration, cinematicStyle,
+        microImpactTopic, narrativeArcTopic,
+        thTopic, thDuration, thTone,
+        smProduct, smDuration,
+        gfTopic, gfDuration, gfStyle,
+        productName, duration, category, energyLevel, aspectRatio,
+        gender, hijabMode, ugcEnvironment, ugcAngle
+      };
+      localStorage.setItem('sb_draft', JSON.stringify(draft));
+    } catch {}
+  };
+  const loadDraft = () => {
+    try {
+      const d = JSON.parse(localStorage.getItem('sb_draft') || '{}');
+      if (d.cinematicTopic) setCinematicTopic(d.cinematicTopic);
+      if (d.cinematicDuration) setCinematicDuration(d.cinematicDuration);
+      if (d.microImpactTopic) setMicroImpactTopic(d.microImpactTopic);
+      if (d.narrativeArcTopic) setNarrativeArcTopic(d.narrativeArcTopic);
+      if (d.thTopic) setThTopic(d.thTopic);
+      if (d.thDuration) setThDuration(d.thDuration);
+      if (d.smProduct) setSmProduct(d.smProduct);
+      if (d.gfTopic) setGfTopic(d.gfTopic);
+      if (d.productName) setProductName(d.productName);
+      if (d.duration) setDuration(d.duration);
+      if (d.category) setCategory(d.category);
+      if (d.gender) setGender(d.gender);
+      if (d.aspectRatio) setAspectRatio(d.aspectRatio);
+    } catch {}
+  };
+
+  // Keyboard shortcut modal state
+  const [showShortcuts, setShowShortcuts] = useState(false);
+
+  // Copy all scenes
+  const handleCopyAllScenes = () => {
+    if (!generatedOutput?.scenes) return;
+    const text = generatedOutput.scenes.map((s, i) =>
+      `[Scene ${i+1} — ${s.timecode || ''}]
+Visual: ${s.visual || ''}
+Dialogue: ${s.dialogue || ''}
+I2V: ${s.i2v_prompt || ''}`
+    ).join('\n\n');
+    navigator.clipboard.writeText(text).then(() => {
+      addToast('Semua scenes disalin!', 'success', 2000);
+      playSound('click');
+    }).catch(() => addToast('Copy gagal', 'error', 2000));
+  };
+
   const [soundEnabled, setSoundEnabled] = useState(() => {
     try { return localStorage.getItem('sound_alerts') !== 'off'; } catch { return true; }
   });
@@ -2107,7 +2159,7 @@ export default function App() {
   const [fiBodyType, setFiBodyType] = useState('Slim natural');
   const [fiSignature, setFiSignature] = useState('Soft smile');
   const [fiRealism, setFiRealism] = useState('TikTok UGC Natural MY');
-  const [fiOutfit, setFiOutfit] = useState('Hijab modest pastel set');
+  const [fiOutfit, setFiOutfit] = useState('Streetwear baggy tee + cargo');
   const [fiBackground, setFiBackground] = useState('Cafe aesthetic Malaysia (natural light)');
   const [fiFormat, setFiFormat] = useState('9:16 TikTok / Reels MY Pose');
   const [fiRules, setFiRules] = useState({
@@ -2800,6 +2852,16 @@ return parsed;
   // Keyboard shortcuts: Ctrl+Enter = Generate, Escape = Cancel
   useEffect(() => {
     const handler = (e) => {
+      if (e.key === '?' && !e.ctrlKey && !e.metaKey && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+        setShowShortcuts(prev => !prev);
+        return;
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        saveDraft();
+        addToast('Draft disimpan!', 'success', 2000);
+        return;
+      }
       if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
         e.preventDefault();
         if (!isGeneratingAll && !isGeneratingImage) {
@@ -3350,7 +3412,7 @@ return parsed;
         // Standard single-image regeneration
         let basePromptForRegen = Array.isArray(editableImagePrompt) ? (editableImagePrompt[index] || editableImagePrompt[0]) : editableImagePrompt;
         const continuityDataUrl = index > 0 && imageUrls[0] ? imageUrls[0] : null;
-        const prompt = `${basePromptForRegen}. ${uniqueSeed} [Alternative camera angle. ${stabilitySuffix}]${envRegen}${identityBible ? `\n${identityBible}` : ''}`;
+        const prompt = `${basePromptForRegen}. ${uniqueSeed} [Alternative camera angle. ${stabilitySuffix}]${envRegen}${identityBible ? `\n${identityBible}` : ''} Ultra-sharp 2K resolution, no blur, no grain, crisp commercial quality.`;
 
         const newImgUrl = await fetchSingleImage(prompt, lockedRatio, gridAbortControllers.current[index].signal, index, {
           identityBible, continuityDataUrl,
@@ -3489,6 +3551,7 @@ Keep the subject person, face reference, background layout, and clothes identica
 
     setIsGeneratingAll(true);
     playSound('start');
+    setSidebarOpen(false);
     setGeneratedOutput(null);
     setImageUrls([]);
     setShowMagicBox({});
@@ -3674,6 +3737,7 @@ Keep the subject person, face reference, background layout, and clothes identica
       setGeneratedOutput(combinedRes);
       addToast('Storyboard siap dijana!', 'success', 4000);
       playSound('success');
+      setSidebarOpen(false);
       setGenerateHistory(prev => [{ tab: activeTab, topic: cinematicTopic || productName || thTopic || gfTopic || smProduct || narrativeArcTopic || characterName || fiName, timestamp: Date.now() }, ...prev.slice(0, 4)]);
       setEditableImagePrompt(imagePrompts);
       setBoxEdits({
@@ -3739,6 +3803,7 @@ Keep the subject person, face reference, background layout, and clothes identica
 
     setIsGeneratingAll(true);
     playSound('start');
+    setSidebarOpen(false);
     setGeneratedOutput(null);
     setImageUrls([]);
     setZoomedImages({});
@@ -3811,7 +3876,7 @@ Keep the subject person, face reference, background layout, and clothes identica
       const anatomyLock = "Correct human anatomy, No extra fingers.";
       const isModelActive = activeTab === 'product' ? productPOVMode === 'With Model' : true;
       let framingPrompt = getFramingPrompt(aspectRatio, isModelActive);
-      const hdModifier = "4K HD, extremely detailed commercial presentation.";
+      const hdModifier = "4K HD, ultra-sharp 2K resolution, crisp edges, no blur, no pixelation, photorealistic commercial quality, pin-sharp focus throughout.";
       let cleanImageInstruction = activeTab === 'character'
         ? (charSubjectType === 'PRODUCT_CHARACTER'
             ? " [PRODUCT CHARACTER SHEET: clean white/soft studio background. Short panel captions (view names) ARE allowed and wanted above each panel; no other text overlay or watermark.]"
@@ -4176,6 +4241,7 @@ CAMERA SYSTEM: Ultra-stable static tripod shot.`;
         setGeneratedOutput(result);
         addToast('Storyboard siap dijana!', 'success', 4000);
       playSound('success');
+      setSidebarOpen(false);
         setEditableImagePrompt(promptInputForAI);
         setCurrentDisplayRatio(aspectRatio);
         await generateVisual(promptInputForAI, false, aspectRatio, normalizedScenes.length, {
@@ -4300,9 +4366,15 @@ ${locationLock}
 [HANDS FREE]: Do NOT place any product, bottle, box, or object in the model's hands. Natural pose only — hands relaxed at sides, on hip, or gesturing naturally.
 Realism mode: ${fiRealism || 'TikTok UGC Natural MY'}.
 
+[FASHION DIRECTION — PROFESSIONAL STYLIST EYE]
+You are a professional fashion photographer and stylist. The outfit is: ${fiOutfit}.
+COLOUR RULE: Extract the dominant colour palette from the outfit description. All clothing pieces must be colour-coordinated and harmonious — no clashing tones. Dark outfits stay dark (no random bright patches). Accessories, shoes, and bag (if visible) must complement the outfit palette.
+STYLING RULE: Clothes must fit well — no baggy ill-fitting silhouette unless it is intentional (e.g. oversized streetwear). Fabric must drape naturally. No wrinkled or crumpled fabric unless styled intentionally.
+POSE: Natural, confident, editorial-quality pose. Not stiff. Not awkward. Fashion-forward body language.
+
 [REALISM / QUALITY]
 ${combinedRules}
-Photoreal, commercial UGC quality, tropical Malaysia ambient light.
+Photoreal, commercial UGC quality, tropical Malaysia ambient light. Ultra-sharp 2K resolution, pin-sharp focus, zero blur, zero grain, zero pixelation, crisp skin texture and fabric detail.
 
 ${sanitizedCustomPrompt}
 ${aspectStr}`;
@@ -4313,6 +4385,7 @@ ${aspectStr}`;
           'celebrity lookalike, watermark, text overlay, logo',
           'over-smoothed beauty filter, uncanny valley',
           'holding product, holding bottle, holding box, holding device, product in hand, item in hand',
+          'blurry, out of focus, soft focus, low resolution, pixelated, grainy, noisy, jpeg artifacts, watermark, overexposed, underexposed',
           isSheet ? '' : 'plain white background, empty white studio, blank white void'
         ].filter(Boolean).join(', ');
 
@@ -4382,6 +4455,7 @@ ${aspectStr}`;
       setGeneratedOutput(result);
       addToast('Storyboard siap dijana!', 'success', 4000);
       playSound('success');
+      setSidebarOpen(false);
       setEditableImagePrompt(promptInputForAI);
 
       setBoxEdits({
@@ -4818,7 +4892,7 @@ Pick the ONE that best fits. No explanation, just the tag.`;
         <div className={`w-full border border-dashed rounded-3xl p-6 transition-all duration-300 ${backgrounds.length > 0 ? t('border-sky-500/50 bg-sky-900/10', 'border-sky-300 bg-sky-50') : t('border-gray-700 bg-gray-800/30', 'border-gray-300 bg-gray-50')}`}>
           
           {backgrounds.length > 0 && (
-            <div className="flex flex-wrap gap-4 mb-4">
+            <div className="flex flex-wrap gap-4 mb-4 justify-center">
               {backgrounds.map((bg, index) => (
                 <div key={index} className={`relative w-20 h-20 rounded-xl overflow-hidden shadow-sm border group ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
                   <img src={`data:${bg.mimeType};base64,${bg.base64}`} alt={`Background ${index}`} className="w-full h-full object-cover" />
@@ -5035,7 +5109,7 @@ Pick the ONE that best fits. No explanation, just the tag.`;
   }
 
   return (
-    <div className={`min-h-screen font-sans pb-20 transition-all duration-500 relative ${t('bg-[#0a0c10]', 'bg-[#f8fafc]')}`}>
+    <div className={`min-h-screen font-sans pb-8 transition-all duration-500 relative ${t('bg-[#0a0c10]', 'bg-[#f8fafc]')}`}>
       {/* 3D Animated Background — Particles + Glassmorphism Orbs */}
       <canvas ref={bgCanvasRef} className="fixed inset-0 w-full h-full pointer-events-none z-0" />
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
@@ -5164,16 +5238,34 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                     <button
                       key={tab.id}
                       onClick={() => handleTabChange(tab.id)}
-                      className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all text-left ${
+                      className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-xs font-bold transition-all duration-200 text-left relative overflow-hidden group ${
                         activeTab === tab.id
-                          ? `bg-gradient-to-r ${tab.grad} text-white shadow-md ${tab.glow}`
-                          : t('text-gray-400 hover:text-white hover:bg-white/5', 'text-gray-500 hover:text-gray-800 hover:bg-white')
+                          ? `bg-gradient-to-r ${tab.grad} text-white shadow-lg ${tab.glow} sidebar-active-glow`
+                          : t('text-gray-400 hover:text-white hover:bg-white/8 hover:scale-[1.01]', 'text-gray-500 hover:text-gray-800 hover:bg-gray-100')
                       }`}
                     >
-                      <span className={activeTab === tab.id ? 'text-white' : t(tab.text, tab.text)}>{tab.icon}</span>
-                      <span className="flex flex-col items-start leading-tight">
-                        <span>{tab.label}</span>
-                        {tab.desc && <span className={`text-[9px] font-normal leading-tight ${activeTab === tab.id ? 'opacity-85' : 'opacity-60'}`}>{tab.desc}</span>}
+                      {/* Left accent bar */}
+                      {activeTab === tab.id && (
+                        <span className="absolute left-0 top-1 bottom-1 w-1 rounded-full bg-white/60" />
+                      )}
+                      {/* Shimmer on hover */}
+                      {activeTab !== tab.id && (
+                        <span className="absolute inset-0 opacity-0 group-hover:opacity-100 sidebar-shimmer rounded-xl pointer-events-none" />
+                      )}
+                      <span className={`shrink-0 transition-transform duration-200 ${activeTab === tab.id ? 'text-white scale-110' : t(tab.text, tab.text)}`}>
+                        {tab.icon}
+                      </span>
+                      <span className="flex flex-col items-start leading-tight min-w-0 flex-1">
+                        <span className="flex items-center gap-1.5 w-full">
+                          <span className="truncate flex-1">{tab.label}</span>
+                          {/* Scene count badge */}
+                          {(() => {
+                            const dur = tab.id === 'cinematic_pro' ? cinematicDuration : tab.id === 'talkinghead' ? thDuration : tab.id === 'grafix' ? gfDuration : tab.id === 'stopmotion' ? smDuration : tab.id === 'microimpact' ? '10' : tab.id === 'narrativearc' ? '30' : duration;
+                            const n = expectedSceneCountForDuration(dur, tab.id);
+                            return n ? <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-full shrink-0 ${activeTab === tab.id ? 'bg-white/20 text-white' : t('bg-gray-700 text-gray-400','bg-gray-200 text-gray-500')}`}>{n}s</span> : null;
+                          })()}
+                        </span>
+                        {tab.desc && <span className={`text-[10px] font-normal leading-snug mt-0.5 ${activeTab === tab.id ? 'text-white/80' : 'opacity-50'}`}>{tab.desc}</span>}
                       </span>
                     </button>
                   ))}
@@ -6337,28 +6429,28 @@ Pick the ONE that best fits. No explanation, just the tag.`;
 
         {/* Dynamic Display Canvas & Final Pipeline Results */}
         {/* Empty State */}
-                {!generatedOutput && !isGeneratingImage && Object.values(regeneratingIndexes).every(v => !v) && Object.keys(showMagicBox).length === 0 && (
-                  <div className="flex flex-col items-center justify-center py-20 text-center animate-fade-in">
-                    <div className="w-20 h-20 rounded-[2rem] bg-gradient-to-br from-sky-500/20 to-cyan-400/20 flex items-center justify-center mb-6 border border-sky-500/20 animate-float-subtle">
-                      <I name="Sparkles" size={36} className="text-sky-400/60" />
-                    </div>
-                    <h3 className={`text-lg font-black mb-2 ${U.c14}`}>Belum Ada Output</h3>
-                    <p className={`text-sm max-w-xs leading-relaxed ${t('text-gray-500', 'text-gray-400')}`}>
-                      Pilih tab dari sidebar, isi form, lepastu tekan <span className="font-bold text-sky-400">Generate</span> untuk mulakan!
-                    </p>
-                    <div className="flex items-center gap-2 mt-6 px-4 py-2 rounded-full border border-gray-700/50 bg-gray-800/30 text-gray-500 text-[10px] font-bold">
-                      <I name="Keyboard" size={12} /> <span>Ctrl+Enter untuk generate</span>
-                    </div>
-                  </div>
-                )}
+
 
                 {(generatedOutput || isGeneratingImage || Object.values(regeneratingIndexes).some(v => v) || Object.keys(showMagicBox).length > 0) && (
-                  <div ref={outputRef} className="animate-fade-in-up mt-20 pt-10">
-            <div className="text-center mb-16 relative">
+                  <div ref={outputRef} className="animate-fade-in-up mt-8 pt-4">
+            <div className="text-center mb-8 relative">
                <h2 className={`text-4xl font-black tracking-wide mb-4 bg-gradient-to-r from-sky-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent`}>
                  {activeTab === 'character' ? 'Character Blueprint Reference' : activeTab === 'cinematic_pro' ? 'Cinematic Storyboard Details' : activeTab === 'microimpact' ? '10s Micro-Impact Suite' : activeTab === 'narrativearc' ? '30s Narrative Arc Pipeline' : activeTab === 'talkinghead' ? 'Talking Head Board Mapping' : activeTab === 'stopmotion' ? 'Stop Motion Frame Sequencing' : activeTab === 'grafix' ? 'Motion Graphics Deck' : 'Unified Workspace Canvas'}
                </h2>
-               <div className="w-16 h-1.5 bg-gradient-to-r from-blue-500 to-cyan-400 mx-auto rounded-full mb-6"></div>
+               <div className="w-16 h-1.5 bg-gradient-to-r from-blue-500 to-cyan-400 mx-auto rounded-full mb-4"></div>
+               <div className="flex items-center justify-center gap-3 mt-2">
+                 {generatedOutput?.scenes?.length > 0 && (
+                   <button onClick={handleCopyAllScenes} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black border transition-all ${t('border-gray-700 text-gray-400 hover:border-sky-500 hover:text-sky-400','border-gray-300 text-gray-500 hover:border-sky-400 hover:text-sky-500')}`}>
+                     <I name="Copy" size={11} /> Copy All Scenes
+                   </button>
+                 )}
+                 <button onClick={saveDraft} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black border transition-all ${t('border-gray-700 text-gray-400 hover:border-green-500 hover:text-green-400','border-gray-300 text-gray-500 hover:border-green-400 hover:text-green-500')}`}>
+                   <I name="Save" size={11} /> Save Draft
+                 </button>
+                 <button onClick={() => setShowShortcuts(true)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black border transition-all ${t('border-gray-700 text-gray-400 hover:border-purple-500 hover:text-purple-400','border-gray-300 text-gray-500 hover:border-purple-400 hover:text-purple-500')}`}>
+                   <I name="Keyboard" size={11} /> Shortcuts
+                 </button>
+               </div>
                {generatedOutput && (
                  <button
                    onClick={handleResetTab}
@@ -7197,6 +7289,32 @@ RULES:
         </div>
       </footer>
 
+      {/* Keyboard Shortcuts Modal */}
+      {showShortcuts && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in" onClick={() => setShowShortcuts(false)}>
+          <div className={`w-full max-w-md rounded-3xl p-6 shadow-2xl border ${t('bg-[#0d1117] border-gray-700','bg-white border-gray-200')}`} onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-5">
+              <h3 className={`text-lg font-black ${t('text-white','text-gray-900')}`}>⌨️ Keyboard Shortcuts</h3>
+              <button onClick={() => setShowShortcuts(false)} className="text-gray-500 hover:text-white transition-colors"><I name="X" size={18}/></button>
+            </div>
+            <div className="space-y-2">
+              {[
+                ['Ctrl + Enter', 'Generate storyboard'],
+                ['Ctrl + S', 'Save draft'],
+                ['Esc', 'Cancel generation'],
+                ['?', 'Toggle shortcuts panel'],
+              ].map(([key, desc]) => (
+                <div key={key} className={`flex items-center justify-between px-3 py-2 rounded-xl ${t('bg-gray-800/50','bg-gray-50')}`}>
+                  <span className={`text-xs ${t('text-gray-400','text-gray-600')}`}>{desc}</span>
+                  <kbd className={`px-2 py-1 rounded-lg text-[10px] font-black border ${t('bg-gray-700 border-gray-600 text-sky-400','bg-gray-100 border-gray-300 text-sky-600')}`}>{key}</kbd>
+                </div>
+              ))}
+            </div>
+            <p className={`text-[10px] text-center mt-4 ${t('text-gray-600','text-gray-400')}`}>Tekan ? atau klik luar untuk tutup</p>
+          </div>
+        </div>
+      )}
+
       {isAboutOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in bg-black/60 backdrop-blur-sm" onClick={() => setIsAboutOpen(false)}>
           <div className={`rounded-3xl p-6 sm:p-10 max-w-md w-full relative shadow-2xl border ${C.p3(isDarkMode)}`} onClick={(e) => e.stopPropagation()}>
@@ -7370,7 +7488,7 @@ RULES:
 
 
       {/* Toast Notifications */}
-      <div className="fixed bottom-6 right-6 z-[90] flex flex-col gap-2 pointer-events-none">
+      <div className="fixed bottom-16 right-6 z-[90] flex flex-col items-end gap-2 pointer-events-none">
         {toasts.map(toast => (
           <div key={toast.id} className={`pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-2xl shadow-2xl border text-sm font-bold animate-fade-in-up max-w-xs ${
             toast.type === 'success' ? 'bg-emerald-900/90 border-emerald-500/50 text-emerald-300' :
@@ -7494,6 +7612,26 @@ select option {
 }
 ` : ''}
 /* --- ANIMATIONS --- */
+@keyframes sidebarGlow {
+0%, 100% { box-shadow: 0 0 8px 2px rgba(139,92,246,0.4); }
+50% { box-shadow: 0 0 18px 6px rgba(139,92,246,0.7); }
+}
+@keyframes shimmerSweep {
+0% { background-position: -200% 0; }
+100% { background-position: 200% 0; }
+}
+@keyframes iconPop {
+0% { transform: scale(1); }
+50% { transform: scale(1.25); }
+100% { transform: scale(1.1); }
+}
+.sidebar-active-glow { animation: sidebarGlow 2s ease-in-out infinite; }
+.sidebar-shimmer {
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.07) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmerSweep 1.5s ease-in-out infinite;
+}
+.sidebar-icon-active { animation: iconPop 0.3s ease-out forwards; }
 @keyframes fadeInUp {
 from { opacity: 0; transform: translateY(20px); }
 to { opacity: 1; transform: translateY(0); }
