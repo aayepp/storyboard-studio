@@ -4774,12 +4774,12 @@ Pick the ONE that best fits. No explanation, just the tag.`;
           onChange={(e) => handleProductUpload(e, 0)}
           className={U.c11}
         />
-        <div className={`w-full border border-dashed rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between transition-all duration-300 relative ${
+        <div className={`w-full border border-dashed rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-center transition-all duration-300 relative ${
           activeProduct.name
           ? (t('border-sky-500/50 bg-sky-900/10', 'border-sky-300 bg-sky-50'))
           : (t('border-gray-700 hover:border-sky-500/50 bg-gray-800/30', 'border-gray-300 hover:border-sky-300 bg-gray-50'))
         }`}>
-          <div className="flex items-center gap-5 overflow-hidden w-full sm:w-auto mb-4 sm:mb-0">
+          <div className="flex flex-col items-center justify-center text-center w-full gap-3">
             <div className={`w-16 h-16 rounded-full flex items-center justify-center shrink-0 border shadow-sm ${activeProduct.base64 ? 'border-sky-500/50' : 'border-gray-700'}`}>
               {activeProduct.base64 ? (
                 <img src={`data:${activeProduct.mimeType};base64,${activeProduct.base64}`} alt="preview" className="w-full h-full object-cover rounded-full p-1" />
@@ -4787,16 +4787,14 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                 <I name="Upload" size={24} className="text-sky-400" />
               )}
             </div>
-            <div className="flex flex-col min-w-0">
-              <span className={`text-base font-bold truncate ${activeProduct.name ? 'text-gray-200' : 'text-gray-500'}`}>
+            <div className="flex flex-col items-center text-center min-w-0">
+              <span className={`text-sm font-black ${activeProduct.name ? 'text-gray-200' : t('text-sky-400','text-sky-700')}`}>
                 {activeProduct.name ? activeProduct.name : '📦 Upload Product Reference'}
               </span>
-              {!activeProduct.name && <span className="text-xs mt-1 text-gray-400 font-bold">Upload gambar produk — AI lock visual consistency merentas semua scene</span>}
+              {!activeProduct.name && <p className={`text-[10px] mt-0.5 ${t('text-sky-500/80','text-sky-600')}`}>Upload gambar produk — AI lock visual consistency merentas semua scene</p>}
             </div>
           </div>
-          <span className={`text-[10px] font-black tracking-widest uppercase px-4 py-2 rounded-full border shadow-sm whitespace-nowrap ${isDarkMode ? 'bg-sky-900/30 border-pink-800/50 text-sky-400' : 'bg-sky-100 border-sky-200 text-sky-600'}`}>
-            Aset Rujukan
-          </span>
+
           {activeProduct.name && (
             <button
               onClick={(e) => { e.preventDefault(); handleRemoveProduct(0); }}
@@ -4843,15 +4841,15 @@ Pick the ONE that best fits. No explanation, just the tag.`;
               onChange={handleBackgroundUpload}
               className={U.c11}
             />
-            <div className="flex items-center gap-4 cursor-pointer">
+            <div className="flex flex-col items-center justify-center text-center w-full gap-3 cursor-pointer">
               <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 border shadow-sm ${t('bg-sky-500/20 border-sky-500/50 text-sky-400', 'bg-sky-100 border-sky-300 text-sky-500')}`}>
                 <I name="Image" size={20} />
               </div>
-              <div className="flex flex-col">
-                <span className={`text-sm font-bold ${t('text-gray-200', 'text-gray-700')}`}>
-                  Select Background Image
+              <div className="flex flex-col items-center text-center">
+                <span className={`text-sm font-black ${t('text-sky-400', 'text-sky-700')}`}>
+                  🏙️ Upload Background Reference
                 </span>
-                <span className="text-xs mt-1 text-gray-400 font-medium">1 image is enough. Multi-upload is optional.</span>
+                <p className={`text-[10px] mt-0.5 ${t('text-sky-500/80', 'text-sky-600')}`}>Upload gambar lokasi — AI kunci latar sama merentas semua scene yang dijana.</p>
               </div>
             </div>
           </div>
