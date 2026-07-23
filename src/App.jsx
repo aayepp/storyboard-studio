@@ -348,12 +348,12 @@ CLEAN DIALOGUE RULES:
 - WORD CHOICE VARIETY: If Scene1 says "premium", Scene2 must say "quality" or "worth it". Never use same adjective across different scenes.
 `;
 
-const DEFAULT_NEGATIVE = 'no text overlay, no watermark, no logo text, no extra fingers, no deformed hands, no plastic skin, no blurry face, no cropped head, plain pure white background, empty white void, featureless white studio cyclorama, blank white backdrop, solid white wall only';
+const DEFAULT_NEGATIVE = 'no text overlay, no watermark, no logo text, no extra fingers, no deformed hands, no plastic skin, no blurry face, no cropped head, plain pure white background, empty white void, featureless white studio cyclorama, blank white backdrop, solid white wall only, no screen facing camera while person is actively playing, no impossible device orientation, no mirrored or flipped screen, no floating hands, no disconnected arms, no warped face, no extra thumbs, no uncanny expression, no melted fingers, no double pupils, no upside-down console, no rotated device in hands, no swapped left-right buttons, no mirrored logo, no scrambled button layout, no controls in wrong position, no reversed branding, no device held the wrong way, no hybrid front-and-back view, no screen visible from behind, no thumbsticks on the rear panel, no impossible mix of angles, no invented room, no new window, no new doorway, no extra furniture not in reference, no changed wall colour, no different lighting direction';
 
 const SCENE_ENVIRONMENT_RULES = `
 ENV RULES: Every scene MUST take place in the EXACT SAME core location/set. If the action changes, just change the CAMERA ANGLE of the same room/environment. Do not invent new locations. FORBIDDEN plain white/empty studio. image_prompt must name the location, lighting, props. Keep character, product, and background architecture locked across all scenes.`;
 
-const SCENE_JSON_CONTRACT = `Each scene MUST include: scene_num, timecode, visual (EN — must describe LOCATION + lighting + background props), camera, action, emotion, dialogue (BM or ""), image_prompt (EN still — must include full environment, NOT white background), i2v_prompt (EN motion), negative (must ban plain white background). [SCREEN ORIENTATION RULE]: If any character is holding/using a device with a screen (phone, tablet, handheld console, laptop), the screen MUST face TOWARD the character — NOT toward the camera. Back of device faces viewer. Only show screen facing camera for product showcase/display shots.`;
+const SCENE_JSON_CONTRACT = `Each scene MUST include: scene_num, timecode, visual (EN — must describe LOCATION + lighting + background props), camera, action, emotion, dialogue (BM or ""), image_prompt (EN still — must include full environment, NOT white background), i2v_prompt (EN motion), negative (must ban plain white background), angle_used (ONLY if product reference sheet is provided — write the exact panel label e.g. "FRONT", "BACK", "IN_HAND", "LEFT_SIDE" that you are copying the product from for this scene; omit if no product sheet). [SCREEN ORIENTATION RULE — CRITICAL]: If a character holds/uses a device with a screen (phone, tablet, handheld console, laptop), the screen MUST face TOWARD the character — the BACK of the device faces the camera/viewer. NEVER show the screen facing the camera while the person is looking at the camera or talking — that is physically impossible and looks uncanny. A person cannot watch their own screen AND face the camera at the same time. Choose ONE: either (a) she looks DOWN at the screen while playing (screen tilted toward her face, back visible to camera), OR (b) she looks at the camera and talks with the device held at chest level, screen facing her, back toward camera. Screen may face the camera ONLY in a dedicated product-showcase shot where NO one is looking at the camera. [DIALOGUE EYE-CONTACT RULE — IMPORTANT]: When a scene has spoken dialogue (the character is talking to the audience/viewer), the character SHOULD make direct eye contact with the camera — this is how creators address viewers and it feels natural and engaging. In the visual, action, and image_prompt for any scene that has non-empty dialogue, explicitly state that the character looks directly at the camera / makes eye contact with the viewer while speaking (unless the scene is deliberately a B-roll cutaway with a voiceover, in which case no face is needed). Avoid the uncanny look of a person speaking while staring off to the side for no reason. Silent/visual-only scenes (empty dialogue) do NOT need camera eye contact — they can look at the product, environment, or action naturally.`;
 
 const enrichSceneImagePrompt = (scene, opts = {}) => {
   const {
@@ -492,6 +492,32 @@ const normalizeScene = (scene, idx, aspectRatio = '9:16', enrichOpts = {}) => {
   };
 };
 
+// Converts any i2v_prompt into an explicit time-coded motion instruction for Omni Flash / Flow AI.
+// Uses the scene's own timecode + camera + action so it works regardless of what format the AI returned.
+const toTimeCodedI2V = (scene) => {
+  const raw = String(scene.i2v_prompt || scene.action || scene.visual || '').trim();
+  // If it already looks time-coded (has a pattern like "0s" or "0s–1s:"), leave it as-is.
+  if (/\b\d+(\.\d+)?s\s*[–\-:]/i.test(raw)) return raw;
+
+  // Parse the scene duration from timecode like "2.5s–5s" or "0s–3.3s".
+  const tc = String(scene.timecode || '').replace(/\s/g, '');
+  const nums = tc.match(/(\d+(?:\.\d+)?)/g) || [];
+  const start = nums.length >= 1 ? parseFloat(nums[0]) : 0;
+  const end = nums.length >= 2 ? parseFloat(nums[1]) : start + 2.5;
+  const dur = Math.max(0.5, end - start);
+
+  // Split the clip into setup / key-move / hold beats.
+  const t1 = +(start + dur * 0.3).toFixed(1);
+  const t2 = +(start + dur * 0.7).toFixed(1);
+  const camera = String(scene.camera || 'static shot').trim();
+  const action = String(scene.action || raw || 'subject holds pose').trim().replace(/\.$/, '');
+
+  return `${start}s–${t1}s: establish (${camera}), subject in starting pose. `
+    + `${t1}s–${t2}s: ${action} — camera ${camera.toLowerCase()}. `
+    + `${t2}s–${end}s: hold final pose, ready to lead into next scene. `
+    + `ONE continuous motion, no cuts. Keep face, wardrobe, product, lighting, and background locked.`;
+};
+
 const validateStoryboard = (data, expectedSceneCount = null) => {
   if (!data || !Array.isArray(data.scenes) || data.scenes.length === 0) {
     return { ok: false, reason: 'Missing scenes array' };
@@ -536,6 +562,7 @@ const buildIdentityBible = ({
     environment ? `Environment baseline: ${environment}` : '',
     style ? `Style: ${style}` : '',
     assetAnalysis ? `Reference analysis: ${assetAnalysis}` : '',
+    assetAnalysis ? `PRODUCT TRUTH RULE (CRITICAL): The reference analysis above describes the ACTUAL product. It overrides any preset category label. Every scene, action, benefit, and line of dialogue must be about THAT product type — if the analysis describes a gadget, write gadget dialogue (specs, performance, usage); if it describes skincare, write skincare dialogue. Never write a script for a different product category than the one in the reference analysis.` : '',
     extra || '',
     `RULES: Same face, age, body type, skin tone, wardrobe colors, product packaging across scenes. Do not redesign the character or product.`,
     `PRODUCT SIZE & PROPORTIONS LOCK (CRITICAL): The product MUST appear in REAL-WORLD ACCURATE SIZE and proportions in every scene. Do NOT make the product look larger, smaller, wider, or narrower than it actually is. If the product is palm-sized, show it palm-sized. If it's a large box, frame the shot to include its full real-world scale. NEVER stretch, warp, resize, or distort the product to fit the frame. Use correct scale relationships between the product and human hands/body/face. Reference the uploaded images for exact size ratio. If no reference is uploaded, use widely known real-world proportions for that product type.`,
@@ -755,12 +782,58 @@ const StepBadge = ({ number }) => (
   </div>
 );
 
+const getCategoryContext = (category, product = '') => {
+  const cat = (category || '').toLowerCase();
+  if (/skincare|serum|toner|moistur|sunscreen|beauty|makeup|foundation|mask|essence/.test(cat)) return {
+    demo: 'DEMO SEQUENCE: Scene 2 = unbox/reveal packaging; Scene 3 = texture close-up (swatch on hand/arm, show consistency); Scene 4 = application on face/skin (patting motion, absorption); Scene 5 = result reaction (glow, smoothness, before/after feel);',
+    hook: `Curiosity gap about skin result — e.g. "Korang tau tak kenapa kulit aku jadi macam ni lepas pakai ${product || 'benda ni'}?" — relatable skin problem or shocking before/after claim.`,
+    cta: `Shopee/TikTok Shop link for ${product || 'this product'}. Mention limited promo or free gift.`,
+    negative: 'no dirty skin, no clogged pores, no cakey makeup look'
+  };
+  if (/food|makanan|snack|minum|drink|beverage|supplement|vitamin|protein|kopi|tea|teh|jus|juice|roti|kek|cake/.test(cat)) return {
+    demo: 'DEMO SEQUENCE: Scene 2 = unbox/reveal product packaging; Scene 3 = preparation or plating (pouring, mixing, unwrapping); Scene 4 = first bite/sip reaction (genuine taste reaction, eyes widen); Scene 5 = flavour verdict + texture description;',
+    hook: `Unexpected taste reaction — e.g. "Serious tak tipu, ${product || 'benda ni'} ni lain dari yang lain weh!" — viral food angle or "kau dah try ke?" hook.`,
+    cta: `Order link for ${product || 'this product'}. Mention best flavour or bundle promo.`,
+    negative: 'no unappetizing food, no messy spill, no bad lighting on food'
+  };
+  if (/tech|gadget|electronic|phone|earphone|earbuds|laptop|charger|cable|speaker|console|gaming|tablet|watch|smartwatch/.test(cat)) return {
+    demo: 'DEMO SEQUENCE: Scene 2 = unbox (reveal device from box, first look); Scene 3 = physical detail (build quality, ports, buttons, screen clarity); Scene 4 = key feature demo (speed test, audio, battery, game test); Scene 5 = real-use reaction (impressed face, compare to old device);',
+    hook: `Bold tech claim — e.g. "${product || 'Benda ni'} battery dia 7 hari?!" — unboxing surprise or speed/performance shock.`,
+    cta: `Shopee/Lazada link for ${product || 'this product'}. Mention official store or warranty.`,
+    negative: 'no cracked screen, no laggy UI, no low resolution display'
+  };
+  if (/fashion|baju|kasut|shoes|sneaker|boot|bag|beg|tudung|hijab|shawl|cloth|dress|seluar|skirt|blouse|shirt|jacket/.test(cat)) return {
+    demo: 'DEMO SEQUENCE: Scene 2 = unbox/reveal item (packaging, first look at colour/material); Scene 3 = material close-up (texture, stitching, quality feel); Scene 4 = try-on or styling (put on, show fit, movement); Scene 5 = outfit reaction (mirror check, confidence boost, complete look);',
+    hook: `Styling surprise — e.g. "Tak sangka ${product || 'benda ni'} boleh buat aku nampak macam ni!" — price vs quality shock.`,
+    cta: `Shopee/TikTok Shop for ${product || 'this product'}. Mention size guide or colour options.`,
+    negative: 'no warped fabric, no bad fit, no unflattering angle'
+  };
+  if (/home|rumah|kitchen|dapur|clean|basuh|organiz|storage|pillow|bedding|sofa|furnitur|decoration|hiasan|lampu|light/.test(cat)) return {
+    demo: 'DEMO SEQUENCE: Scene 2 = unbox/reveal product; Scene 3 = before-state problem (messy shelf, dull space, dirty surface); Scene 4 = product in use (organising, cleaning, decorating); Scene 5 = after-result (neat, clean, transformed space);',
+    hook: `Relatable home problem — e.g. "${product || 'Benda ni'} je yang aku perlukan rupanya!" — satisfying before/after or budget-friendly angle.`,
+    cta: `Shopee link for ${product || 'this product'}. Mention bundle or set deal.`,
+    negative: 'no messy background after, no cluttered result'
+  };
+  // Default fallback
+  return {
+    demo: 'DEMO SEQUENCE: Scene 2 = reveal/unbox; Scene 3 = detail close-up (quality, texture, feature); Scene 4 = product in use (demonstrate key benefit); Scene 5 = reaction/result;',
+    hook: `Relatable problem ${product ? `"${product} ni selesaikan masalah aku yang dah lama"` : 'the product solves'} — or surprising benefit claim.`,
+    cta: `Shopee/TikTok Shop link for ${product || 'this product'}. Mention promo or limited stock.`,
+    negative: ''
+  };
+};
+
 const getUgcStoryboardPrompt = (product, duration, category, environment, gender, hijabMode, angle, refCount, identityBible = '', assetAnalysis = '') => {
   const sec = parseInt(duration) || 10;
-  const sceneCount = sec <= 10 ? 3 : sec <= 20 ? 4 : 6;
+  // Ladder mirrors the proven Cinematic Pro one: keeps every scene ~2.5-4s, which is
+  // the Omni Flash / i2v sweet spot. The old ladder (3/4/6) capped at 6 scenes, so a
+  // 45s video became 7.5s per scene (motion drift) and could never fit the 7-part
+  // demo structure below.
+  const sceneCount = sec <= 10 ? 4 : sec <= 15 ? 5 : sec <= 20 ? 6 : sec <= 30 ? 8 : sec <= 45 ? 12 : 15;
   const perScene = (sec / sceneCount).toFixed(1);
   const modelRef = `${gender === 'Wanita' || gender === 'Female' ? 'young Asian female' : 'young Asian male'} influencer${(gender === 'Wanita' || gender === 'Female') && hijabMode === 'Hijab' ? ' wearing an aesthetic modern hijab' : ''}`;
 
+  const catCtx = getCategoryContext(category, product);
   return `You are a high-converting affiliate UGC (User Generated Content) video director. Create a detailed ${sec}s storyboard for a video about "${product}" (Category: ${category}).
 Style / Angle: ${angle}
 Environment: ${environment}
@@ -769,20 +842,24 @@ ${refCount > 0 ? 'Note: Reference assets are loaded for physical consistency.' :
 ${assetAnalysis ? `PRODUCT/ASSET ANALYSIS:\n${assetAnalysis}\n` : ''}
 ${identityBible ? `${identityBible}\n` : ''}
 
+[CATEGORY-SPECIFIC GUIDE — ${category.toUpperCase()}]
+HOOK ANGLE: ${catCtx.hook}
+${catCtx.demo}
+CTA STYLE: ${catCtx.cta}
+${catCtx.negative ? `EXTRA NEGATIVES: ${catCtx.negative}` : ''}
+
 RULES:
 - Exactly ${sceneCount} scenes, ${perScene}s each. Timecodes must be continuous with no gaps.
 - Dialogue / Script / Voice Over MUST be written in conversational, casual, trendy, relatable BAHASA MELAYU (Malay). Keep visual/camera/image fields in English.
 - Scene 1: HOOK — stop scrolling immediately. MANDATORY HOOK ANGLE: ${getRandomHookAngle()}
-- Middle scenes — DEMO SEQUENCE (follow this order strictly):
-  1. UNBOX/REVEAL: First look at product — packaging opening or product held up
-  2. TEXTURE/DETAIL: Extreme close-up of material, texture, quality detail
-  3. APPLICATION/USE: Product being used/applied/worn in real environment
-  4. RESULT/TRANSFORMATION: Before-after or "after using" reaction shot
-  Middle scenes must follow this demo progression, not random product angles.
-- SOCIAL PROOF SCENE (insert in scene 4 or 5):
-  Show: phone screen with review rating, or creator reaction after using, or "days later" transformation
-  Dialogue: authentic reaction, not scripted endorsement. e.g. "Serious lepas seminggu pakai, kulit aku..."
-  Must feel organic, not like an ad read.
+- Middle scenes — DEMO SEQUENCE. You have ${sceneCount} scenes total, so allocate as follows:
+${sceneCount <= 4
+  ? `  Scene 1 = HOOK. Scene 2 = REVEAL + TEXTURE combined (product held up, then close on material/quality). Scene 3 = USE + RESULT combined (product used, then the "after" reaction). Scene ${sceneCount} = CTA.
+  With only ${sceneCount} scenes there is no room for a separate social-proof scene — fold the proof into the RESULT dialogue instead (e.g. "serious lepas seminggu...").`
+  : sceneCount <= 6
+  ? `  Scene 1 = HOOK. Scene 2 = UNBOX/REVEAL. Scene 3 = TEXTURE/DETAIL close-up. Scene 4 = APPLICATION/USE. Scene ${sceneCount - 1} = RESULT/TRANSFORMATION (fold social proof into this dialogue). Scene ${sceneCount} = CTA.`
+  : `  Scene 1 = HOOK. Scene 2 = UNBOX/REVEAL. Scene 3 = TEXTURE/DETAIL close-up. Scene 4 = APPLICATION/USE. Scene 5 = RESULT/TRANSFORMATION. Scene 6 = SOCIAL PROOF (phone screen with rating, creator reaction, or "days later" shot — authentic, not an ad read). Remaining middle scenes = extra angles of use/result that add NEW information. Scene ${sceneCount} = CTA.`}
+  Follow this progression in order — do not output random product angles.
 - Final scene: CTA — pick the most contextually appropriate variant:
   SHOPEE CTA: "Klik beg kuning bawah ni — free shipping harini je" / "Link ada dekat bio, grab sebelum stok habis"
   TIKTOK SHOP CTA: "Tap the link below / Check the product card" / "Dah ada dekat TikTok Shop — swipe up!"
@@ -879,6 +956,9 @@ DIALOG PACING & SEGMENT CONTINUITY (CRITICAL FOR AI VIDEO GENERATION):
 10. Scene N's dialogue must CONNECT to Scene N+1. Use bridging: "lepas tu kan...", "tapi...", "so...", "pastu..." at scene transitions.
 11. The full dialogue across all scenes must read as ONE continuous conversation — not isolated random sentences.
 12. For videos >${sec > 15 ? '15s' : '10s'}: group every 2-3 scenes into a mini-thought that resolves before the next group begins. This ensures each 10s segment feels complete when cut.
+13. STORY LOGIC (MUST be coherent): The scenes must form a logical cause-and-effect chain. Each scene is a direct consequence of the previous one. A viewer must be able to follow WHY each moment happens. For a product story, a natural logical arc is: (a) show the problem/pain → (b) introduce the product as the answer → (c) show it working/being used → (d) show the happy result → (e) call to action. Do NOT jump to "she's happily using it" before establishing WHY she picked it up. Do NOT show the CTA before the benefit is proven. The emotion in each scene must match where we are in the story (frustrated at the problem, curious at discovery, delighted at the result).
+14. SEGMENT SELF-CONTAINMENT: This video will be cut into 10-second segments. Every group of scenes that falls within a 10s window must make sense on its own. Therefore: the FIRST scene of each ~10s block should NOT open with a dangling bridge word ("tapi...", "lepas tu...", "so...") that depends on a scene the viewer may not have seen — instead it should re-anchor lightly (name the product or the situation) before continuing. Mid-block scenes can still bridge naturally.
+15. DIALOGUE ↔ VISUAL MATCH: What the character SAYS must match what the scene SHOWS. If the dialogue talks about battery life, the visual should relate to using/checking the device, not an unrelated action. If she says "tengok ni" (look at this), she must be showing something to the camera. Never pair a line of dialogue with a visual that contradicts or ignores it.
 
 NARRATIVE ENGINE — Select the STRONGEST progression for this topic (do NOT force Hook→Problem→Solution→CTA if another works better):
 Available progressions: escalating problem, desire progression, mystery reveal, curiosity loop, before vs after, transformation journey, documentary discovery, character journey, problem to consequence, comedy setup to punchline, visual escalation, expectation vs reality, social experiment, countdown, hidden truth.
@@ -947,7 +1027,10 @@ JSON only:
 {"title":"⚡ ${topic}","duration":"10s","identity_bible":"[lock]","scenes":[{"scene_num":1,"timecode":"0s–3.3s","visual":"[EN + location]","camera":"[shot]","action":"[action]","emotion":"[face]","dialogue":"[BM max 10 words]","image_prompt":"[still with environment — scroll-stopping thumbnail quality]","i2v_prompt":"[motion]","negative":"${DEFAULT_NEGATIVE}"}]}`;
 
 const getNarrativeArcPrompt = (topic, aspect, audience, refCount, identityBible = '', assetAnalysis = '') => {
-  return `You are a professional FLOW AI & IMAGE-TO-VIDEO CINEMATIC DIRECTOR. Create a continuous 30-second storyboard with exactly 6 scenes (5 seconds each) optimized for Flow AI.
+  // Fixed-format 30s tab (UI offers no duration control — that is by design).
+  // Was "6 scenes x 5s"; 5s per clip drifts in i2v generation, so the same 6-beat
+  // 3-act structure is now told in 9 scenes of ~3.3s, which is the i2v sweet spot.
+  return `You are a professional FLOW AI & IMAGE-TO-VIDEO CINEMATIC DIRECTOR. Create a continuous 30-second storyboard with exactly 9 scenes (~3.3 seconds each) optimized for Flow AI.
 Topic: ${topic}
 Aspect Ratio: ${aspect}
 ${audience ? `Target: ${audience}` : ''}
@@ -965,10 +1048,13 @@ FLOW AI TECHNICAL REQUIREMENTS:
 Scene 1: ACT 1 — HOOK: visual pattern interrupt, grab attention in 1 second. Unexpected angle or extreme close-up.
 Scene 2: ACT 1 — SETUP: establish world, character, and stakes. Viewer must understand what this is about.
 Scene 3: ACT 2 — CONFLICT: introduce tension, problem, challenge, or desire. Emotional pull begins.
-Scene 4: ACT 2 — BUILD: deepen conflict or demonstrate solution building. Energy escalates.
-Scene 5: ACT 3 — RESOLUTION: breakthrough moment, transformation, or answer revealed. Emotional peak.
-Scene 6 — PAYOFF (pick one):
-  A) EMOTIONAL CLOSE: Character reaction shot, face showing satisfaction/relief/joy. Hold 2s.
+Scene 4: ACT 2 — CONFLICT DEEPENS: show a concrete consequence of the problem. Make it specific, not abstract.
+Scene 5: ACT 2 — TURNING POINT: the answer/solution first appears. Curiosity shifts to hope.
+Scene 6: ACT 2 — BUILD: demonstrate the solution working. Energy escalates.
+Scene 7: ACT 3 — RESOLUTION: breakthrough moment, transformation, or answer fully revealed. Emotional peak.
+Scene 8: ACT 3 — PROOF: show the result holding up (reaction, detail shot, or "after" evidence).
+Scene 9 — PAYOFF (pick one):
+  A) EMOTIONAL CLOSE: Character reaction shot, face showing satisfaction/relief/joy.
   B) PRODUCT HERO: Product/result in perfect lighting, camera slowly pulls back. Reveal moment.
   C) CTA DIRECT: Character looks straight to camera, speaks CTA line with genuine energy. Point gesture.
   D) LINGERING VISUAL: Beautiful environmental/atmospheric shot that encapsulates the story emotion. No dialogue.
@@ -980,18 +1066,21 @@ Scenes must feel continuous (action carries over). Dialogue BM, visuals English 
 
 CAMERA VARIETY (MANDATORY):
 - NEVER repeat the same camera angle in consecutive scenes.
-- Use at least 4 different camera types across the 6 scenes.
+- Use at least 5 different camera types across the 9 scenes.
 - Available: Extreme Close Up, Close Up, Medium Shot, Wide Shot, POV, Tracking Shot, Dolly In, Low Angle, High Angle, Macro, Handheld.
 
 ${DIALOGUE_AUTHENTICITY_RULES}
 
 Return ONLY valid JSON:
-{"title": "🎬 30s Narrative: [Topic]", "duration": "30s", "style": "Flow AI Optimized", "identity_bible":"[lock]", "scenes": [{"scene_num":1,"timecode":"0s–5s","visual":"[English + location/lighting]","camera":"[movement]","action":"[continuous action]","emotion":"[emotion]","dialogue":"[BM]","image_prompt":"[still with full environment]","i2v_prompt":"[motion]","transition_to_next":"cut|dissolve|wipe_left|zoom_in|match_cut","negative":"${DEFAULT_NEGATIVE}"}]}`;
+{"title": "🎬 30s Narrative: [Topic]", "duration": "30s", "style": "Flow AI Optimized", "identity_bible":"[lock]", "scenes": [{"scene_num":1,"timecode":"0s–3.3s","visual":"[English + location/lighting]","camera":"[movement]","action":"[continuous action]","emotion":"[emotion]","dialogue":"[BM]","image_prompt":"[still with full environment]","i2v_prompt":"[motion]","transition_to_next":"cut|dissolve|wipe_left|zoom_in|match_cut","negative":"${DEFAULT_NEGATIVE}"}]}`;
 };
 
 const getTalkingHeadPrompt = (topic, duration, tone, aspect, audience, refCount, identityBible = '', assetAnalysis = '') => {
   const sec = parseInt(duration) || 30;
-  const sceneCount = sec <= 10 ? 2 : sec <= 20 ? 4 : sec <= 30 ? 6 : sec <= 45 ? 9 : 12;
+  // Dialogue-heavy tab: each scene still needs room for a full spoken line, but the old
+  // ladder pinned every duration >=20s at 5s per scene, which drifts in i2v generation.
+  // Target ~3.3-4.1s: long enough to speak a line, short enough to stay stable.
+  const sceneCount = sec <= 10 ? 3 : sec <= 15 ? 4 : sec <= 20 ? 5 : sec <= 30 ? 8 : sec <= 45 ? 11 : 15;
   const perScene = (sec / sceneCount).toFixed(1);
   return `You are a TALKING HEAD storyboard generator. Create ${sec}s influencer storyboard: ${topic}. Tone: ${tone}. Aspect: ${aspect}.
 Exactly ${sceneCount} scenes, ~${perScene}s each.
@@ -1045,13 +1134,18 @@ Return ONLY valid JSON:
 };
 
 const getStopMotionPrompt = (product, duration, style, aspect, audience, refCount, identityBible = '', assetAnalysis = '') => {
-  return `You are a specialized Stop Motion Storyboard Generator. Transform "${product}" into a 10-second stop-motion video storyboard.
+  // The UI offers 5s/10s/15s but this prompt used to hardcode "10 seconds / 10 scenes",
+  // so picking 5s or 15s silently did nothing. Keep the 1-second-per-frame rhythm that
+  // makes stop motion read correctly, and scale the frame count to the chosen duration.
+  const sec = parseInt(duration) || 10;
+  const sceneCount = sec; // 1 frame per second
+  return `You are a specialized Stop Motion Storyboard Generator. Transform "${product}" into a ${sec}-second stop-motion video storyboard.
 
 RULES:
-- Exactly 10 scenes, each exactly 1 second.
+- Exactly ${sceneCount} scenes, each exactly 1 second.
 - Format: 9:16 vertical. Style: Stop Motion / ${style}.
 - Scene 1 MUST create immediate visual curiosity (object slides/jumps/snaps into frame).
-- Scene 10 MUST be a strong hero shot (main object centered, clean background, premium composition).
+- Scene ${sceneCount} (the final frame) MUST be a strong hero shot (main object centered, clean background, premium composition).
 - Every scene must visually connect to the next — one continuous sequence, NOT random disconnected shots.
 - Each scene has ONE dominant stop-motion action only.
 - Prefer movements: Slide, Jump, Rotate, Assemble, Appear, Flip, Stack, Pop Up, Spin, Expand, Collapse, Roll, Snap Into Place, Split, Merge, Unfold, Scatter, Gather, Pour, Drop, Rise, Orbit, Swap, Reveal.
@@ -1074,7 +1168,7 @@ PROPS BY PRODUCT CATEGORY (infer from product name):
 - Generic: confetti, sand, powder, small geometric blocks
 Add "props_suggestion": "[product-appropriate props]" to each scene JSON.
 
-COLOR PALETTE LOCK (maintain across all 10 scenes):
+COLOR PALETTE LOCK (maintain across all ${sceneCount} scenes):
 - Extract dominant color from product reference or infer from product name/category
 - Background/surface color must complement product (contrast or analogous)
 Add "color_palette": "primary: [hex/name], accent: [hex/name], surface: [hex/name]" to the JSON root.
@@ -1089,7 +1183,7 @@ Tabletop set must have visible surface texture, props, and lighting — not empt
 Return ONLY valid JSON:
 {
 "title": "🧩 Stop Motion: ${product}",
-"duration": "10s",
+"duration": "${sec}s",
 "style": "Stop Motion",
 "identity_bible": "[product lock]",
 "scenes": [
@@ -1104,7 +1198,9 @@ Return ONLY valid JSON:
 
 const getGrafixPrompt = (topic, duration, aspect, style, audience, refCount, identityBible = '', assetAnalysis = '') => {
   const sec = parseInt(duration) || 30;
-  const sceneCount = sec <= 10 ? 3 : sec <= 20 ? 4 : sec <= 30 ? 6 : sec <= 45 ? 9 : 12;
+  // Motion graphics: no speech pacing to respect, so keep scenes tight (~3.3-4s) —
+  // the old ladder pinned everything >=20s at 5s per scene, too long for clean i2v motion.
+  const sceneCount = sec <= 10 ? 3 : sec <= 15 ? 4 : sec <= 20 ? 6 : sec <= 30 ? 8 : sec <= 45 ? 12 : 15;
   const perScene = (sec / sceneCount).toFixed(1);
   const styleLine = !style || style === 'auto'
     ? 'Choose the best motion-graphics style that fits the topic (infographic / kinetic type / dashboard / organic shapes).'
@@ -1208,9 +1304,9 @@ const buildSheetPrompt = (subjectType, name, charGenderLabel, hijabModifier, cha
       bottomRow: 'BOTTOM ROW — REFERENCE DETAILS: Full Body Reference, Close-Up Face Reference, Hair Reference, Outfit Reference, Accessories Reference. Use a professional visual-development sheet layout.\n\nBOTTOM SECTION — COLOR PALETTE STRIP: Add a horizontal color swatch strip at the very bottom of the sheet showing: skin tone swatch, hair color swatch, eye color swatch, outfit primary color swatch, outfit accent color swatch. Label each swatch with a descriptive color name.'
     },
     PRODUCT_CHARACTER: {
-      topRow: 'TOP ROW — PRIMARY VIEWS: Front View, 3/4 Front View, Left Side View, Right Side View, Back View.',
-      middleRow: 'MIDDLE ROW — TECHNICAL VIEWS: Top View, Bottom View, 3/4 Rear View, Packaging View.',
-      bottomRow: 'BOTTOM ROW — DETAIL REFERENCES: Label Close-Up, Material Close-Up, Texture Reference, Logo Detail, Scale Reference. Requirements: Preserve exact product identity, proportions, brand colors, visible logo design, label hierarchy, packaging geometry, consistent material rendering.\n\nSCALE REFERENCE PANEL: In the bottom-right corner, show the product next to a common reference object (human hand for handheld products, desk for large products, coin for small products) to establish real-world scale.'
+      topRow: 'TOP ROW — 4 PRIMARY REFERENCE ANGLES (crop-ready): These four panels are the MOST IMPORTANT and will be cropped out individually for later use, so make each one large, clean, well-separated, and clearly labelled with a bold caption above it. Panel 1 = "FRONT VIEW" (product facing camera, screen/face and all front controls fully visible). Panel 2 = "3/4 VIEW" (three-quarter angle showing front + one side together — the best single reference angle). Panel 3 = "BACK VIEW" (rear facing camera, showing back panel, logo, vents, ports). Panel 4 = "IN-HAND VIEW" (product held naturally in a human hand at real-world scale, oriented the correct upright way). Each of these four panels must show the SAME product with an IDENTICAL, consistent control/button/logo layout — do not mirror or rearrange controls between panels.',
+      middleRow: 'MIDDLE ROW — TECHNICAL VIEWS (smaller, secondary): Label each: "LEFT SIDE", "RIGHT SIDE", "TOP VIEW", "BOTTOM VIEW".',
+      bottomRow: 'BOTTOM ROW — DETAIL REFERENCES (smaller): Label each: "LEFT CONTROLS" (close-up of left-hand buttons/joystick/D-pad), "RIGHT CONTROLS" (close-up of right-hand buttons/joystick), "LOGO DETAIL", "SCALE REFERENCE". Requirements: Preserve exact product identity, proportions, brand colors, visible logo design, and the exact asymmetric control layout (left-side controls stay left, right-side stay right — never swapped or mirrored). For any device with an asymmetric control layout, the LEFT CONTROLS and RIGHT CONTROLS close-up panels are the authoritative map of true button positions.\n\nSCALE REFERENCE PANEL: In the bottom-right corner, show the product next to a common reference object (human hand for handheld products, desk for large products, coin for small products) to establish real-world scale.'
     },
     VEHICLE_CHARACTER: {
       topRow: 'PRIMARY VIEWS: Front View, Rear View, Left Side View, Right Side View, Top View, 3/4 Front View, 3/4 Rear View.',
@@ -1321,7 +1417,9 @@ The final image must resemble a professional studio reference board used in anim
 When a requested view contains information not visible in the uploaded image: infer conservatively, use the visible design language, maintain symmetry where reasonable, avoid adding distinctive unsupported features, keep inferred regions visually simple, prioritize consistency over novelty.
 
 === TEXT & LABELS ===
-If labels are used: keep labels minimal, use clean professional typography, use short view names, place labels consistently, avoid large titles. Where text rendering quality is unreliable, prioritize clean visual layout over excessive labels.
+${category === 'PRODUCT_CHARACTER'
+  ? 'IMPORTANT: Add a clear, legible caption ABOVE each of the 4 primary reference panels ("FRONT VIEW", "3/4 VIEW", "BACK VIEW", "IN-HAND VIEW") and above each secondary/detail panel. Use clean bold professional typography, correctly spelled, high-contrast, easy to read — these labels are needed so the panels can be identified and cropped later. Keep captions short (2-3 words), consistent position, no decorative text.'
+  : 'If labels are used: keep labels minimal, use clean professional typography, use short view names, place labels consistently, avoid large titles. Where text rendering quality is unreliable, prioritize clean visual layout over excessive labels.'}
 
 === FAILURE PREVENTION ===
 Avoid: identity drift, different faces/hairstyles/clothing between views, random accessories, extra or missing limbs, anatomical distortion, duplicate angles, incorrect rear views, mirrored logos, corrupted branding, random product redesign, color drift, material drift, scale inconsistency, perspective inconsistency, background clutter, cropped critical details, unreadable composition, unnecessary text, watermarks, fake signatures.
@@ -1422,99 +1520,53 @@ const generateFlowSegments = (scenes, durationStr, options = {}) => {
 
   const buckets = Array.from({ length: numSegments }, () => []);
 
-  const assignEven = () => {
-    for (let i = 0; i < numSegments; i++) buckets[i] = [];
-    if (!normalized.length) return;
+  // CLEAN ALLOCATION: distribute scenes sequentially and evenly across segments.
+  // Scene order is preserved (scene 1,2,3 -> seg 1; 4,5,6 -> seg 2; ...) so nothing
+  // overlaps between segments and no dialogue is ever duplicated.
+  if (normalized.length) {
+    const perSeg = Math.ceil(normalized.length / numSegments);
     normalized.forEach((sc, i) => {
-      const segIdx = Math.min(
-        numSegments - 1,
-        Math.floor((i * numSegments) / normalized.length)
-      );
+      const segIdx = Math.min(numSegments - 1, Math.floor(i / perSeg));
       buckets[segIdx].push(sc);
     });
-  };
-
-  if (!normalized.length) {
-    assignEven();
-  } else {
-    let usedTimecode = false;
-    normalized.forEach((sc) => {
-      const m = String(sc.timecode || '').match(/(\d+\.?\d*)\s*[sS]?\s*[–\-\u2013\u2014to]+\s*(\d+\.?\d*)/);
-      if (m) {
-        usedTimecode = true;
-        const mid = (parseFloat(m[1]) + parseFloat(m[2])) / 2;
-        let segIdx = Math.floor(mid / segSize);
-        if (segIdx < 0) segIdx = 0;
-        if (segIdx >= numSegments) segIdx = numSegments - 1;
-        if (mid >= totalSec) segIdx = numSegments - 1;
-        buckets[segIdx].push(sc);
-      }
-    });
-
-    const emptyCount = buckets.filter((b) => !b.length).length;
-    if (!usedTimecode || emptyCount > 0) {
-      assignEven();
-    }
+    // If any segment ended up empty (uneven counts), pull ONE scene from the
+    // richest neighbouring segment — move it, don't copy it (no duplication).
     for (let i = 0; i < numSegments; i++) {
       if (buckets[i].length) continue;
-      let donor = null;
-      for (let d = i - 1; d >= 0; d--) {
-        if (buckets[d].length) { donor = buckets[d]; break; }
+      let richest = -1, richestLen = 1;
+      for (let d = 0; d < numSegments; d++) {
+        if (buckets[d].length > richestLen) { richestLen = buckets[d].length; richest = d; }
       }
-      if (!donor) {
-        for (let d = i + 1; d < numSegments; d++) {
-          if (buckets[d].length) { donor = buckets[d]; break; }
-        }
-      }
-      if (donor && donor.length) {
-        const s0 = i * segSize;
-        const e0 = Math.min(s0 + segSize, totalSec);
-        const segPart = `${i + 1}/${numSegments}`;
-        // SEGMENT UNIQUENESS FIX: Each donor copy MUST generate unique dialogue
-        // instead of repeating the same base dialogue across segments.
-        // This prevents Flow AI from producing repeated dialogue between scenes.
-        buckets[i] = donor.map((sc, donorIdx) => {
-          const baseDialogue = String(sc.dialogue || '').trim();
-          const isFinalSegment = i === numSegments - 1;
-          // Use segment-position-aware bridges so each segment sounds different
-          const middleBridges = ['Nak bagitau lagi,', 'Lepas tu,', 'Dan yang bestnya,', 'Pastu,', 'So, untuk part ni,', 'Bila dah sampai sini,'];
-          const startBridges = ['Ok so untuk sambungan,', 'Korang,', 'Yang best lagi,', 'Selain tu,', 'Dan kalau korang nak tau,'];
-          const bridge = i <= 1 ? startBridges[donorIdx % startBridges.length] : middleBridges[donorIdx % middleBridges.length];
-          // Generate continuation dialogue with segment marker to prevent duplication
-          let continuedDialogue = '';
-          if (baseDialogue) {
-            if (isFinalSegment) {
-              const endsWeak = /(tu je|je|je lah|gitu|macam tu)\s*[.!?]?\s*$/i.test(baseDialogue);
-              if (endsWeak) {
-                continuedDialogue = `[SEG ${segPart}] Dah sampai penghujung — jangan tunggu lagi, klik beg kuning sekarang! 🔥`;
-              } else {
-                continuedDialogue = `[SEG ${segPart}] ${baseDialogue.slice(0, Math.min(baseDialogue.length, 60))} — dah sampai part akhir! 🔥`;
-              }
-            } else {
-              // Generate unique continuation: take different angle on same topic
-              // Use first few words as anchor then add fresh continuation
-              const anchor = baseDialogue.split(/\s+/).slice(0, 3).join(' ');
-              const segSpecific = [
-                `${anchor} — untuk ${s0}s–${e0}s ni, lain pulak ceritanya...`,
-                `${bridge} ${baseDialogue} — period ${segPart} pun sama...`,
-                `Untuk segmen ${segPart}: ${baseDialogue.replace(/^(.*?)(?:kan|tau|weh|eh|ah|gila|sumpah|serious)\s*/i, '').trim() || baseDialogue}`,
-                `Dalam part ${segPart}: ${anchor} dan makin menjadi...`,
-                `${bridge} dalam ${e0 - s0}s ni, ${baseDialogue.slice(0, 40)} — tapi versi lain`,
-              ];
-              continuedDialogue = segSpecific[donorIdx % segSpecific.length];
-            }
-          }
-          return {
-            ...sc,
-            visual: `${sc.visual || ''}\n[SEGMENT ${segPart} ${s0}s–${e0}s: different dialogue, same topic, progress the action naturally. Same identity/product/environment.]`,
-            dialogue: continuedDialogue,
-            i2v_prompt: sc.i2v_prompt
-              ? `${sc.i2v_prompt} Continue motion for segment ${segPart} (${s0}s–${e0}s).`
-              : `Continue seamless motion ${s0}s–${e0}s for segment ${segPart}, same character and product.`
-          };
-        });
+      if (richest >= 0) {
+        // take from the end if donor is before us, from the start if after us
+        const moved = richest < i ? buckets[richest].pop() : buckets[richest].shift();
+        if (moved) buckets[i].push(moved);
       }
     }
+  }
+
+  // TIMING RESET: re-stamp each scene's timecode + i2v so every segment starts at
+  // its true window (0s, 10s, 20s...) with no overflow across segment boundaries.
+  for (let i = 0; i < numSegments; i++) {
+    const segStart = i * segSize;
+    const segEnd = Math.min(segStart + segSize, totalSec);
+    const segScenes = buckets[i];
+    if (!segScenes.length) continue;
+    const per = (segEnd - segStart) / segScenes.length;
+    segScenes.forEach((sc, idx) => {
+      const a = +(segStart + idx * per).toFixed(1);
+      const b = +(segStart + (idx + 1) * per).toFixed(1);
+      sc.timecode = `${a}s–${b}s`;
+      // rebuild the time-coded i2v against the corrected window
+      const t1 = +(a + (b - a) * 0.3).toFixed(1);
+      const t2 = +(a + (b - a) * 0.7).toFixed(1);
+      const cam = String(sc.camera || 'static shot').trim();
+      const act = String(sc.action || sc.visual || 'subject holds pose').trim().replace(/\.$/, '');
+      sc.i2v_prompt = `${a}s–${t1}s: establish (${cam}), subject in starting pose. `
+        + `${t1}s–${t2}s: ${act} — camera ${cam.toLowerCase()}. `
+        + `${t2}s–${b}s: hold final pose, ready to lead into next scene. `
+        + `ONE continuous motion, no cuts. Keep face, wardrobe, product, lighting, and background locked.`;
+    });
   }
 
   const results = [];
@@ -1528,11 +1580,14 @@ const generateFlowSegments = (scenes, durationStr, options = {}) => {
           const vis = sc.visual || sc.action || '';
           const cam = sc.camera || '';
           const i2v = sc.i2v_prompt || '';
-          const img = sc.image_prompt || '';
+          // NOTE: 'Still prompt' (image_prompt) is intentionally omitted here.
+          // It is for still-image generation, not video. Including it bloats the
+          // Flow AI prompt past its input limit and confuses the video model
+          // (it reads image instructions inside a video prompt). Flow AI only
+          // needs the scene description, camera, and time-coded motion.
           return [
             `Scene ${sc.scene_num}: ${vis}`,
             cam ? `Camera: ${cam}` : '',
-            img ? `Still prompt: ${img}` : '',
             i2v ? `I2V: ${i2v}` : ''
           ].filter(Boolean).join('\n');
         }).join('\n\n')
@@ -1543,11 +1598,20 @@ const generateFlowSegments = (scenes, durationStr, options = {}) => {
       .map((sc) => `[Scene ${sc.scene_num}] "${sc.dialogue}"`)
       .join('\n');
 
+    // WARM-UP REFERENCE: point Flow AI at the strongest scene in this segment as the
+    // identity anchor, so the other (text-only) scenes match its face/product/lighting.
+    // Reuses pickBestKeyframe — no new picking logic.
+    const anchor = segScenes.length ? segScenes[pickBestKeyframe(segScenes).index] : null;
+    const anchorNote = anchor
+      ? `\nKEYFRAME ANCHOR: Scene ${anchor.scene_num} is the identity reference for this segment. Match its EXACT face, wardrobe, product layout, and lighting in every other scene here — keep one consistent person and product throughout.`
+      : '';
+
     const prompt = [
       `🎬 FLOW AI SEGMENT ${s}s–${e}s  (full video ${totalSec}s · part ${i + 1}/${numSegments})`,
       title ? `TITLE: ${title}` : '',
       `FORMAT: ${aspectRatio} | WINDOW: ${s}s to ${e}s | DURATION: ${e - s}s`,
       identityBible ? `\n${identityBible}` : '',
+      anchorNote,
       `\nVISUAL:\n${visuals}`,
       dialogues ? `\nDIALOGUE (BM):\n${dialogues}` : '',
       `\nCONTINUITY: Same character, product, wardrobe, environment across ALL segments of this ${totalSec}s video. PRODUCT SIZE LOCK: maintain real-world accurate product size — do NOT oversize or shrink the product. Keep exact scale ratio vs human hands/body as shown in reference.`,
@@ -1627,6 +1691,34 @@ const TextareaField = ({ label, value, onChange, placeholder, rows = 3, isDarkMo
   </div>
 );
 
+// Short "done" beep so the user knows a generation finished while tabbed away.
+// ponytail: uses the built-in Web Audio API instead of shipping an audio asset.
+// Ceiling: fixed two-tone chime, no volume control. If richer sounds are ever
+// needed, swap this for an <audio> element with a real sound file.
+const playDoneSound = () => {
+  try {
+    if (localStorage.getItem('sound_alerts') === 'off') return;
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
+    const ctx = new Ctx();
+    const now = ctx.currentTime;
+    // Two quick rising notes = pleasant "task complete" chime.
+    [[880, 0], [1320, 0.12]].forEach(([freq, offset]) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.0001, now + offset);
+      gain.gain.exponentialRampToValueAtTime(0.25, now + offset + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + offset + 0.18);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(now + offset);
+      osc.stop(now + offset + 0.2);
+    });
+    setTimeout(() => ctx.close().catch(() => {}), 600);
+  } catch { /* audio blocked or unsupported — silently skip */ }
+};
+
 const getStoredApiKey = () => {
   try { return localStorage.getItem('gemini_api_key') || ''; } catch { return ''; }
 };
@@ -1644,10 +1736,97 @@ const getStoredGenerateMode = () => {
 };
 
 const getStoredKeyframeMode = () => {
-  try { return localStorage.getItem('keyframe_mode') || 'on'; } catch { return 'on'; }
+  try {
+    const v = localStorage.getItem('keyframe_mode') || 'on';
+    // Valid modes: 'off' (0 img), 'on' (1 smart keyframe), 'segment' (1 per Flow segment)
+    return ['off', 'on', 'segment'].includes(v) ? v : 'on';
+  } catch { return 'on'; }
 };
 const getStoredTimelineMode = () => {
   try { return localStorage.getItem('timeline_mode') || 'off'; } catch { return 'off'; }
+};
+
+// SMART KEYFRAME PICKER: pick the scene index that makes the best identity anchor.
+// A good keyframe clearly shows the subject's face + product (close/medium shot),
+// so Flow AI has a strong reference to lock identity across the rest of the video.
+// Scores one scene as a keyframe candidate. Returns a numeric score.
+const scoreKeyframeCandidate = (sc, i = 0) => {
+  const cam = String(sc.camera || '').toLowerCase();
+  const vis = String(sc.visual || sc.action || '').toLowerCase();
+  const act = String(sc.action || '').toLowerCase();
+  const emo = String(sc.emotion || '').toLowerCase();
+  const dlg = String(sc.dialogue || '').trim();
+  let score = 0;
+  // RULE 1 — represent the SCENE: prefer shots that clearly frame face + product.
+  if (/close\s*up/.test(cam)) score += 5;
+  if (/medium/.test(cam)) score += 4;
+  if (/over\s*shoulder/.test(cam)) score += 2;
+  if (/pov|top\s*down|macro|extreme/.test(cam)) score -= 2;
+  if (/face|looking at|smil|eyes|expression|talk/.test(vis)) score += 3;
+  if (/hold|console|product|device|screen/.test(vis)) score += 1;
+  // #1a — ACTION field: static/holding/facing = good anchor; motion = bad (blur).
+  if (/hold|show|present|face camera|look at camera|point|reveal/.test(act)) score += 2;
+  if (/walk|run|jump|spin|throw|drop|toss|dash|move fast/.test(act)) score -= 3; // motion blur = weak keyframe
+  // #1b — EMOTION field: expressive/engaging emotions make a stronger, more scroll-stopping anchor.
+  if (/excited|surprised|amazed|shocked|happy|joy|confident|delighted/.test(emo)) score += 3;
+  if (/neutral|calm|tired|bored/.test(emo)) score += 0;
+  // RULE 2 — represent the DIALOGUE: a talking moment anchors the segment's message.
+  if (dlg.length > 0) {
+    score += 4;
+    if (dlg.length >= 20) score += 1;
+    if (/\?|!|weh|korang|sumpah|serious|tau/.test(dlg.toLowerCase())) score += 1;
+    // Best of all: talking WHILE looking at the camera (direct viewer address).
+    const looksAtCam = /look(?:ing|s)?\s*(?:at|into|to)?\s*(?:the\s*)?camera|eye contact|direct(?:ly)? at (?:the )?camera|faces? the camera|addressing the viewer/i.test(vis + ' ' + act);
+    if (looksAtCam) score += 3;
+  } else {
+    score -= 3;
+  }
+  score -= i * 0.1; // tiebreaker: earlier scene slightly preferred
+  return score;
+};
+
+// Picks the best keyframe scene and reports confidence + a short human reason.
+// Returns { index, score, confidence, reason }.
+const pickBestKeyframe = (scenes) => {
+  if (!Array.isArray(scenes) || !scenes.length) {
+    return { index: 0, score: 0, confidence: 0, reason: 'No scenes available' };
+  }
+  const scored = scenes.map((sc, i) => ({ i, s: scoreKeyframeCandidate(sc, i), sc }));
+  scored.sort((a, b) => b.s - a.s);
+  const best = scored[0];
+  const runnerUp = scored[1] || { s: best.s - 2 };
+  // Confidence: how clearly the best beats the runner-up, mapped to ~40-99%.
+  const gap = Math.max(0, best.s - runnerUp.s);
+  const confidence = Math.min(99, Math.max(40, Math.round(60 + gap * 8)));
+  // Build a short reason from what earned the points.
+  const sc = best.sc;
+  const bits = [];
+  if (/close\s*up|medium/i.test(sc.camera || '')) bits.push('clear face shot');
+  if (String(sc.dialogue || '').trim()) bits.push('has dialogue');
+  if (/excited|surprised|amazed|shocked|happy|confident/i.test(sc.emotion || '')) bits.push('expressive');
+  if (/hold|product|console|device/i.test(sc.visual || sc.action || '')) bits.push('product visible');
+  const reason = bits.length ? bits.join(' + ') : 'best available anchor';
+  return { index: best.i, score: best.s, confidence, reason };
+};
+
+// Backward-compatible wrapper (returns index only).
+const pickBestKeyframeIndex = (scenes) => pickBestKeyframe(scenes).index;
+
+// For 'segment' mode: pick one representative keyframe index per Flow segment window.
+const pickKeyframeIndicesPerSegment = (scenes, totalSec, segSize = 10) => {
+  if (!Array.isArray(scenes) || !scenes.length) return [0];
+  const numSegments = Math.max(1, Math.ceil((totalSec || 30) / segSize));
+  const perSeg = Math.ceil(scenes.length / numSegments);
+  const indices = [];
+  for (let seg = 0; seg < numSegments; seg++) {
+    const startIdx = seg * perSeg;
+    const endIdx = Math.min(startIdx + perSeg, scenes.length);
+    if (startIdx >= scenes.length) break;
+    const slice = scenes.slice(startIdx, endIdx);
+    const localBest = pickBestKeyframeIndex(slice);
+    indices.push(startIdx + localBest);
+  }
+  return indices.length ? indices : [0];
 };
 
 const GEMINI_MODELS = [
@@ -1666,6 +1845,21 @@ const GENFITY_MODELS = [
 ];
 
 const IMAGE_MODEL = 'gemini-3.1-flash-image';
+// Fallback cascade: if the primary image model is overloaded (503) or keeps failing,
+// automatically try the next one instead of hammering the same down server.
+const IMAGE_MODEL_CASCADE = [
+  'gemini-3.1-flash-image',
+  'gemini-3-pro-image',
+  'gemini-2.5-flash-image-preview'
+];
+
+// Sticky preferred image model (falls back to primary if none saved / invalid).
+const getStoredImageModel = () => {
+  try {
+    const v = localStorage.getItem('image_model_pref');
+    return v && IMAGE_MODEL_CASCADE.includes(v) ? v : IMAGE_MODEL_CASCADE[0];
+  } catch { return IMAGE_MODEL_CASCADE[0]; }
+};
 
 const getStoredModel = () => {
   try { return localStorage.getItem('gemini_selected_model') || 'gemini-3.5-flash'; } catch { return 'gemini-3.5-flash'; }
@@ -1711,15 +1905,52 @@ const getStoredGenfityModel = () => {
         continue;
       }
 
+      // 503/500/502 = server overloaded/down. Retry ONCE quickly, then give up fast
+      // with a clear OVERLOADED signal so the caller can switch to the next model in the cascade.
+      if (response.status === 503 || response.status === 500 || response.status === 502) {
+        console.warn(`Server ${response.status} (overloaded) on attempt ${i + 1} for model ${model}.`);
+        if (i >= 1) throw new Error(`HTTP ${response.status}: MODEL_OVERLOADED`);
+        await new Promise((resolve) => setTimeout(resolve, [1500, 2500][i] || 2000));
+        continue;
+      }
+
       throw new Error(`HTTP Error ${response.status}`);
     } catch (error) {
       if (error.name === 'AbortError') throw error;
       if (error.message && /HTTP (400|401|403)/.test(error.message)) throw error;
       if (error.message && error.message.includes('429')) throw error; // 429 sudah retry loop
+      if (error.message && error.message.includes('MODEL_OVERLOADED')) throw error; // let cascade switch model
       if (i === 6) throw error;
       await new Promise((resolve) => setTimeout(resolve, delays[i] || 2000));
     }
   }
+};
+
+// Try the image models in order; if one is overloaded (503), move to the next.
+// Optionally start from a preferred model (e.g. user's sticky choice).
+const callImageApiWithFallback = async (payload, isPredict = false, signal = null, preferredModel = null, onModelSwitch = null) => {
+  const cascade = preferredModel
+    ? [preferredModel, ...IMAGE_MODEL_CASCADE.filter((m) => m !== preferredModel)]
+    : [...IMAGE_MODEL_CASCADE];
+  let lastErr = null;
+  for (let m = 0; m < cascade.length; m++) {
+    const model = cascade[m];
+    try {
+      if (m > 0 && typeof onModelSwitch === 'function') onModelSwitch(model, m);
+      return await callGeminiApi(model, payload, isPredict, signal);
+    } catch (err) {
+      if (err.name === 'AbortError') throw err;
+      lastErr = err;
+      // Only fall through to the next model when the current one is overloaded/down.
+      if (err.message && err.message.includes('MODEL_OVERLOADED')) {
+        console.warn(`Model ${model} overloaded — switching to next in cascade.`);
+        continue;
+      }
+      // Any other error (bad key, bad request, etc.) is not fixed by switching models.
+      throw err;
+    }
+  }
+  throw lastErr || new Error('Semua model imej Gemini sedang sibuk (503) sekarang. Ini masalah server Google, bukan API key atau baki anda. Cuba lagi dalam 1-2 minit, atau tukar model imej di tetapan.');
 };
 
 const callGenfityApi = async (model, promptText, signal = null) => {
@@ -1803,6 +2034,12 @@ export default function App() {
   const [generatedOutput, setGeneratedOutput] = useState(null);
   const [editableImagePrompt, setEditableImagePrompt] = useState('');
   const [imageUrls, setImageUrls] = useState([]);
+  // Sound alert toggle (persisted). Default ON.
+  const [soundEnabled, setSoundEnabled] = useState(() => {
+    try { return localStorage.getItem('sound_alerts') !== 'off'; } catch { return true; }
+  });
+  // Stores which scene(s) were picked as keyframes + confidence, for UI display.
+  const [keyframeInfo, setKeyframeInfo] = useState([]);
   const [copiedSection, setCopiedSection] = useState('');
   const [zoomedImages, setZoomedImages] = useState({});
 
@@ -1898,6 +2135,7 @@ export default function App() {
   const [gfTopic, setGfTopic] = useState('');
   const [gfDuration, setGfDuration] = useState('30');
   const [gfStyle, setGfStyle] = useState('auto');
+  const [gfAudience, setGfAudience] = useState('');
 
   const [apiKey, setApiKey] = useState(getStoredApiKey);
   const [genfityKey, setGenfityKey] = useState(getStoredGenfityKey);
@@ -2003,10 +2241,7 @@ const CHANGELOG = [
 ];
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
 
-  // Sound effects (Web Audio API — no external files)
-  const [soundEnabled, setSoundEnabled] = useState(() => {
-    try { return localStorage.getItem('sound_enabled') !== 'false'; } catch { return true; }
-  });
+  // Sound effects (Web Audio API — no external files) — uses soundEnabled state from above
   const soundCtxRef = useRef(null);
   const playSound = (type) => {
     if (!soundEnabled) return;
@@ -2028,7 +2263,7 @@ const CHANGELOG = [
   const handleSoundToggle = () => {
     const next = !soundEnabled;
     setSoundEnabled(next);
-    try { localStorage.setItem('sound_enabled', String(next)); } catch {}
+    try { localStorage.setItem('sound_alerts', next ? 'on' : 'off'); } catch {}
     if (next) playSound('click');
   };
 
@@ -2180,6 +2415,39 @@ Be visual and specific. English only.`
     return extractGeminiText(data).trim();
   };
 
+  // Auto-detect reference sheet angles — scan once, reuse across all scenes
+  const analyzeProductAngles = async (signal = null) => {
+    const activeUploadData = getActiveUploadData();
+    const activeProducts = (activeUploadData.products || []).filter((p) => p.base64);
+    if (!activeProducts.length) return null;
+
+    const parts = [{
+      text: `You are a product reference sheet analyst. Look at the attached image carefully.
+If this is a multi-angle reference sheet (character sheet / turnaround sheet), identify ALL the distinct angle panels visible.
+Return ONLY a valid JSON object in this exact format:
+{
+  "is_sheet": true,
+  "available_angles": ["FRONT", "BACK", "LEFT_SIDE", "RIGHT_SIDE", "TOP", "BOTTOM", "IN_HAND", "3Q_FRONT", "3Q_BACK"],
+  "angle_notes": "brief note about what each angle shows"
+}
+If this is a single-angle photo (not a sheet), return:
+{ "is_sheet": false, "available_angles": ["FRONT"], "angle_notes": "single image" }
+Only include angles that are ACTUALLY visible. Use these exact labels: FRONT, BACK, LEFT_SIDE, RIGHT_SIDE, TOP, BOTTOM, IN_HAND, 3Q_FRONT, 3Q_BACK, LEFT_CONTROLS, RIGHT_CONTROLS.`
+    }];
+
+    activeProducts.forEach((p) => {
+      parts.push({ inlineData: { mimeType: p.mimeType || 'image/jpeg', data: p.base64 } });
+    });
+
+    try {
+      const payload = { contents: [{ role: 'user', parts }], generationConfig: { temperature: 0.1 } };
+      const res = await callGeminiApi(selectedModel, payload, false, signal);
+      const text = extractGeminiText(res).trim();
+      const json = parseModelJson(text);
+      return json && Array.isArray(json.available_angles) ? json : null;
+    } catch { return null; }
+  };
+
   const fetchStoryboardJson = async (promptText, expectedCount, signal = null) => {
     const runOnce = async (repairNote = '') => {
       const fullPrompt = repairNote
@@ -2264,13 +2532,16 @@ return parsed;
         : " [ENVIRONMENT LOCK: Photoreal storyboard still with a FULL detailed background matching the scene (room, city, nature, cafe, set). NO plain white background, NO empty white studio, NO blank backdrop. No watermarks.]";
       let handAnatomyLock = motionGraphicsMode
         ? " [DESIGN MODE: Prefer flat/3D motion-graphics elements, charts, kinetic type, product renders — not live-action fashion photography.]"
-        : " [MANDATORY PHYSICS: Flawless hand anatomy. ORIENTATION LOCK: All held objects, products, devices, screens, and text MUST be in correct upright orientation — NEVER mirrored, flipped, or upside down. Buttons, logos, and screens must face the viewer correctly.]";
+        : " [MANDATORY PHYSICS: Flawless hand anatomy. ORIENTATION LOCK: All held objects, products, devices, screens, and text MUST be in correct upright orientation — NEVER mirrored, flipped, or upside down. Buttons, logos, and screens must face the viewer correctly. CONTROL LAYOUT LOCK: For any device with controls (gaming console, handheld, remote, controller), the button/joystick/D-pad layout MUST stay physically consistent and correct — LEFT-side controls stay on the LEFT, RIGHT-side controls stay on the RIGHT, never swapped or mirrored. The brand logo must read correctly (not reversed). When held by a person, the device is oriented the natural way a real user would hold it — not rotated 180 degrees, not upside down. Fingers grip the ergonomic grips naturally, thumbs rest on the correct top-facing controls.]";
       const bibleBlock = identityBible ? `\n${identityBible}\n` : '';
       const topicBlock = topicLock
         ? `\n[TOPIC LOCK — MANDATORY]: This image MUST visually represent: "${topicLock}". Do not replace with unrelated people or scenes.\n`
         : '';
+      const hasBackgroundRef = activeBackgrounds.length > 0;
       const envLock = allowWhiteStudio
         ? ''
+        : hasBackgroundRef
+        ? `\n[BACKGROUND OVERRIDE — CRITICAL]: A BACKGROUND REFERENCE IMAGE is attached. You MUST use ONLY that location — ignore any environment description in the prompt that contradicts the reference image. The reference image defines the ONLY allowed space. Do NOT invent cafes, new rooms, outdoor areas, or any location not visible in the reference image.`
         : `\n[BACKGROUND LOCK]: Render the exact environment described in the prompt. Fill the frame with location, lighting, and props. Never collapse to pure white.`;
       const negBlock = `\nNEGATIVE: ${withEnvNegative(negative, allowWhiteStudio)}${motionGraphicsMode ? ', live-action influencer selfie, random human portrait, fashion photoshoot, hijab model stock photo, plain white canvas' : ''}`;
       let fullPromptWithClean = `${customPrompt}${topicBlock}${bibleBlock}${envLock} ${handAnatomyLock} ${cleanImageInstruction}${negBlock}`;
@@ -2289,18 +2560,22 @@ return parsed;
         } else if (motionGraphicsMode) {
           parts[0].text += "\n\n[BRAND / PRODUCT GRAPHIC REFERENCE]: Use attached assets for logo, packaging colors, or product look inside motion-graphics composition. Do NOT force a human model holding the product unless the topic requires it.";
         } else {
-          parts[0].text += "\n\n[MANDATORY ITEM LOCK]: The human MUST wear/hold ONLY the product from the attached REFERENCE IMAGE. [SCREEN & DISPLAY ORIENTATION — CRITICAL]: If the product has a screen (phone, tablet, handheld console, laptop), the screen MUST face TOWARD the person holding it — NOT toward the camera. The person interacts with the screen naturally as they would in real life. The back/rear of the device faces the camera/viewer. Exception: only show screen facing camera if the scene specifically calls for a product showcase/display shot with no active interaction. [CRITICAL PHYSICAL ACCURACY]: Replicate the EXACT physical layout of the product — all buttons, joysticks, logos, ports, and controls must be in their CORRECT original positions as shown in the reference. Do NOT mirror, flip, or swap left/right button positions. The product orientation must match reality exactly as a real photograph would show it. [STRICT NO-ADD RULE]: Do NOT add any accessories, items, jewelry, gadgets, bags, headphones, watches, glasses, or props that are NOT visible in the uploaded product reference image. The model should ONLY interact with the exact product shown — nothing else added by AI imagination. [REAL-WORLD SIZE LOCK — CRITICAL]: The product MUST appear in its REAL-WORLD ACCURATE SIZE relative to human hands/body/face. Do NOT enlarge, oversized, or shrink the product. A palm-sized serum bottle must look palm-sized. A phone must look phone-sized. A small lipstick must look small. NEVER make the product look bigger than it actually is in reality. Match the exact scale ratio shown in the reference image. If the product is small, keep it small in frame — do NOT artificially inflate its size to fill the frame.";
+          parts[0].text += "\n\n[PRODUCT]: The human must hold/wear ONLY the product from the attached REFERENCE IMAGE (full rules are stated with the image itself).";
         }
         activeProducts.forEach((p, indexSlot) => {
-          parts.push({ text: `=== REFERENCE IMAGE ${indexSlot + 1} ===` });
+          parts.push({ text: `=== PRODUCT REFERENCE IMAGE ${indexSlot + 1} — STRICT COPY RULES ===\n STEP 1: Identify which angle this scene needs (front/back/side/in-hand) from the scene description.\nSTEP 2: Find the MATCHING labelled panel in this reference sheet.\nSTEP 3: Copy the product from THAT panel ONLY — zero mixing between panels.\nHARD RULES:\n- FRONT panel = screen + front buttons visible. ZERO rear vents, ZERO rear logo.\n- BACK panel = rear casing + vents + rear logo ONLY. ZERO screen, ZERO thumbsticks, ZERO face buttons.\n- LEFT CONTROLS = left-side buttons only. RIGHT CONTROLS = right-side only. Never swap left/right.\n- Button/stick positions must match reference EXACTLY — never mirror or rearrange.\n- Screen faces the PERSON holding it. Back faces the camera. NEVER show screen facing camera while person uses device.\n- Real-world scale: device proportional to hands/body. Never oversized.\n- No extras: zero props not in reference image.\nREMEMBER: A real photograph can only show ONE side at a time.` });
           parts.push({ inlineData: { mimeType: p.mimeType || "image/jpeg", data: p.base64 } });
         });
       }
 
       if (activeTab !== 'character' && activeBackgrounds.length > 0) {
-        parts[0].text += "\n\n[CRITICAL ENVIRONMENT BACKGROUND LOCK]: You MUST strictly use the attached BACKGROUND REFERENCE images as the sole environment. If the camera angle changes for the scene, you must visualize this EXACT SAME room/location from that new perspective. DO NOT invent new rooms, buildings, or locations. Keep the architecture, lighting, props, and style 100% identical to the reference.";
+        // Keep this instruction ATTACHED to the background image rather than appending it
+        // to the giant parts[0] text block. In multimodal prompts an instruction that sits
+        // right beside the image it refers to is followed far more reliably than one buried
+        // hundreds of words earlier.
+        parts[0].text += "\n\n[ENVIRONMENT]: Use the attached BACKGROUND REFERENCE as the sole location (details are stated with the image itself).";
         activeBackgrounds.forEach((b, indexSlot) => {
-          parts.push({ text: `=== BACKGROUND / ENVIRONMENT REFERENCE ${indexSlot + 1} ===` });
+          parts.push({ text: `=== BACKGROUND / ENVIRONMENT REFERENCE ${indexSlot + 1} ===\n[NO-INVENTION RULE — CRITICAL ENVIRONMENT BACKGROUND LOCK]\n[THIS IMAGE IS THE ENTIRE WORLD OF THE SCENE]: Use ONLY this room/location. A different camera angle means re-framing INSIDE this same space — never a different place. Do NOT add windows, doors, hallways, furniture, decor, plants, or posters that are not visible in this image. If the framing would run past what this image shows, fall back to plain wall, soft shadow, or shallow depth-of-field blur instead of inventing new detail. Keep wall colour, floor material, light direction, and time of day exactly as shown, in every scene.` });
           parts.push({ inlineData: { mimeType: b.mimeType || "image/jpeg", data: b.base64 } });
         });
       }
@@ -2320,7 +2595,7 @@ return parsed;
           contents: [{ role: 'user', parts }],
           generationConfig: { responseModalities: ['IMAGE'] }
         };
-        const data = await callGeminiApi(IMAGE_MODEL, payload, false, signal);
+        const data = await callImageApiWithFallback(payload, false, signal, getStoredImageModel(), (nm) => setLoadingText(`Model sibuk, tukar ke ${nm}...`));
         const newBase64 = data?.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
         if (!newBase64) throw new Error('Gemini Image Model did not return an image.');
         return `data:image/jpeg;base64,${newBase64}`;
@@ -2329,7 +2604,7 @@ return parsed;
           contents: [{ role: 'user', parts }],
           generationConfig: { responseModalities: ['IMAGE'] }
         };
-        const data = await callGeminiApi(IMAGE_MODEL, payload, false, signal);
+        const data = await callImageApiWithFallback(payload, false, signal, getStoredImageModel(), (nm) => setLoadingText(`Model sibuk, tukar ke ${nm}...`));
         const newBase64 = data?.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
         if (!newBase64) throw new Error('Gemini did not return an image.');
         return `data:image/jpeg;base64,${newBase64}`;
@@ -2527,7 +2802,6 @@ return parsed;
     const handler = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
         e.preventDefault();
-        playSound('click');
         if (!isGeneratingAll && !isGeneratingImage) {
           if (['cinematic_pro','microimpact','narrativearc','talkinghead','stopmotion','grafix'].includes(activeTab)) {
             generateNewMode(activeTab);
@@ -2814,7 +3088,9 @@ return parsed;
       concurrency = 2,
       negatives = null,
       motionGraphicsMode = false,
-      topicLock = ''
+      topicLock = '',
+      keyframeScenes = [],
+      keyframeDurationSec = 0
     } = options;
 
     let generationSucceeded = false;
@@ -2840,18 +3116,42 @@ return parsed;
 
       // Storyboard Timeline controls scene image generation:
       // Timeline ON = generate all scenes (full storyboard images)
-      // Timeline OFF (default) = defer to Smart Keyframe
-      //   Smart Keyframe ON (default) = 1 keyframe image only
-      //   Smart Keyframe OFF = 0 images (text prompts only for Flow AI)
-      // Storyboard Timeline OFF (or not explicitly ON) = defer to Smart Keyframe
+      // Timeline OFF (default) = defer to Smart Keyframe, which now has 3 modes:
+      //   'on'      = 1 smart-picked keyframe (best face+product shot, not always scene 1)
+      //   'segment' = 1 keyframe per Flow AI segment (better continuity for 30s+ videos)
+      //   'off'     = 0 images (text prompts only for Flow AI)
       if (timelineMode !== 'on' && !isRegenerate && promptsToRun.length > 1) {
+        const sceneList = Array.isArray(keyframeScenes) ? keyframeScenes : [];
         if (keyframeMode === 'on') {
-          promptsToRun = [promptsToRun[0]];
+          // Pick the single best identity-anchor scene instead of blindly using index 0.
+          const pick = sceneList.length ? pickBestKeyframe(sceneList) : { index: 0, confidence: 0, reason: 'scene 1' };
+          const safeIdx = Math.min(pick.index, promptsToRun.length - 1);
+          promptsToRun = [promptsToRun[safeIdx]];
           runLimit = 1;
-          setLoadingText('Smart Keyframe: Generating 1 keyframe only (rest = text prompts for Flow AI)...');
+          setKeyframeInfo([{ scene: safeIdx + 1, confidence: pick.confidence, reason: pick.reason }]);
+          setLoadingText(`Smart Keyframe: Scene ${safeIdx + 1} picked (${pick.confidence}% confidence — ${pick.reason})...`);
+        } else if (keyframeMode === 'segment') {
+          // One keyframe per Flow segment window so each 10s block has its own anchor.
+          const totalSec = keyframeDurationSec > 0 ? keyframeDurationSec : (sceneList.length > 0 ? sceneList.length * 2.5 : 30);
+          const idxs = sceneList.length
+            ? pickKeyframeIndicesPerSegment(sceneList, totalSec, 10)
+            : [0];
+          const safeIdxs = [...new Set(idxs.map((x) => Math.min(x, promptsToRun.length - 1)))];
+          promptsToRun = safeIdxs.map((x) => promptsToRun[x]);
+          runLimit = promptsToRun.length;
+          // Capture per-keyframe confidence for the UI.
+          const perSeg = Math.ceil(sceneList.length / Math.max(1, safeIdxs.length));
+          setKeyframeInfo(safeIdxs.map((idx, seg) => {
+            const startIdx = seg * perSeg;
+            const slice = sceneList.slice(startIdx, Math.min(startIdx + perSeg, sceneList.length));
+            const pk = slice.length ? pickBestKeyframe(slice) : { confidence: 0, reason: '' };
+            return { scene: idx + 1, segment: seg + 1, confidence: pk.confidence, reason: pk.reason };
+          }));
+          setLoadingText(`Smart Keyframe (per-segment): ${runLimit} keyframes — one per 10s block, rest = text prompts...`);
         } else {
           promptsToRun = [];
           runLimit = 0;
+          setKeyframeInfo([]);
           setLoadingText('Text-only: No scene images (enable Smart Keyframe or Storyboard Timeline)...');
         }
       }
@@ -2986,6 +3286,7 @@ return parsed;
       if (!mainAbortController.current?.signal.aborted) {
         setIsGeneratingImage(false);
         if (generationSucceeded) {
+          playDoneSound();
           setShowSuccessPopup(true);
           setTimeout(() => setShowSuccessPopup(false), 3500);
         }
@@ -2995,6 +3296,7 @@ return parsed;
   };
 
   const regenerateSingleVisual = async (index) => {
+    playSound('start');
     setRegeneratingIndexes(prev => ({ ...prev, [index]: true }));
     gridAbortControllers.current[index] = new AbortController();
 
@@ -3003,7 +3305,9 @@ return parsed;
     const stabilitySuffix = "[MANDATORY: KEEP THE PERSON AND FACE EXACTLY THE SAME AS THE REFERENCE].";
     const identityBible = generatedOutput?.identityBible || '';
     const allowWhite = activeTab === 'character' || (activeTab === 'fake_influencer' && String(fiFormat || '').includes('Character Sheet'));
-    const envRegen = allowWhite ? '' : ' Keep the same detailed environment/location (NOT plain white background).';
+    const envRegen = allowWhite
+      ? ''
+      : ' Keep the same detailed environment/location (NOT plain white background). [SAME-SPACE RULE]: This is a NEW CAMERA ANGLE of the SAME location already established — not a new place. Re-frame within the exact room/set from the BACKGROUND REFERENCE and previous scenes. Do NOT invent walls, windows, doors, furniture, or decor that were not already visible. If the new angle would look past what the reference shows, use plain wall, soft shadow, or shallow depth-of-field blur instead of inventing detail. Keep wall colour, floor, lighting direction, and time of day identical.';
     const topicLock = generatedOutput?.topic || productName || cinematicTopic || gfTopic || '';
 
     try {
@@ -3056,6 +3360,7 @@ return parsed;
           setImageUrls(prev => { const u = [...prev]; u[index] = newImgUrl; return u; });
         }
       }
+      playDoneSound();
     } catch (err) {
       if (err.name !== 'AbortError') {
         console.error("Individual regeneration error:", err);
@@ -3072,6 +3377,7 @@ return parsed;
     const prompt = magicPrompts[index];
     if (!prompt || !prompt.trim()) return;
 
+    playSound('start');
     setRegeneratingIndexes(prev => ({ ...prev, [index]: true }));
     setIsMagicEditing(prev => ({ ...prev, [index]: true }));
     gridAbortControllers.current[index] = new AbortController();
@@ -3098,7 +3404,7 @@ Keep the subject person, face reference, background layout, and clothes identica
         generationConfig: { responseModalities: ['IMAGE'] }
       };
 
-      const data = await callGeminiApi(IMAGE_MODEL, payload, false, gridAbortControllers.current[index].signal);
+      const data = await callImageApiWithFallback(payload, false, gridAbortControllers.current[index].signal, getStoredImageModel(), (nm) => setLoadingText(`Model sibuk, tukar ke ${nm}...`));
       const partsList = data?.candidates?.[0]?.content?.parts || [];
       const newBase64 = partsList.find(p => p.inlineData && p.inlineData.data)?.inlineData?.data;
 
@@ -3212,6 +3518,7 @@ Keep the subject person, face reference, background layout, and clothes identica
         setGenerationStep(1);
         try {
           assetAnalysis = await analyzeReferenceAssets(signal);
+          productAngles = await analyzeProductAngles(signal).catch(() => null);
         } catch (analyzeErr) {
           if (analyzeErr.name === 'AbortError') throw analyzeErr;
           console.warn('Reference analysis skipped:', analyzeErr);
@@ -3270,7 +3577,7 @@ Keep the subject person, face reference, background layout, and clothes identica
       else if (mode === 'narrativearc') promptText = getNarrativeArcPrompt(narrativeArcTopic, aspectRatio, narrativeArcAudience, refCount, identityBible, assetAnalysis);
       else if (mode === 'talkinghead') promptText = getTalkingHeadPrompt(thTopic, thDuration, thTone, aspectRatio, thAudience, refCount, identityBible, assetAnalysis);
       else if (mode === 'stopmotion') promptText = getStopMotionPrompt(smProduct, smDuration, smStyle, aspectRatio, smAudience, refCount, identityBible, assetAnalysis);
-      else if (mode === 'grafix') promptText = getGrafixPrompt(topicText, gfDuration, aspectRatio, gfStyle, "", refCount, identityBible, assetAnalysis);
+      else if (mode === 'grafix') promptText = getGrafixPrompt(topicText, gfDuration, aspectRatio, gfStyle, gfAudience, refCount, identityBible, assetAnalysis);
 
       setLoadingText(isGrafix ? 'Generating Grafix framework series...' : 'Building JSON sequence array...');
       setGenerationStep(2);
@@ -3320,6 +3627,11 @@ Keep the subject person, face reference, background layout, and clothes identica
       parsed.scenes = lockScenesToDuration(parsed.scenes, lockedSec);
       parsed.duration = `${lockedSec}s`;
 
+      // OMNI FLASH: force time-coded i2v_prompt (test on cinematic_pro tab only for now)
+      if (mode === 'cinematic_pro') {
+        parsed.scenes = parsed.scenes.map((s) => ({ ...s, i2v_prompt: toTimeCodedI2V(s) }));
+      }
+
       const sceneLines = parsed.scenes.map((s, idx) => {
         const num = s.scene_num || (idx + 1);
         return `[ADENGAN ${num}] ${s.timecode || ''}\nVISUAL: ${s.visual}\nKAMERA: ${s.camera}\nAKSI: ${s.action}\nEMOSI: ${s.emotion}\nDIALOG: "${s.dialogue}"\nIMAGE_PROMPT: ${s.image_prompt}\nI2V: ${s.i2v_prompt}\nNEGATIVE: ${s.negative}`;
@@ -3342,7 +3654,8 @@ Keep the subject person, face reference, background layout, and clothes identica
             finalBible
           ].join('\n');
         }
-        return [base, `TOPIC: ${topicText}`, `Aspect ${aspectRatio}.`, `NO plain white background.`, finalBible].join('\n');
+        const angleNote = s.angle_used ? `[USE PANEL: ${s.angle_used} — copy product ONLY from this panel in the reference sheet. Do not mix with other panels.]` : '';
+        return [base, angleNote, `TOPIC: ${topicText}`, `Aspect ${aspectRatio}.`, `NO plain white background.`, finalBible].filter(Boolean).join('\n');
       });
       const negatives = parsed.scenes.map((s) => withEnvNegative(s.negative || (isGrafix ? gfNeg : DEFAULT_NEGATIVE), false));
 
@@ -3377,7 +3690,9 @@ Keep the subject person, face reference, background layout, and clothes identica
         concurrency: 2,
         negatives,
         motionGraphicsMode: isGrafix,
-        topicLock: topicText || ''
+        topicLock: topicText || '',
+        keyframeScenes: parsed.scenes || [],
+        keyframeDurationSec: lockedSec || 0
       });
     } catch (err) {
       if (err.name !== 'AbortError') {
@@ -3445,16 +3760,29 @@ Keep the subject person, face reference, background layout, and clothes identica
       let promptInputForAI = "";
       let identityBible = '';
       let assetAnalysis = '';
+      let productAngles = null;
 
       const activeProducts = (activeUploadData.products || []).filter(p => p.base64);
       const activeBackgrounds = (activeUploadData.backgrounds || []).filter(b => b.base64);
       const displayCategory = activeTab === 'ootd' ? 'Outfit' : category;
-      const safeProductName = productName.trim() || (activeProducts.length > 0 ? "This Product" : displayCategory);
+      // When the user uploads a product image but doesn't type a name, we used to send
+      // "This Product" plus whatever the category dropdown happened to be (default
+      // 'Skincare'), so a gadget upload produced a skincare script. The uploaded image is
+      // the real source of truth, so say so explicitly instead of guessing.
+      const hasProductRef = activeProducts.length > 0;
+      const userNamedProduct = productName.trim();
+      const safeProductName = userNamedProduct || (hasProductRef ? "the product shown in the attached reference image" : displayCategory);
+      // Only trust the category dropdown when the user actually named the product.
+      // Otherwise the reference image + its analysis decides what this thing is.
+      const effectiveCategory = (hasProductRef && !userNamedProduct)
+        ? 'IDENTIFY FROM REFERENCE IMAGE (ignore any preset category — the uploaded image and its analysis define what this product actually is; write all dialogue, scenes, and benefits for THAT product type)'
+        : displayCategory;
 
       if (activeProducts.length > 0 || (activeUploadData.useCustomFace && activeUploadData.uploadedFaceBase64) || activeBackgrounds.length > 0) {
         setLoadingText('Extracting features from reference images...');
         try {
           assetAnalysis = await analyzeReferenceAssets(signal);
+          productAngles = await analyzeProductAngles(signal).catch(() => null);
         } catch (analyzeErr) {
           if (analyzeErr.name === 'AbortError') throw analyzeErr;
           console.warn('Reference analysis skipped:', analyzeErr);
@@ -3464,22 +3792,30 @@ Keep the subject person, face reference, background layout, and clothes identica
       identityBible = buildIdentityBible({
         mode: activeTab,
         productName: safeProductName,
-        category: displayCategory,
+        category: effectiveCategory,
         gender,
         hijabMode,
         environment: activeTab === 'ugc' ? ugcEnvironment : (activeTab === 'ootd' ? location : productBackground),
         style: activeTab === 'ootd' ? style : energyLevel,
         assetAnalysis
       });
+      // Append available angles to identityBible if product sheet detected
+      if (productAngles && productAngles.is_sheet && productAngles.available_angles?.length) {
+        const angleList = productAngles.available_angles.join(', ');
+        identityBible += `\n\n[PRODUCT REFERENCE SHEET — AVAILABLE ANGLES]\nThis reference sheet contains these labelled panels: ${angleList}.\nFor EACH scene, pick the ONE angle that matches the scene's camera/action, declare it as "angle_used" in the JSON, and copy the product ONLY from that panel.\nAngles: ${productAngles.angle_notes || ''}`;
+      }
       result.identityBible = identityBible;
       result.assetAnalysis = assetAnalysis;
+      result.productAngles = productAngles;
 
       const anatomyLock = "Correct human anatomy, No extra fingers.";
       const isModelActive = activeTab === 'product' ? productPOVMode === 'With Model' : true;
       let framingPrompt = getFramingPrompt(aspectRatio, isModelActive);
       const hdModifier = "4K HD, extremely detailed commercial presentation.";
       let cleanImageInstruction = activeTab === 'character'
-        ? " [CHARACTER SHEET: clean white/soft studio background OK. No text overlay.]"
+        ? (charSubjectType === 'PRODUCT_CHARACTER'
+            ? " [PRODUCT CHARACTER SHEET: clean white/soft studio background. Short panel captions (view names) ARE allowed and wanted above each panel; no other text overlay or watermark.]"
+            : " [CHARACTER SHEET: clean white/soft studio background OK. No text overlay.]")
         : " [ENVIRONMENT REQUIRED: detailed real location/set matching the scene — furniture, walls, outdoor, cafe, etc. NO plain white background, NO empty white studio. No watermark text.]";
 
       let energyImageStyle = "";
@@ -3512,7 +3848,7 @@ CAMERA SYSTEM: Ultra-stable static tripod shot.`;
           const framingPromptModel = getFramingPrompt(aspectRatio, true);
           const framingPromptProduct = getFramingPrompt(aspectRatio, false);
           const envBan = 'NO plain white background, NO empty white studio.';
-          const n = productTotalSec <= 10 ? 2 : 3;
+          const n = productTotalSec <= 10 ? 2 : productTotalSec <= 20 ? 4 : productTotalSec <= 30 ? 6 : 8;
 
           // Dynamic dialogue based on product category
           const productCat = (category || 'General').toLowerCase();
@@ -3680,17 +4016,44 @@ CAMERA SYSTEM: Ultra-stable static tripod shot.`;
           let currentPose = ootdPosesMix[i % ootdPosesMix.length];
           let dialogueText = "";
 
+          // ponytail: adaptive dialog by product name + position
+          const isKasut = /kasut|shoes|sneaker|heel|boot|sandal/i.test(safeProductName + category);
+          const isBeg = /beg|bag|handbag|purse|tote|backpack/i.test(safeProductName + category);
+          const isTudung = /tudung|hijab|shawl|bawal|awning/i.test(safeProductName + category);
+          const hookLine = isKasut
+            ? `Weh korang! Kasut ${safeProductName} ni memang auto upgrade seluruh outfit — tengok ni!`
+            : isBeg
+            ? `Korang! Beg ${safeProductName} ni bukan sekadar cantik — functional gila tau!`
+            : isTudung
+            ? `Harini nak tunjuk cara style ${safeProductName} yang simple tapi nampak put-together habis!`
+            : `Harini I nak spill detail ootd ${safeProductName} ni — design dia up-to-date dan boost keyakinan korang!`;
+          const midLine1 = isKasut
+            ? `Material dia premium, sol dia comfortable gila — boleh pakai seharian tak sakit kaki.`
+            : isBeg
+            ? `Compartment dia banyak, material tahan lama, and saiz dia perfect — muat semua benda!`
+            : isTudung
+            ? `Kain dia tak panas, jatuh cantik, and warna dia versatile — senang nak match dengan apa-apa.`
+            : `Kemasan jahitan dia kemas gila and potongan dia memang fit nicely dekat badan.`;
+          const midLine2 = isKasut
+            ? `Design dia timeless — boleh pakai casual or semi-formal, memang serba boleh!`
+            : isBeg
+            ? `Strap dia adjustable, hardware dia solid — memang worth every penny!`
+            : isTudung
+            ? `Senang nak lipat, tak perlu iron banyak — perfect untuk orang busy macam kita!`
+            : `Kain dia tak panas and super selesa gila kalau nak pakai pergi pusing mall seharian.`;
+          const ctaLine = `Nampak mahal tapi harga dia sumpah marhaen habis. Jangan fikir lama-lama, grab cepat dengan klik beg kuning kat bawah!`;
+
           if (sceneCountInt === 1) {
-              dialogueText = `Saja nak spill sikit detail ootd pasal baju ${safeProductName} ni sebab sumpah bila pakai terus rasa auto terpaling stylish! Material dia kain premium gila. Korang kena dapatkan cepat dengan tekan beg kuning okay!`;
+              dialogueText = `${hookLine} ${midLine1} ${ctaLine}`;
           } else {
               if (i === 0) {
-              dialogueText = `Harini I nak spill detail ootd ${safeProductName} ni — design dia up-to-date dan boost keyakinan korang gila-gila!`;
+                dialogueText = hookLine;
               } else if (i === sceneCountInt - 1) {
-                  dialogueText = `Nampak mahal tapi harga dia sumpah marhaen habis. Jangan fikir lama-lama weh, grab cepat dengan klik beg kuning kat bawah!`;
+                dialogueText = ctaLine;
               } else if (i === 1) {
-                  dialogueText = `Kemasan jahitan dia kemas gila and potongan dia memang fit nicely dekat badan.`;
+                dialogueText = midLine1;
               } else {
-                  dialogueText = `Kain dia tak panas and super selesa gila kalau nak pakai pergi pusing mall seharian.`;
+                dialogueText = midLine2;
               }
           }
 
@@ -3741,108 +4104,12 @@ CAMERA SYSTEM: Ultra-stable static tripod shot.`;
         const is30sUgc = duration === '30';
         const expectedUgcScenes = expectedSceneCountForDuration(duration, 'ugc');
 
-        if (is30sUgc) {
-          const modelDesc = `young Asian ${gender}${gender === 'Wanita' && hijabMode === 'Hijab' ? ' wearing a stylish modern hijab' : ''} influencer`;
-          const productAction = activeProducts.length > 0
-            ? `holding/showcasing the EXACT product from the PRODUCT REFERENCE`
-            : `holding/showcasing ${safeProductName}`;
-          const envPrompt = ugcEnvironment || 'Aesthetic Room';
-          const ugc30Blueprints = [
-            {
-              role: 'HOOK',
-              visual: `${modelDesc} in ${envPrompt}, ${productAction}, excited surprised expression, stop-scrolling energy. Angle: ${ugcAngle}.`,
-              dialogue: `Weh korang! Aku baru jumpa ${safeProductName} ni and sumpah first impression dia memang gila!`
-            },
-            {
-              role: 'INTRO',
-              visual: `${modelDesc} presents packaging of ${safeProductName} closer to camera in ${envPrompt}.`,
-              dialogue: `Tengok ni packaging dia pun dah nampak premium — rasa macam brand mahal je!`
-            },
-            {
-              role: 'DEMO',
-              visual: `Close-up hands demonstrating ${safeProductName}, showing texture/material/usage. Environment: ${envPrompt}.`,
-              dialogue: `Tengok tekstur dia — lembut gila, senang apply, terus absorb tanpa rasa melekit.`
-            },
-            {
-              role: 'BENEFIT',
-              visual: `${modelDesc} reacts positively after using ${safeProductName} in ${envPrompt}, natural UGC lighting.`,
-              dialogue: `Lepas try, kualiti dia memang lain macam weh. Serious berbaloi!`
-            },
-            {
-              role: 'PROOF',
-              visual: `${modelDesc} shows result/detail of ${safeProductName} near face/hands, confident smile, ${envPrompt}.`,
-              dialogue: `Kalau korang yang tengah cari ${safeProductName} bagus — yang ni memang recommended gila.`
-            },
-            {
-              role: 'CTA',
-              visual: `${modelDesc} in ${envPrompt} holding ${safeProductName}, pointing down gesture (yellow basket CTA), strong end-frame composition.`,
-              dialogue: `Cepat grab sebelum stok habis. Klik beg kuning bawah ni sekarang! 🔥`
-            }
-          ];
-
-          result.scenes = ugc30Blueprints.map((bp, i) => {
-            const start = i * 5;
-            const end = start + 5;
-            const imageGenerationPrompt = `[SCENE ${i + 1} — ${bp.role}] 4K UGC photography. ${bp.visual} Color style: ${energyImageStyle}. ${anatomyLock} Aspect ratio: ${aspectRatio}. ${hdModifier}. ${framingPrompt} ${cleanImageInstruction}\n${identityBible}`;
-            return normalizeScene({
-              scene_num: i + 1,
-              sceneNumber: i + 1,
-              timecode: `${start}s–${end}s`,
-              visual: `${targetModelHeader}\n\n[SCENE ${i + 1} — ${bp.role}]\n${bp.visual}`,
-              environment: envPrompt,
-              camera: i === 0 ? 'Medium close-up, punchy handheld' : i === 2 ? 'Macro detail' : 'Medium shot',
-              action: bp.role,
-              emotion: i === 0 ? 'excited surprise' : i === 5 ? 'confident CTA' : 'engaged',
-              imageGenerationPrompt,
-              image_prompt: imageGenerationPrompt,
-              i2v_prompt: `UGC ${aspectRatio} motion. ${bp.visual}. Natural phone-cam energy. Keep identity + environment locked (no white void).`,
-              negative: DEFAULT_NEGATIVE,
-              dialogue: bp.dialogue
-            }, i, aspectRatio, {
-              forceEnrich: true,
-              topic: safeProductName,
-              mode: 'ugc',
-              allowWhiteStudio: false
-            });
-          });
-
-          const ugc30Sec = 30;
-          result.scenes = lockScenesToDuration(result.scenes, ugc30Sec);
-          result.duration = `${ugc30Sec}s`;
-          result.selectedDurationSec = ugc30Sec;
-          result.videoPrompt = result.scenes.map(s => s.visual).join('\n\n');
-          result.script = result.scenes.map(s => `[Adegan ${s.sceneNumber}]: "${s.dialogue}"`).join('\n\n');
-          result.caption = getCaptionAndHashtags();
-          promptInputForAI = result.scenes.map(s => s.image_prompt || s.imageGenerationPrompt);
-
-          setBoxEdits({
-            videoPrompt: result.videoPrompt,
-            script: result.script,
-            caption: result.caption,
-            scenes: result.scenes,
-            identityBible
-          });
-
-          setGeneratedOutput(result);
-          addToast('Storyboard siap dijana!', 'success', 4000);
-      playSound('success');
-          setEditableImagePrompt(promptInputForAI);
-          setCurrentDisplayRatio(aspectRatio);
-          await generateVisual(promptInputForAI, false, aspectRatio, result.scenes.length, {
-              identityBible,
-          useContinuity: true,
-          concurrency: 2,
-          topicLock: safeProductName,
-            negatives: result.scenes.map((s) => withEnvNegative(s.negative || DEFAULT_NEGATIVE, false))
-          });
-          setIsGeneratingAll(false);
-          return;
-        }
+        // ponytail: removed 30s hardcoded blueprint — route through getUgcStoryboardPrompt same as all durations
 
         const promptText = getUgcStoryboardPrompt(
           safeProductName,
           duration,
-          category,
+          effectiveCategory,
           ugcEnvironment,
           gender,
           hijabMode,
@@ -3915,7 +4182,9 @@ CAMERA SYSTEM: Ultra-stable static tripod shot.`;
           identityBible: finalBible,
           useContinuity: true,
           concurrency: 2,
-          negatives: normalizedScenes.map((s) => withEnvNegative(s.negative || DEFAULT_NEGATIVE, false))
+          negatives: normalizedScenes.map((s) => withEnvNegative(s.negative || DEFAULT_NEGATIVE, false)),
+          keyframeScenes: normalizedScenes,
+          keyframeDurationSec: result.selectedDurationSec || parseInt(duration) || 30
         });
         setIsGeneratingAll(false);
         return;
@@ -3990,7 +4259,7 @@ CAMERA SYSTEM: Ultra-stable static tripod shot.`;
         } else if (fiFormat.includes('Full Body OOTD')) {
           formatSpecificPrompt = `Vertical 9:16 full body OOTD mirror/self portrait. Show complete outfit from head to shoes.`;
         } else if (fiFormat.includes('Product Review')) {
-          formatSpecificPrompt = `Malaysia affiliate product review pose: hold a generic product box near face, natural excited smile, eye contact with camera.`;
+          formatSpecificPrompt = `Malaysia affiliate content creator pose: natural confident stance, hands free (no product), genuine smile, direct eye contact with camera, UGC creator energy.`;
         } else if (fiFormat.includes('Beauty Close Up') || fiFormat.includes('GRWM')) {
           formatSpecificPrompt = `Beauty close-up / GRWM portrait. Focus on natural Malaysian skin texture and soft makeup.`;
         } else if (fiFormat.includes('Shopee Live')) {
@@ -4028,6 +4297,7 @@ Visual DNA: ${visualDNA}
 ${formatSpecificPrompt}
 ${stylingPrompt}
 ${locationLock}
+[HANDS FREE]: Do NOT place any product, bottle, box, or object in the model's hands. Natural pose only — hands relaxed at sides, on hip, or gesturing naturally.
 Realism mode: ${fiRealism || 'TikTok UGC Natural MY'}.
 
 [REALISM / QUALITY]
@@ -4042,6 +4312,7 @@ ${aspectStr}`;
           'Korean idol clone, Western fashion model default, Indonesian-only stereotype',
           'celebrity lookalike, watermark, text overlay, logo',
           'over-smoothed beauty filter, uncanny valley',
+          'holding product, holding bottle, holding box, holding device, product in hand, item in hand',
           isSheet ? '' : 'plain white background, empty white studio, blank white void'
         ].filter(Boolean).join(', ');
 
@@ -4145,7 +4416,9 @@ ${aspectStr}`;
         useContinuity: Array.isArray(promptInputForAI) && promptInputForAI.length >= 3,
           concurrency: 2,
           negatives: allowWhite ? [DEFAULT_NEGATIVE] : [withEnvNegative(DEFAULT_NEGATIVE, false)],
-        topicLock: activeTab === 'character' ? '' : (safeProductName || productName || '')
+        topicLock: activeTab === 'character' ? '' : (safeProductName || productName || ''),
+        keyframeScenes: [],
+        keyframeDurationSec: parseInt(duration) || 30
       });
     } catch (error) {
       if (error?.name === 'AbortError') return;
@@ -4835,7 +5108,7 @@ Pick the ONE that best fits. No explanation, just the tag.`;
             <button
               onClick={handleSoundToggle}
               title={soundEnabled ? 'Sound ON' : 'Sound OFF'}
-              className={`flex items-center px-3 py-2 rounded-full border transition-all duration-300 ${soundEnabled ? 'bg-sky-500/20 border-sky-500/40 text-sky-400' : t('bg-[#0a0c10] border-gray-700 text-gray-500', 'bg-gray-50 border-gray-200 text-gray-400')}`}
+              className={`flex items-center px-3 py-2 rounded-full border transition-all duration-300 ${soundEnabled ? 'bg-sky-500/20 border-sky-500/40 text-sky-400' : 'bg-[#0a0c10] border-gray-700 text-gray-500'}`}
             >
               <I name="Volume2" className="w-4 h-4" />
             </button>
@@ -4862,27 +5135,27 @@ Pick the ONE that best fits. No explanation, just the tag.`;
               {
                 group: '🎬 Video',
                 tabs: [
-                  { id: 'cinematic_pro', icon: <I name="Clapperboard" size={14} />, label: 'Cinematic Pro', desc: 'Storyboard penuh scenes, dialog & visual', grad: 'from-violet-500 to-fuchsia-500', glow: 'shadow-violet-500/30', text: 'text-violet-300' },
-                  { id: 'microimpact', icon: <I name="Zap" size={14} />, label: '10s Micro', desc: 'Video 10s impak maksimum', grad: 'from-amber-400 to-orange-500', glow: 'shadow-amber-500/30', text: 'text-amber-300' },
-                  { id: 'narrativearc', icon: <I name="Film" size={14} />, label: '30s Narrative', desc: 'Cerita 30s Flow AI optimized', grad: 'from-rose-500 to-pink-500', glow: 'shadow-rose-500/30', text: 'text-rose-300' },
-                  { id: 'talkinghead', icon: <I name="User" size={14} />, label: 'Talking Head', desc: 'Penyampai hadapan kamera', grad: 'from-blue-500 to-indigo-500', glow: 'shadow-blue-500/30', text: 'text-blue-300' },
-                  { id: 'ugc', icon: <I name="Video" size={14} />, label: 'Affiliate UGC', desc: 'Kreator gaya hidup & demo', grad: 'from-emerald-500 to-teal-500', glow: 'shadow-emerald-500/30', text: 'text-emerald-300' },
+                  { id: 'cinematic_pro', icon: <I name="Clapperboard" size={14} />, label: 'Cinematic Pro', desc: 'Cerita 3-babak: masalah → solusi → CTA', grad: 'from-violet-500 to-fuchsia-500', glow: 'shadow-violet-500/30', text: 'text-violet-300' },
+                  { id: 'microimpact', icon: <I name="Zap" size={14} />, label: '10s Micro', desc: '10s pukul cepat: hook → payoff → CTA', grad: 'from-amber-400 to-orange-500', glow: 'shadow-amber-500/30', text: 'text-amber-300' },
+                  { id: 'narrativearc', icon: <I name="Film" size={14} />, label: '30s Narrative', desc: '30s, 9 scene — cerita emosi 3-babak', grad: 'from-rose-500 to-pink-500', glow: 'shadow-rose-500/30', text: 'text-rose-300' },
+                  { id: 'talkinghead', icon: <I name="User" size={14} />, label: 'Talking Head', desc: 'Cakap depan kamera — dialog padat, teleprompter', grad: 'from-blue-500 to-indigo-500', glow: 'shadow-blue-500/30', text: 'text-blue-300' },
+                  { id: 'ugc', icon: <I name="Video" size={14} />, label: 'Affiliate UGC', desc: 'Review affiliate: unbox → guna → hasil → CTA Shopee', grad: 'from-emerald-500 to-teal-500', glow: 'shadow-emerald-500/30', text: 'text-emerald-300' },
                 ]
               },
               {
                 group: '🖼️ Image',
                 tabs: [
-                  { id: 'product', icon: <I name="Box" size={14} />, label: 'Product POV', desc: 'Demonstrasi & unboxing', grad: 'from-cyan-500 to-sky-500', glow: 'shadow-cyan-500/30', text: 'text-cyan-300' },
-                  { id: 'ootd', icon: <I name="Shirt" size={14} />, label: 'OOTD', desc: 'Fesyen & gaya hidup', grad: 'from-pink-500 to-rose-500', glow: 'shadow-pink-500/30', text: 'text-pink-300' },
-                  { id: 'stopmotion', icon: <I name="Box" size={14} />, label: 'Stop Motion', desc: 'Animasi objek kreatif', grad: 'from-orange-500 to-red-500', glow: 'shadow-orange-500/30', text: 'text-orange-300' },
+                  { id: 'product', icon: <I name="Box" size={14} />, label: 'Product POV', desc: 'Fokus produk — unboxing & demo dekat', grad: 'from-cyan-500 to-sky-500', glow: 'shadow-cyan-500/30', text: 'text-cyan-300' },
+                  { id: 'ootd', icon: <I name="Shirt" size={14} />, label: 'OOTD', desc: 'Fesyen — tunjuk outfit, styling, mix & match', grad: 'from-pink-500 to-rose-500', glow: 'shadow-pink-500/30', text: 'text-pink-300' },
+                  { id: 'stopmotion', icon: <I name="Box" size={14} />, label: 'Stop Motion', desc: '10 frame × 1s — objek gerak, takde manusia', grad: 'from-orange-500 to-red-500', glow: 'shadow-orange-500/30', text: 'text-orange-300' },
                 ]
               },
               {
                 group: '🔧 Tools',
                 tabs: [
-                  { id: 'grafix', icon: <I name="PenTool" size={14} />, label: 'Grafix', desc: 'Grafik bergerak & explainer', grad: 'from-purple-500 to-indigo-500', glow: 'shadow-purple-500/30', text: 'text-purple-300' },
-                  { id: 'character', icon: <I name="User" size={14} />, label: 'Char Sheet', desc: 'Blueprint visual karakter', grad: 'from-sky-500 to-cyan-400', glow: 'shadow-sky-500/30', text: 'text-sky-300' },
-                  { id: 'fake_influencer', icon: <I name="UserPlus" size={14} />, label: 'Fake Influencer', desc: 'Avatar sintetik Malaysia', grad: 'from-fuchsia-500 to-pink-500', glow: 'shadow-fuchsia-500/30', text: 'text-fuchsia-300' },
+                  { id: 'grafix', icon: <I name="PenTool" size={14} />, label: 'Grafix', desc: 'Motion graphic — teks, chart, ikon (takde manusia)', grad: 'from-purple-500 to-indigo-500', glow: 'shadow-purple-500/30', text: 'text-purple-300' },
+                  { id: 'character', icon: <I name="User" size={14} />, label: 'Char Sheet', desc: 'Turnaround multi-angle — jadikan reference', grad: 'from-sky-500 to-cyan-400', glow: 'shadow-sky-500/30', text: 'text-sky-300' },
+                  { id: 'fake_influencer', icon: <I name="UserPlus" size={14} />, label: 'Fake Influencer', desc: 'Cipta persona AI konsisten (muka rekaan)', grad: 'from-fuchsia-500 to-pink-500', glow: 'shadow-fuchsia-500/30', text: 'text-fuchsia-300' },
                 ]
               }
             ].map(({ group, tabs }) => (
@@ -4902,7 +5175,7 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                       <span className={activeTab === tab.id ? 'text-white' : t(tab.text, tab.text)}>{tab.icon}</span>
                       <span className="flex flex-col items-start leading-tight">
                         <span>{tab.label}</span>
-                        {activeTab !== tab.id && tab.desc && <span className="text-[9px] font-normal opacity-60 leading-tight">{tab.desc}</span>}
+                        {tab.desc && <span className={`text-[9px] font-normal leading-tight ${activeTab === tab.id ? 'opacity-85' : 'opacity-60'}`}>{tab.desc}</span>}
                       </span>
                     </button>
                   ))}
@@ -5096,14 +5369,19 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                   <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-gray-800/30">
                     <span className={`text-[10px] font-bold uppercase tracking-widest ${t('text-gray-500', 'text-gray-400')}`}><I name="Zap" size={12} className="text-amber-400" /> Smart Keyframe:</span>
                     <button
-                      onClick={() => handleKeyframeModeChange(keyframeMode === 'on' ? 'off' : 'on')}
-                      className={`px-3 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all ${keyframeMode === 'on' ? 'bg-amber-500 text-white shadow-sm' : t('bg-gray-800 text-gray-400 hover:text-white', 'bg-gray-100 text-gray-500')}`}
+                      onClick={() => handleKeyframeModeChange(keyframeMode === 'off' ? 'on' : keyframeMode === 'on' ? 'segment' : 'off')}
+                      className={`px-3 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all ${keyframeMode !== 'off' ? 'bg-amber-500 text-white shadow-sm' : t('bg-gray-800 text-gray-400 hover:text-white', 'bg-gray-100 text-gray-500')}`}
                     >
-                      {keyframeMode === 'on' ? 'ON (1 img)' : 'OFF'}
+                      {keyframeMode === 'on' ? 'ON (1 img)' : keyframeMode === 'segment' ? 'PER-SEGMEN' : 'OFF'}
                     </button>
                     {keyframeMode === 'on' && (
                       <span className={`text-[10px] font-medium ${t('text-amber-400', 'text-amber-600')}`}>
-                        Jimat token: 1 keyframe je, selebihnya text prompt
+                        Jimat token: 1 keyframe pintar (auto-pilih shot terbaik), selebihnya text prompt
+                      </span>
+                    )}
+                    {keyframeMode === 'segment' && (
+                      <span className={`text-[10px] font-medium ${t('text-amber-400', 'text-amber-600')}`}>
+                        1 keyframe setiap 10s segmen — continuity lebih baik untuk video panjang
                       </span>
                     )}
                     
@@ -5119,6 +5397,19 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                         OFF: Smart Keyframe je (1 gambar). ON untuk semua scene
                       </span>
                     )}
+
+                    <span className={`text-[10px] font-bold uppercase tracking-widest ml-2 ${t('text-gray-500', 'text-gray-400')}`}><I name="Zap" size={12} className="text-emerald-400" /> Bunyi Siap:</span>
+                    <button
+                      onClick={() => {
+                        const next = soundEnabled ? 'off' : 'on';
+                        setSoundEnabled(next === 'on');
+                        try { localStorage.setItem('sound_alerts', next); } catch {}
+                        if (next === 'on') playDoneSound();
+                      }}
+                      className={`px-3 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all ${soundEnabled ? 'bg-emerald-500 text-white shadow-sm' : t('bg-gray-800 text-gray-400 hover:text-white', 'bg-gray-100 text-gray-500')}`}
+                    >
+                      {soundEnabled ? 'ON' : 'OFF'}
+                    </button>
                   </div>
                 )}
               </div>
@@ -5787,6 +6078,14 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                   isDarkMode={isDarkMode}
                 />
 
+                <InputField
+                  label="Target Audience (Optional)"
+                  value={gfAudience}
+                  onChange={(e) => setGfAudience(e.target.value)}
+                  placeholder="e.g., Young entrepreneurs, Gen Z, Tech enthusiasts"
+                  isDarkMode={isDarkMode}
+                />
+
                 <div>
                   <label className={C.label}>Aspect Ratio Target</label>
                   {renderAspectRatioButtons()}
@@ -6191,9 +6490,21 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                            <div className="w-12 h-12 shrink-0 rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center text-white font-black text-lg shadow-lg">
                              0{index + 1}
                            </div>
-                           <div className="flex items-center">
+                           <div className="flex items-center gap-2 flex-wrap">
+                             {timelineMode !== 'on' && keyframeMode !== 'off' && (
+                               <span className="px-2 py-0.5 rounded-md bg-amber-500 text-white text-[9px] font-black uppercase tracking-widest shadow-sm flex items-center gap-1">
+                                 <I name="Zap" size={10} /> Keyframe
+                               </span>
+                             )}
+                             {timelineMode !== 'on' && keyframeMode !== 'off' && keyframeInfo[index] && (
+                               <span className={`px-2 py-0.5 rounded-md text-[9px] font-bold ${keyframeInfo[index].confidence >= 75 ? 'bg-green-500/20 text-green-400' : keyframeInfo[index].confidence >= 55 ? 'bg-amber-500/20 text-amber-400' : 'bg-red-500/20 text-red-400'}`}>
+                                 Scene {keyframeInfo[index].scene} · {keyframeInfo[index].confidence}% · {keyframeInfo[index].reason}
+                               </span>
+                             )}
                              <p className={`text-xs leading-relaxed font-medium ${C.muted(isDarkMode)}`}>
-                               {slideDescs[index % slideDescs.length]}
+                               {timelineMode !== 'on' && keyframeMode !== 'off'
+                                 ? 'Ini keyframe anchor untuk Flow AI. Tak puas hati (muka/produk pelik)? Tekan REGENERATE KEYFRAME di bawah untuk buat semula keyframe ini sahaja.'
+                                 : slideDescs[index % slideDescs.length]}
                              </p>
                            </div>
                         </div>
@@ -6248,9 +6559,9 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                             <button
                               onClick={() => regenerateSingleVisual(index)}
                               disabled={!url || regeneratingIndexes[index]}
-                              className={`w-full py-3.5 rounded-xl border text-[10px] font-black flex items-center justify-center gap-2 transition-all tracking-widest uppercase shadow-sm disabled:opacity-50 ${t('bg-[#11131a] border-gray-800 text-white hover:border-cyan-400', 'bg-white border-gray-200 text-gray-700 hover:border-cyan-400')}`}
+                              className={`w-full py-3.5 rounded-xl border text-[10px] font-black flex items-center justify-center gap-2 transition-all tracking-widest uppercase shadow-sm disabled:opacity-50 ${(timelineMode !== 'on' && keyframeMode !== 'off') ? 'bg-amber-500 border-transparent text-white hover:bg-amber-600' : t('bg-[#11131a] border-gray-800 text-white hover:border-cyan-400', 'bg-white border-gray-200 text-gray-700 hover:border-cyan-400')}`}
                             >
-                              <I name="RefreshCw" size={14} className={`${regeneratingIndexes[index] ? "animate-spin text-sky-500" : "text-gray-400"}`} /> ALTERNATIVE 2K
+                              <I name="RefreshCw" size={14} className={`${regeneratingIndexes[index] ? "animate-spin" : ""} ${(timelineMode !== 'on' && keyframeMode !== 'off') ? 'text-white' : 'text-gray-400'}`} /> {(timelineMode !== 'on' && keyframeMode !== 'off') ? 'REGENERATE KEYFRAME' : 'ALTERNATIVE 2K'}
                             </button>
 
                             <button
@@ -6309,28 +6620,6 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                         </div>
                       </div>
                     )})}
-                    {/* Skeleton shimmer cards for remaining images still being generated */}
-                    {isGeneratingImage && expectedTotalScenes > imageUrls.length && Array.from({ length: Math.min(expectedTotalScenes - imageUrls.length, 6) }).map((_, skIdx) => (
-                      <div key={`skeleton-${skIdx}`} className="flex flex-col group animate-fade-in" style={{ animationDelay: `${skIdx * 100}ms` }}>
-                        <div className="flex gap-4 mb-6 px-2">
-                          <div className="w-12 h-12 shrink-0 rounded-full bg-gray-700/50 animate-pulse" />
-                          <div className="flex-1 space-y-2 py-2">
-                            <div className="h-3 bg-gray-700/50 rounded-full animate-pulse w-3/4" />
-                            <div className="h-2 bg-gray-700/30 rounded-full animate-pulse w-1/2" />
-                          </div>
-                        </div>
-                        <div className={`relative border-[8px] rounded-[3rem] shadow-2xl overflow-hidden ${t('border-[#1a1c23] bg-[#1a1c23]', 'border-gray-900 bg-gray-900')}`}>
-                          <div className="absolute top-0 inset-x-0 h-6 flex justify-center z-30">
-                            <div className={`w-32 h-6 rounded-b-2xl ${t('bg-[#1a1c23]', 'bg-gray-900')}`} />
-                          </div>
-                          <div className={`w-full ${containerAspectClass} skeleton-shimmer`} />
-                        </div>
-                        <div className="flex flex-col gap-2 mt-6">
-                          <div className="h-10 rounded-xl bg-gray-700/30 animate-pulse" />
-                          <div className="h-10 rounded-xl bg-gray-700/20 animate-pulse" />
-                        </div>
-                      </div>
-                    ))}
                   </div>
                 )}
               </div>
@@ -7323,14 +7612,6 @@ animation: bounceOnce 0.6s cubic-bezier(0.36, 0.07, 0.19, 0.97) forwards;
   display: inline-flex;
   animation: pulseGlow 2s ease-in-out infinite;
 }
-
-/* --- SKELETON SHIMMER --- */
-.skeleton-shimmer {
-  background: linear-gradient(90deg, rgba(55,65,81,0.3) 25%, rgba(75,85,99,0.5) 50%, rgba(55,65,81,0.3) 75%);
-  background-size: 200% 100%;
-  animation: skeletonShimmer 1.5s ease-in-out infinite;
-}
-@keyframes skeletonShimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
 /* --- SCROLLBAR --- */
 .custom-scrollbar::-webkit-scrollbar { width: 6px; }
