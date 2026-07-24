@@ -3575,7 +3575,12 @@ return parsed;
         }
       } else {
         // Standard single-image regeneration
-        let basePromptForRegen = Array.isArray(editableImagePrompt) ? (editableImagePrompt[index] || editableImagePrompt[0]) : editableImagePrompt;
+        let // ponytail: use scene-specific prompt — never fallback to index 0 (causes same image bug)
+        const scenes = generatedOutput?.scenes || generatedOutput?.productScenes || generatedOutput?.ootdScenes || [];
+        const scenePrompt = scenes[index]?.image_prompt || scenes[index]?.visual || '';
+        basePromptForRegen = Array.isArray(editableImagePrompt)
+          ? (editableImagePrompt[index] || scenePrompt || '')
+          : (editableImagePrompt || scenePrompt || '');
         const continuityDataUrl = index > 0 && imageUrls[0] ? imageUrls[0] : null;
         const prompt = `${basePromptForRegen}. ${uniqueSeed} [Alternative camera angle. ${stabilitySuffix}]${envRegen}${identityBible ? `\n${identityBible}` : ''} Ultra-sharp 2K resolution, no blur, no grain, crisp commercial quality.`;
 
