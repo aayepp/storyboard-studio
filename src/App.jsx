@@ -2598,12 +2598,12 @@ const CHANGELOG = [
       text: `You are a production continuity supervisor. Analyze the attached reference image(s) for multi-scene storyboard consistency.
 Return plain text bullets only (no JSON), 5-10 short concrete bullets covering:
 - subject type (person / product / outfit)
-- dominant colors and materials
-- packaging shape / logo colors if product
-- clothing style if person
+- dominant colors and materials — EXACT colors only, no approximations
+- packaging shape / logo colors if product — describe ONLY what is visible
+- clothing style if person — describe ONLY what is visible in the image
 - face traits if face present (age vibe, hair/hijab, expression baseline)
 - exact environment/background details to lock (if background references are provided)
-Be visual and specific. English only.`
+CRITICAL: Only describe what is ACTUALLY VISIBLE in the reference. Do NOT infer, assume, or add details not shown. If you cannot see it clearly, say "not visible". Be visual and specific. English only.`
     }];
 
     if (hasFace) {
@@ -2781,7 +2781,7 @@ return parsed;
           parts[0].text += "\n\n[PRODUCT]: The human must hold/wear ONLY the product from the attached REFERENCE IMAGE (full rules are stated with the image itself).";
         }
         activeProducts.forEach((p, indexSlot) => {
-          parts.push({ text: `=== PRODUCT REFERENCE IMAGE ${indexSlot + 1} — STRICT COPY RULES ===\n STEP 1: Identify which angle this scene needs (front/back/side/in-hand) from the scene description.\nSTEP 2: Find the MATCHING labelled panel in this reference sheet.\nSTEP 3: Copy the product from THAT panel ONLY — zero mixing between panels.\nHARD RULES:\n- FRONT panel = screen + front buttons visible. ZERO rear vents, ZERO rear logo.\n- BACK panel = rear casing + vents + rear logo ONLY. ZERO screen, ZERO thumbsticks, ZERO face buttons.\n- LEFT CONTROLS = left-side buttons only. RIGHT CONTROLS = right-side only. Never swap left/right.\n- Button/stick positions must match reference EXACTLY — never mirror or rearrange.\n- Screen faces the PERSON holding it. Back faces the camera. NEVER show screen facing camera while person uses device.\n- Real-world scale: device proportional to hands/body. Never oversized.\n- No extras: zero props not in reference image.\nREMEMBER: A real photograph can only show ONE side at a time.` });
+          parts.push({ text: `=== PRODUCT REFERENCE IMAGE ${indexSlot + 1} — STRICT COPY RULES ===\n STEP 1: Identify which angle this scene needs (front/back/side/in-hand) from the scene description.\nSTEP 2: Find the MATCHING labelled panel in this reference sheet.\nSTEP 3: Copy the product from THAT panel ONLY — zero mixing between panels.\nHARD RULES:\n- FRONT panel = screen + front buttons visible. ZERO rear vents, ZERO rear logo.\n- BACK panel = rear casing + vents + rear logo ONLY. ZERO screen, ZERO thumbsticks, ZERO face buttons.\n- LEFT CONTROLS = left-side buttons only. RIGHT CONTROLS = right-side only. Never swap left/right.\n- Button/stick positions must match reference EXACTLY — never mirror or rearrange.\n- Screen faces the PERSON holding it. Back faces the camera. NEVER show screen facing camera while person uses device.\n- Real-world scale: device proportional to hands/body. Never oversized.\n- No extras: zero props not in reference image.\nREMEMBER: A real photograph can only show ONE side at a time.\\n\\n[NO-INVENTION LOCK — CRITICAL]:\\n- ONLY render features, colors, logos, buttons, ports, text that are VISIBLE in the reference image.\\n- If you cannot see it in the reference image, it does NOT exist on this product. Do NOT add it.\\n- No extra ports, no extra buttons, no extra logos, no extra text, no extra decals, no extra colors.\\n- Product color MUST match reference EXACTLY — no color shifts, no material changes.\\n- If model is present, their face/skin/outfit MUST match reference EXACTLY — no redesign.\\n- Zero creative liberties. Zero assumptions. Copy ONLY what is visible.` });
           parts.push({ inlineData: { mimeType: p.mimeType || "image/jpeg", data: p.base64 } });
         });
       }
