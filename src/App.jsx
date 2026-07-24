@@ -3752,13 +3752,15 @@ Keep the subject person, face reference, background layout, and clothes identica
         narrativearc: narrativeArcTopic,
         talkinghead: thTopic,
         stopmotion: smProduct,
-        grafix: gfTopic
+        grafix: gfTopic,
+        ugc: productName
       };
       const durationByMode = {
         cinematic_pro: cinematicDuration,
         microimpact: '10',
         narrativearc: '30',
         talkinghead: thDuration,
+        ugc: duration,
         stopmotion: smDuration || '10',
         grafix: gfDuration
       };
