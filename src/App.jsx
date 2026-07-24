@@ -409,6 +409,26 @@ const stripCodeFences = (text) => {
 
 const parseModelJson = (rawText) => {
   let cleanText = stripCodeFences(rawText);
+  // Helper: auto-close truncated JSON by balancing brackets
+  const autoClose = (text) => {
+    const stack = [];
+    let inStr = false, escape = false;
+    for (const ch of text) {
+      if (escape) { escape = false; continue; }
+      if (ch === '\\') { escape = true; continue; }
+      if (ch === '"' && !escape) { inStr = !inStr; continue; }
+      if (inStr) continue;
+      if (ch === '{' || ch === '[') stack.push(ch === '{' ? '}' : ']');
+      else if (ch === '}' || ch === ']') stack.pop();
+    }
+    // Close any open string first
+    let result = text;
+    if (inStr) result += '"';
+    // Remove trailing comma before closing
+    result = result.replace(/,\s*$/, '');
+    // Close all open brackets
+    return result + stack.reverse().join('');
+  };
   try {
     return JSON.parse(cleanText);
   } catch (_) {
@@ -417,18 +437,17 @@ const parseModelJson = (rawText) => {
     let start = -1;
     if (objStart >= 0 && (arrStart < 0 || objStart < arrStart)) start = objStart;
     else if (arrStart >= 0) start = arrStart;
-    if (start >= 0) {
-      const endChar = cleanText[start] === '{' ? '}' : ']';
-      const end = cleanText.lastIndexOf(endChar);
-      if (end > start) {
-        cleanText = cleanText.slice(start, end + 1);
-      }
-    }
+    if (start >= 0) cleanText = cleanText.slice(start);
     const repaired = cleanText
       .replace(/,\s*([}\]])/g, '$1')
       .replace(/[\u201C\u201D]/g, '"')
       .replace(/[\u2018\u2019]/g, "'");
-    return JSON.parse(repaired);
+    try {
+      return JSON.parse(repaired);
+    } catch (_2) {
+      // Last resort: auto-close truncated JSON
+      try { return JSON.parse(autoClose(repaired)); } catch (_3) { return null; }
+    }
   }
 };
 
