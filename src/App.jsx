@@ -3575,10 +3575,10 @@ return parsed;
         }
       } else {
         // Standard single-image regeneration
-        let // ponytail: use scene-specific prompt — never fallback to index 0 (causes same image bug)
+        // ponytail: use scene-specific prompt — never fallback to index 0 (causes same image bug)
         const scenes = generatedOutput?.scenes || generatedOutput?.productScenes || generatedOutput?.ootdScenes || [];
         const scenePrompt = scenes[index]?.image_prompt || scenes[index]?.visual || '';
-        basePromptForRegen = Array.isArray(editableImagePrompt)
+        let basePromptForRegen = Array.isArray(editableImagePrompt)
           ? (editableImagePrompt[index] || scenePrompt || '')
           : (editableImagePrompt || scenePrompt || '');
         const continuityDataUrl = index > 0 && imageUrls[0] ? imageUrls[0] : null;
