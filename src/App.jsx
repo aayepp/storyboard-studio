@@ -353,7 +353,7 @@ const DEFAULT_NEGATIVE = 'no text overlay, no watermark, no logo text, no extra 
 const SCENE_ENVIRONMENT_RULES = `
 ENV RULES: Every scene MUST take place in the EXACT SAME core location/set. If the action changes, just change the CAMERA ANGLE of the same room/environment. Do not invent new locations. FORBIDDEN plain white/empty studio. image_prompt must name the location, lighting, props. Keep character, product, and background architecture locked across all scenes.`;
 
-const SCENE_JSON_CONTRACT = `Each scene MUST include: scene_num, timecode, visual (EN — must describe LOCATION + lighting + background props), camera, action, emotion, dialogue (BM or ""), image_prompt (EN still — must include full environment, NOT white background), i2v_prompt (EN motion), negative (must ban plain white background), angle_used (ONLY if product reference sheet is provided — write the exact panel label e.g. "FRONT", "BACK", "IN_HAND", "LEFT_SIDE" that you are copying the product from for this scene; omit if no product sheet). [SCREEN ORIENTATION RULE — CRITICAL]: If a character holds/uses a device with a screen (phone, tablet, handheld console, laptop), the screen MUST face TOWARD the character — the BACK of the device faces the camera/viewer. NEVER show the screen facing the camera while the person is looking at the camera or talking — that is physically impossible and looks uncanny. A person cannot watch their own screen AND face the camera at the same time. Choose ONE: either (a) she looks DOWN at the screen while playing (screen tilted toward her face, back visible to camera), OR (b) she looks at the camera and talks with the device held at chest level, screen facing her, back toward camera. Screen may face the camera ONLY in a dedicated product-showcase shot where NO one is looking at the camera. [DIALOGUE EYE-CONTACT RULE — IMPORTANT]: When a scene has spoken dialogue (the character is talking to the audience/viewer), the character SHOULD make direct eye contact with the camera — this is how creators address viewers and it feels natural and engaging. In the visual, action, and image_prompt for any scene that has non-empty dialogue, explicitly state that the character looks directly at the camera / makes eye contact with the viewer while speaking (unless the scene is deliberately a B-roll cutaway with a voiceover, in which case no face is needed). Avoid the uncanny look of a person speaking while staring off to the side for no reason. Silent/visual-only scenes (empty dialogue) do NOT need camera eye contact — they can look at the product, environment, or action naturally.`;
+const SCENE_JSON_CONTRACT = `Each scene MUST include: scene_num, timecode, visual (EN — must describe LOCATION + lighting + background props), camera, action, emotion, dialogue (BM or ""), image_prompt (EN still — must include full environment, NOT white background), i2v_prompt (EN motion), negative (must ban plain white background), angle_used (ONLY if product reference sheet is provided — write the exact panel label e.g. "FRONT", "BACK", "IN_HAND", "LEFT_SIDE" that you are copying the product from for this scene; omit if no product sheet), b_roll (optional: 1 short B-roll shot suggestion for editor e.g. "close-up hands unboxing", "macro product texture", "reaction shot face"), sound_note (optional: audio cue for editor e.g. "bass drop", "whoosh", "silence", "snap cut"). [SCREEN ORIENTATION RULE — CRITICAL]: If a character holds/uses a device with a screen (phone, tablet, handheld console, laptop), the screen MUST face TOWARD the character — the BACK of the device faces the camera/viewer. NEVER show the screen facing the camera while the person is looking at the camera or talking — that is physically impossible and looks uncanny. A person cannot watch their own screen AND face the camera at the same time. Choose ONE: either (a) she looks DOWN at the screen while playing (screen tilted toward her face, back visible to camera), OR (b) she looks at the camera and talks with the device held at chest level, screen facing her, back toward camera. Screen may face the camera ONLY in a dedicated product-showcase shot where NO one is looking at the camera. [DIALOGUE EYE-CONTACT RULE — IMPORTANT]: When a scene has spoken dialogue (the character is talking to the audience/viewer), the character SHOULD make direct eye contact with the camera — this is how creators address viewers and it feels natural and engaging. In the visual, action, and image_prompt for any scene that has non-empty dialogue, explicitly state that the character looks directly at the camera / makes eye contact with the viewer while speaking (unless the scene is deliberately a B-roll cutaway with a voiceover, in which case no face is needed). Avoid the uncanny look of a person speaking while staring off to the side for no reason. Silent/visual-only scenes (empty dialogue) do NOT need camera eye contact — they can look at the product, environment, or action naturally.`;
 
 const enrichSceneImagePrompt = (scene, opts = {}) => {
   const {
@@ -968,6 +968,11 @@ RULES:
 - Dialogue / Script / Voice Over MUST be written in conversational, casual, trendy, relatable BAHASA MELAYU (Malay). Keep visual/camera/image fields in English.
 - Scene 1: HOOK — stop scrolling immediately. MANDATORY HOOK ANGLE: ${getRandomHookAngle()}
 - Middle scenes — DEMO SEQUENCE. You have ${sceneCount} scenes total, so allocate as follows:
+UNBOXING DETAIL RULES (when product is physical):
+  * REVEAL: Show seal/tape being broken, box opening sound implied, product lifted out slowly
+  * TEXTURE: Macro close-up — fabric weave/cream consistency/device finish. Describe exact texture feel in dialogue ("lembut gila", "solid habis", "ringan je")
+  * AUTHENTIC MOMENT: Real reaction — first sniff, first touch, genuine surprise. NOT scripted "wow amazing!"
+  * PACKAGING DETAIL: Logo placement, color accuracy, premium vs budget feel — mention in visual description
 ${sceneCount <= 4
   ? `  Scene 1 = HOOK. Scene 2 = REVEAL + TEXTURE combined (product held up, then close on material/quality). Scene 3 = USE + RESULT combined (product used, then the "after" reaction). Scene ${sceneCount} = CTA.
   With only ${sceneCount} scenes there is no room for a separate social-proof scene — fold the proof into the RESULT dialogue instead (e.g. "serious lepas seminggu...").`
@@ -1116,8 +1121,10 @@ Return ONLY valid JSON — no markdown, no commentary:
 {"title":"🎬 [organic-sounding title in BM]","duration":"${sec}s","style":"[chosen style]","audio_direction":"[mood]","identity_bible":"[lock string]","scenes":[{"scene_num":1,"timecode":"0s–${perScene}s","visual":"[English with LOCATION + lighting + concrete details]","camera":"[specific shot type + movement — VARY each scene]","action":"[what happens — include movement]","emotion":"[facial expression + body language]","dialogue":"[NATURAL BM max ${Math.round(parseFloat(perScene) * 3)} words — or empty string for visual-only scenes]","image_prompt":"[English still with full environment]","i2v_prompt":"[English motion prompt]","negative":"${DEFAULT_NEGATIVE}","sound_design":"[BGM mood + SFX suggestion]"}]}`;
 };
 
-const getMicroImpactPrompt = (topic, aspect, audience, refCount, identityBible = '', assetAnalysis = '') =>
-  `You are a 10s MICRO-IMPACT SPECIALIST. Create exactly 3 scenes (~3.3s) for: ${topic}. Aspect ${aspect}.${audience ? ` Target: ${audience}.` : ''}${refCount ? ' Refs loaded.' : ''}
+const getMicroImpactPrompt = (topic, aspect, audience, refCount, identityBible = '', assetAnalysis = '', punchCut = false) =>
+  `You are a 10s MICRO-IMPACT SPECIALIST. Create ${punchCut ? '5 scenes (~2s each)' : 'exactly 3 scenes (~3.3s)'} for: ${topic}. Aspect ${aspect}.${audience ? ` Target: ${audience}.` : ''}${refCount ? ' Refs loaded.' : ''}
+${punchCut ? 'PUNCH-CUT MODE: Fast cuts, maximum impact. 5 scenes × 2s. Hook must land in <0.5s. Every scene is a visual punch.' : 'STANDARD MODE: 3 scenes × 3.3s. Hook → Value → CTA.'}
+SOUND DESIGN NOTES: For each scene, add a "sound_note" field in the JSON (e.g., "bass drop", "whoosh transition", "silence before CTA", "upbeat sting", "snap cut"). This helps editors pick audio cues.
 ${assetAnalysis ? `ASSET:\n${assetAnalysis}\n` : ''}${identityBible ? identityBible + '\n' : ''}${SCENE_ENVIRONMENT_RULES}
 ${SCENE_JSON_CONTRACT}
 Dialogue BM; visuals EN; each image_prompt must include a vivid environment matching the topic (never plain white).
@@ -1158,6 +1165,7 @@ Topic: ${topic}
 Aspect Ratio: ${aspect}
 ${audience ? `Target: ${audience}` : ''}
 ${genreContext[genre] || genreContext.emotional}
+COLOR GRADE for this genre: ${colorGrade[genre] || colorGrade.emotional}. Apply this color mood to every scene's visual and image_prompt description.
 ${refCount > 0 ? 'Reference assets loaded.' : ''}
 ${assetAnalysis ? `ASSET ANALYSIS:\n${assetAnalysis}\n` : ''}
 ${identityBible ? `${identityBible}\n` : ''}
@@ -1199,7 +1207,7 @@ Return ONLY valid JSON:
 {"title": "🎬 30s Narrative: [Topic]", "duration": "30s", "style": "Flow AI Optimized", "identity_bible":"[lock]", "scenes": [{"scene_num":1,"timecode":"0s–3.3s","visual":"[English + location/lighting]","camera":"[movement]","action":"[continuous action]","emotion":"[emotion]","dialogue":"[BM]","image_prompt":"[still with full environment]","i2v_prompt":"[motion]","transition_to_next":"cut|dissolve|wipe_left|zoom_in|match_cut","negative":"${DEFAULT_NEGATIVE}"}]}`;
 };
 
-const getTalkingHeadPrompt = (topic, duration, tone, aspect, audience, refCount, identityBible = '', assetAnalysis = '') => {
+const getTalkingHeadPrompt = (topic, duration, tone, aspect, audience, refCount, identityBible = '', assetAnalysis = '', teleprompter = false, subtitleFormat = false) => {
   const sec = parseInt(duration) || 30;
   // Dialogue-heavy tab: each scene still needs room for a full spoken line, but the old
   // ladder pinned every duration >=20s at 5s per scene, which drifts in i2v generation.
@@ -1300,6 +1308,16 @@ Add "color_palette": "primary: [hex/name], accent: [hex/name], surface: [hex/nam
 ${refCount > 0 ? 'Note: Product reference image is loaded for visual consistency.' : ''}
 ${assetAnalysis ? `PRODUCT ANALYSIS:\n${assetAnalysis}\n` : ''}
 ${identityBible ? `${identityBible}\n` : ''}
+EASING & TIMING:
+Animation easing for this video: ${easingMode === 'ease-in-out' ? 'EASE-IN-OUT — objects start slow, speed up mid-frame, slow to stop. Natural organic feel.' : easingMode === 'bounce' ? 'BOUNCE — objects overshoot then snap back. Playful energetic feel.' : easingMode === 'snap' ? 'SNAP — instant cuts, zero easing. Punchy aggressive feel.' : easingMode === 'slow-mo' ? 'SLOW MOTION — each frame held slightly longer, graceful reveal.' : 'EASE-IN-OUT — natural smooth motion.'}
+For each scene, specify in i2v_prompt: entry direction (left/right/top/bottom/zoom), motion type (slide/flip/drop/spin/reveal), and easing tag.
+
+PROPS CHECKLIST (include in visual description):
+- Background surface: e.g., marble table, kraft paper, wooden board, white foam board
+- Supporting props: e.g., dried flowers, coins, pencils, fabric swatches (match product category)
+- Lighting: e.g., soft side window light, ring light from above, LED strip behind
+- Camera angle: flat lay (top-down) / eye level / 45° angle
+
 ${SCENE_ENVIRONMENT_RULES}
 ${SCENE_JSON_CONTRACT}
 Dialogue should be empty string for all scenes unless text-on-screen is essential (prefer empty).
@@ -1321,7 +1339,7 @@ Return ONLY valid JSON:
 }`;
 };
 
-const getGrafixPrompt = (topic, duration, aspect, style, audience, refCount, identityBible = '', assetAnalysis = '') => {
+const getGrafixPrompt = (topic, duration, aspect, style, audience, refCount, identityBible = '', assetAnalysis = '', brandColor = '', dataInput = '') => {
   const sec = parseInt(duration) || 30;
   // Motion graphics: no speech pacing to respect, so keep scenes tight (~3.3-4s) —
   // the old ladder pinned everything >=20s at 5s per scene, too long for clean i2v motion.
@@ -1344,6 +1362,8 @@ ${audience ? `Target audience: ${audience}` : 'Target audience: general social /
 ${refCount > 0 ? 'Reference brand/product images are attached for color/logo consistency only — still keep the TOPIC as the story.' : ''}
 ${assetAnalysis ? `REFERENCE NOTES (use for brand colors/logo only):\n${assetAnalysis}\n` : ''}
 ${identityBible ? `${identityBible}\n` : ''}
+${brandColor ? `[BRAND COLOR LOCK]: Use ONLY this color palette throughout ALL scenes: ${brandColor}. Every background, graphic element, text, icon, and accent must stay within this palette. No random colors.` : ''}
+${dataInput ? `[DATA VISUALIZATION]: User provided this data to visualize: ${dataInput}. Translate each data point into a VISUAL METAPHOR — NOT text overlay. Examples: growing bar = rising object, 40% = filling circle, comparison = two objects side by side. Make data feel visual and intuitive.` : ''}
 
 HARD RULES:
 1. Exactly ${sceneCount} scenes, each about ${perScene}s, continuous narrative about the TOPIC above.
@@ -1573,7 +1593,11 @@ This character sheet MUST be 100% PHOTOREALISTIC — indistinguishable from a re
 - Treat the reference image as a real photograph of a real person. Replicate their appearance with forensic accuracy.
 - NO smooth plastic AI skin. NO doll-like perfection. Keep natural human asymmetry and texture.
 
-Generate the Character Sheet now. Output a single 9:16 portrait professional Character Sheet image.`;
+Generate the Character Sheet now. Output a single 9:16 portrait professional Character Sheet image.
+
+[LABEL CONSISTENCY RULE]: Every panel MUST have a clear bold caption label above it (e.g. "FRONT VIEW", "BACK VIEW", "LEFT SIDE"). Labels must be consistent — same font style, same position (top-center of each panel), same capitalization. No panel should be unlabelled.
+
+[AUTO-CROP GUIDE]: The 4 primary panels in the TOP ROW are designed to be cropped individually for use as reference images in scene generation. Keep each panel self-contained: full subject visible, no overlapping elements between panels, clear margins around each panel.`;
 };
 
 const parseDurationToSeconds = (value) => {
@@ -2309,6 +2333,8 @@ I2V: ${s.i2v_prompt || ''}`
   const [ugcPrice, setUgcPrice] = useState('');
   const [gfBrandColor, setGfBrandColor] = useState('');
   const [gfDataInput, setGfDataInput] = useState('');
+  const [microPunchCut, setMicroPunchCut] = useState(false);
+  const [thSubtitleFormat, setThSubtitleFormat] = useState(false);
   const [smEasingMode, setSmEasingMode] = useState('ease-in-out');
   const [thAudience, setThAudience] = useState('');
   const [smProduct, setSmProduct] = useState('');
@@ -3768,11 +3794,11 @@ Keep the subject person, face reference, background layout, and clothes identica
       setProgressStage(0);
       let promptText = '';
       if (mode === 'cinematic_pro') promptText = getCinematicStoryboardPrompt(cinematicTopic, cinematicDuration, cinematicStyle, aspectRatio, cinematicAudience, refCount, identityBible, assetAnalysis, cinematicPlatform);
-      else if (mode === 'microimpact') promptText = getMicroImpactPrompt(microImpactTopic, aspectRatio, microImpactAudience, refCount, identityBible, assetAnalysis);
+      else if (mode === 'microimpact') promptText = getMicroImpactPrompt(microImpactTopic, aspectRatio, microImpactAudience, refCount, identityBible, assetAnalysis, microPunchCut);
       else if (mode === 'narrativearc') promptText = getNarrativeArcPrompt(narrativeArcTopic, aspectRatio, narrativeArcAudience, refCount, identityBible, assetAnalysis);
-      else if (mode === 'talkinghead') promptText = getTalkingHeadPrompt(thTopic, thDuration, thTone, aspectRatio, thAudience, refCount, identityBible, assetAnalysis);
-      else if (mode === 'stopmotion') promptText = getStopMotionPrompt(smProduct, smDuration, smStyle, aspectRatio, smAudience, refCount, identityBible, assetAnalysis);
-      else if (mode === 'grafix') promptText = getGrafixPrompt(topicText, gfDuration, aspectRatio, gfStyle, gfAudience, refCount, identityBible, assetAnalysis);
+      else if (mode === 'talkinghead') promptText = getTalkingHeadPrompt(thTopic, thDuration, thTone, aspectRatio, thAudience, refCount, identityBible, assetAnalysis, thTeleprompter, thSubtitleFormat);
+      else if (mode === 'stopmotion') promptText = getStopMotionPrompt(smProduct, smDuration, smStyle, aspectRatio, smAudience, refCount, identityBible, assetAnalysis, smEasingMode);
+      else if (mode === 'grafix') promptText = getGrafixPrompt(topicText, gfDuration, aspectRatio, gfStyle, gfAudience, refCount, identityBible, assetAnalysis, gfBrandColor, gfDataInput);
 
       setLoadingText(isGrafix ? 'Generating Grafix framework series...' : 'Building JSON sequence array...');
       setGenerationStep(2);
@@ -5475,6 +5501,16 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                   placeholder="e.g., Spicy food lovers, local foodies..."
                   isDarkMode={isDarkMode}
                 />
+
+              {/* Punch-Cut toggle */}
+              <div className={`flex items-center justify-between px-4 py-3 rounded-2xl border transition-all ${t('border-gray-700 bg-gray-800/30','border-gray-200 bg-gray-50')}`}>
+                <div>
+                  <p className={`text-sm font-black ${t('text-gray-200','text-gray-800')}`}>⚡ Punch-Cut Mode</p>
+                  <p className={`text-[10px] mt-0.5 ${t('text-gray-500','text-gray-400')}`}>5 scenes × 2s — faster cuts, maximum impact</p>
+                </div>
+                <button onClick={() => setMicroPunchCut(prev => !prev)} className={`px-3 py-1.5 rounded-full text-[10px] font-black border transition-all ${microPunchCut ? 'bg-amber-500/20 border-amber-500/50 text-amber-400' : t('border-gray-700 text-gray-500','border-gray-300 text-gray-400')}`}>{microPunchCut ? 'ON' : 'OFF'}</button>
+              </div>
+
                 <div>
                   <label className={C.label}>Aspect Ratio Target</label>
                   {renderAspectRatioButtons()}
@@ -5618,6 +5654,18 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                   onClick={() => setThTeleprompter(prev => !prev)}
                   className={`px-3 py-1.5 rounded-full text-[10px] font-black border transition-all ${thTeleprompter ? 'bg-sky-500/20 border-sky-500/50 text-sky-400' : t('border-gray-700 text-gray-500','border-gray-300 text-gray-400')}`}
                 >{thTeleprompter ? 'ON' : 'OFF'}</button>
+              </div>
+
+              {/* Subtitle format toggle */}
+              <div className={`flex items-center justify-between px-4 py-3 rounded-2xl border transition-all ${t('border-gray-700 bg-gray-800/30','border-gray-200 bg-gray-50')}`}>
+                <div>
+                  <p className={`text-sm font-black ${t('text-gray-200','text-gray-800')}`}>🎬 CapCut Subtitle Format</p>
+                  <p className={`text-[10px] mt-0.5 ${t('text-gray-500','text-gray-400')}`}>Output dialog dalam baris pendek (max 5 patah) — ready paste ke CapCut auto-caption</p>
+                </div>
+                <button
+                  onClick={() => setThSubtitleFormat(prev => !prev)}
+                  className={`px-3 py-1.5 rounded-full text-[10px] font-black border transition-all ${thSubtitleFormat ? 'bg-green-500/20 border-green-500/50 text-green-400' : t('border-gray-700 text-gray-500','border-gray-300 text-gray-400')}`}
+                >{thSubtitleFormat ? 'ON' : 'OFF'}</button>
               </div>
 
               {renderGenderBox()}
@@ -5913,6 +5961,14 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                 isDarkMode={isDarkMode}
               />
 
+              <InputField
+                label="Product Price (Optional)"
+                value={ugcPrice}
+                onChange={(e) => setUgcPrice(e.target.value)}
+                placeholder="e.g., 49.90 (AI akan sebut harga dalam CTA)"
+                isDarkMode={isDarkMode}
+              />
+
               {renderGenderBox()}
               {renderProductUploadBox()}
               {renderIdentityBox()}
@@ -5962,6 +6018,19 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                     { v: 'premium', l: 'Premium & Polished' },
                     { v: 'quirky', l: 'Fun & Quirky' },
                     { v: 'minimalist', l: 'Clean Minimalist' }
+                  ]}
+                  isDarkMode={isDarkMode}
+                />
+
+                <SelectField
+                  label="Animation Easing"
+                  value={smEasingMode}
+                  onChange={(e) => setSmEasingMode(e.target.value)}
+                  options={[
+                    { v: 'ease-in-out', l: '🌊 Ease In-Out (Natural)' },
+                    { v: 'bounce', l: '🏀 Bounce (Playful)' },
+                    { v: 'snap', l: '⚡ Snap Cut (Punchy)' },
+                    { v: 'slow-mo', l: '🎞️ Slow Motion (Graceful)' },
                   ]}
                   isDarkMode={isDarkMode}
                 />
@@ -6039,6 +6108,22 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                   value={gfAudience}
                   onChange={(e) => setGfAudience(e.target.value)}
                   placeholder="e.g., Young entrepreneurs, Gen Z, Tech enthusiasts"
+                  isDarkMode={isDarkMode}
+                />
+
+                <InputField
+                  label="Brand Colors (Optional)"
+                  value={gfBrandColor}
+                  onChange={(e) => setGfBrandColor(e.target.value)}
+                  placeholder="e.g., #FF5733, navy blue, gold — AI will lock all scenes to this palette"
+                  isDarkMode={isDarkMode}
+                />
+
+                <InputField
+                  label="Data to Visualize (Optional)"
+                  value={gfDataInput}
+                  onChange={(e) => setGfDataInput(e.target.value)}
+                  placeholder="e.g., Sales naik 40%, 3 langkah mudah, 5000+ pelanggan — AI translate to visuals"
                   isDarkMode={isDarkMode}
                 />
 
