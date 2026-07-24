@@ -1013,7 +1013,7 @@ Return ONLY valid JSON:
 }`;
 };
 
-const getCinematicStoryboardPrompt = (topic, duration, style, aspect, audience, refCount, identityBible = '', assetAnalysis = '') => {
+const getCinematicStoryboardPrompt = (topic, duration, style, aspect, audience, refCount, identityBible = '', assetAnalysis = '', platform = 'TikTok') => {
   const sec = parseInt(duration) || 30;
   const sceneCount = sec <= 10 ? 4 : sec <= 15 ? 5 : sec <= 20 ? 6 : sec <= 30 ? 8 : sec <= 45 ? 12 : 16;
   const perScene = (sec / sceneCount).toFixed(1);
@@ -1273,7 +1273,7 @@ Return ONLY valid JSON:
 {"title":"🤳 [topic]","duration":"${sec}s","style":"${tone}","identity_bible":"[lock]","scenes":[{"scene_num":1,"timecode":"0s–${perScene}s","visual":"[English + room/location]","camera":"[shot]","action":"[action]","emotion":"[facial]","dialogue":"[BM hook — question/bold claim/stat/story]","image_prompt":"[still with environment]","i2v_prompt":"[motion]","eye_contact":"camera_direct|product_demo|side_authentic|camera_cta","scene_type":"talking_head|broll_cutaway","negative":"${DEFAULT_NEGATIVE}"}]}`;
 };
 
-const getStopMotionPrompt = (product, duration, style, aspect, audience, refCount, identityBible = '', assetAnalysis = '') => {
+const getStopMotionPrompt = (product, duration, style, aspect, audience, refCount, identityBible = '', assetAnalysis = '', easingMode = 'ease-in-out') => {
   // The UI offers 5s/10s/15s but this prompt used to hardcode "10 seconds / 10 scenes",
   // so picking 5s or 15s silently did nothing. Keep the 1-second-per-frame rhythm that
   // makes stop motion read correctly, and scale the frame count to the chosen duration.
