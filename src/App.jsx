@@ -7216,28 +7216,29 @@ RULES:
                               }, null, 2);
                             } else if (activeTab === 'character') {
                               jsonPrompt = JSON.stringify({ imagePrompt: editedValues.videoPrompt || editableImagePrompt }, null, 2);
-                            } else if (activeTab === 'ugc') {
-                              jsonPrompt = JSON.stringify({
-                                target_models: ["Gemini Omni Flash", "Seedance", "Kling", "Veo", "Grok"],
-                                image_generation_prompt: editedValues.videoPrompt || editableImagePrompt,
-                                scenes: (editedValues.scenes || generatedOutput.scenes || []).map((s, idx) => ({
-                                  visual: editedValues[`ugc_scene_${idx}_visual`] || s.visual,
-                                  dialogue: editedValues[`ugc_scene_${idx}_dialogue`] || s.dialogue
-                                }))
-                              }, null, 2);
-                            } else if (activeTab === 'ootd') {
-                              jsonPrompt = JSON.stringify({
-                                target_models: ["Gemini Omni Flash", "Kling", "Veo", "Grok", "Seedance"],
-                                scenes: (editedValues.ootdScenes || generatedOutput.ootdScenes || []).map((s, idx) => ({
-                                  visual: editedValues[`ootd_scene_${idx}_visual`] || s.videoPrompt,
-                                  dialogue: editedValues[`ootd_scene_${idx}_dialogue`] || s.script
-                                }))
-                              }, null, 2);
                             } else {
+                              // Universal format for all storyboard tabs
+                              const allScenes = generatedOutput?.scenes || generatedOutput?.productScenes || generatedOutput?.ootdScenes || [];
                               jsonPrompt = JSON.stringify({
-                                target_models: ["Gemini Omni Flash", "Kling", "Veo", "Grok", "Seedance"],
-                                videoPrompt: editedValues.videoPrompt || generatedOutput.videoPrompt,
-                                dialogue: editedValues.script || generatedOutput.script || "No Voice-Over"
+                                target_models: ["Omni Flash / Flow AI", "Kling", "Veo 3", "Seedance", "Grok"],
+                                title: generatedOutput?.title || '',
+                                duration: generatedOutput?.duration || '',
+                                identity_bible: generatedOutput?.identityBible || '',
+                                scenes: allScenes.map((s, i) => ({
+                                  scene_num: s.scene_num || i + 1,
+                                  timecode: s.timecode || '',
+                                  visual: s.visual || '',
+                                  camera: s.camera || '',
+                                  action: s.action || '',
+                                  emotion: s.emotion || '',
+                                  dialogue: s.dialogue || '',
+                                  i2v_prompt: s.i2v_prompt || '',
+                                  image_prompt: s.image_prompt || '',
+                                  negative: s.negative || '',
+                                  angle_used: s.angle_used || '',
+                                  b_roll: s.b_roll || '',
+                                  sound_note: s.sound_note || ''
+                                }))
                               }, null, 2);
                             }
                             copyToClipboard(jsonPrompt, 'copyPromptJson');
