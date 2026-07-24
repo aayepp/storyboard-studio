@@ -1149,7 +1149,7 @@ ${DIALOGUE_AUTHENTICITY_RULES}
 JSON only:
 {"title":"⚡ ${topic}","duration":"10s","identity_bible":"[lock]","scenes":[{"scene_num":1,"timecode":"0s–3.3s","visual":"[EN + location]","camera":"[shot]","action":"[action]","emotion":"[face]","dialogue":"[BM max 10 words]","image_prompt":"[still with environment — scroll-stopping thumbnail quality]","i2v_prompt":"[motion]","negative":"${DEFAULT_NEGATIVE}"}]}`;
 
-const getNarrativeArcPrompt = (topic, aspect, audience, refCount, identityBible = '', assetAnalysis = '') => {
+const getNarrativeArcPrompt = (topic, aspect, audience, refCount, identityBible = '', assetAnalysis = '', genre = 'emotional') => {
   // Fixed-format 30s tab (UI offers no duration control — that is by design).
   // Was "6 scenes x 5s"; 5s per clip drifts in i2v generation, so the same 6-beat
   // 3-act structure is now told in 9 scenes of ~3.3s, which is the i2v sweet spot.
@@ -3805,7 +3805,7 @@ Keep the subject person, face reference, background layout, and clothes identica
       let promptText = '';
       if (mode === 'cinematic_pro') promptText = getCinematicStoryboardPrompt(cinematicTopic, cinematicDuration, cinematicStyle, aspectRatio, cinematicAudience, refCount, identityBible, assetAnalysis, cinematicPlatform);
       else if (mode === 'microimpact') promptText = getMicroImpactPrompt(microImpactTopic, aspectRatio, microImpactAudience, refCount, identityBible, assetAnalysis, microPunchCut);
-      else if (mode === 'narrativearc') promptText = getNarrativeArcPrompt(narrativeArcTopic, aspectRatio, narrativeArcAudience, refCount, identityBible, assetAnalysis);
+      else if (mode === 'narrativearc') promptText = getNarrativeArcPrompt(narrativeArcTopic, aspectRatio, narrativeArcAudience, refCount, identityBible, assetAnalysis, narrativeGenre);
       else if (mode === 'talkinghead') promptText = getTalkingHeadPrompt(thTopic, thDuration, thTone, aspectRatio, thAudience, refCount, identityBible, assetAnalysis, thTeleprompter, thSubtitleFormat);
       else if (mode === 'stopmotion') promptText = getStopMotionPrompt(smProduct, smDuration, smStyle, aspectRatio, smAudience, refCount, identityBible, assetAnalysis, smEasingMode);
       else if (mode === 'grafix') promptText = getGrafixPrompt(topicText, gfDuration, aspectRatio, gfStyle, gfAudience, refCount, identityBible, assetAnalysis, gfBrandColor, gfDataInput);
