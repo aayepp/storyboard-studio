@@ -497,7 +497,7 @@ const normalizeScene = (scene, idx, aspectRatio = '9:16', enrichOpts = {}) => {
 const toTimeCodedI2V = (scene) => {
   const raw = String(scene.i2v_prompt || scene.action || scene.visual || '').trim();
   // If it already looks time-coded (has a pattern like "0s" or "0s–1s:"), leave it as-is.
-  if (/\b\d+(\.\d+)?s\s*[–\-:]/i.test(raw)) return raw;
+  if (/\b\d+(\.\d+)?s\s*[–\-:]/i.test(raw)) return raw + ' [BACKGROUND LOCK]: Keep exact same background/environment from keyframe reference — same room, walls, lighting, time of day. Do NOT change location.';
 
   // Parse the scene duration from timecode like "2.5s–5s" or "0s–3.3s".
   const tc = String(scene.timecode || '').replace(/\s/g, '');
@@ -515,7 +515,7 @@ const toTimeCodedI2V = (scene) => {
   return `${start}s–${t1}s: establish (${camera}), subject in starting pose. `
     + `${t1}s–${t2}s: ${action} — camera ${camera.toLowerCase()}. `
     + `${t2}s–${end}s: hold final pose, ready to lead into next scene. `
-    + `ONE continuous motion, no cuts. Keep face, wardrobe, product, lighting, and background locked.`;
+    + `ONE continuous motion, no cuts. Keep face, wardrobe, product, lighting, and background locked. [BACKGROUND LOCK]: The background/environment from the keyframe reference image MUST remain identical throughout — same walls, same room, same lighting direction, same time of day. Do NOT change location between frames.`;
 };
 
 const validateStoryboard = (data, expectedSceneCount = null) => {
@@ -1721,7 +1721,7 @@ const generateFlowSegments = (scenes, durationStr, options = {}) => {
       sc.i2v_prompt = `${a}s–${t1}s: establish (${cam}), subject in starting pose. `
         + `${t1}s–${t2}s: ${act} — camera ${cam.toLowerCase()}. `
         + `${t2}s–${b}s: hold final pose, ready to lead into next scene. `
-        + `ONE continuous motion, no cuts. Keep face, wardrobe, product, lighting, and background locked.`;
+        + `ONE continuous motion, no cuts. Keep face, wardrobe, product, lighting, and background locked. [BACKGROUND LOCK]: The background/environment from the keyframe reference image MUST remain identical throughout — same walls, same room, same lighting direction, same time of day. Do NOT change location between frames.`;
     });
   }
 
@@ -1771,6 +1771,7 @@ const generateFlowSegments = (scenes, durationStr, options = {}) => {
       `\nVISUAL:\n${visuals}`,
       dialogues ? `\nDIALOGUE (BM):\n${dialogues}` : '',
       `\nCONTINUITY: Same character, product, wardrobe, environment across ALL segments of this ${totalSec}s video. PRODUCT SIZE LOCK: maintain real-world accurate product size — do NOT oversize or shrink the product. Keep exact scale ratio vs human hands/body as shown in reference.`,
+      `BACKGROUND LOCK — CRITICAL: The background/environment established in the keyframe reference image MUST remain IDENTICAL across every scene and every segment. Same room, same walls, same furniture placement, same lighting direction, same time of day. Do NOT change location between scenes. Do NOT invent new rooms, windows, or outdoor areas. Any re-framing must stay within the SAME physical space already shown.`,
       `INSTRUCTIONS: Generate only the ${s}s–${e}s portion. Match prior segment identity if extending. Product must appear in its REAL original size — never artificially enlarged.`
     ].filter(Boolean).join('\n');
 
