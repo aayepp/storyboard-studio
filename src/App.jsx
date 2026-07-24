@@ -306,6 +306,7 @@ const DIALOGUE_AUTHENTICITY_RULES = `
 DIALOGUE RULES (MANDATORY):
 - Dialogue must sound naturally spoken.
 - For Malay: use natural conversational Malay.
+- VISUAL-DIALOGUE SYNC (MOST IMPORTANT RULE): Before writing ANY dialogue, ask yourself: "What is the character DOING in this scene?" Then write dialogue that MATCHES that action. If she's holding a product → she talks about the product. If she's applying skincare → she talks about the texture/feel. If she's looking at camera → she addresses the viewer directly. NEVER write dialogue about Topic A while the visual shows Topic B.
 - Avoid: formal Malay, corporate Malay, textbook Malay, robotic phrasing, advertising-copy dialogue.
 - Preferred length: 10 to 20 words per dialogue line.
 - Maximum: 20 words per dialogue line.
@@ -1131,7 +1132,17 @@ STORY FLOW RULES:
 5. FAST pace for hook/CTA, MEDIUM for demo, SLOW for emotional reveals
 6. 1-2 scenes must be VISUAL-ONLY (dialogue: "") for breathing room
 7. STORY LOGIC: problem → solution → proof → CTA (logical cause-effect chain)
-8. DIALOGUE ↔ VISUAL MATCH: what character says MUST match what scene shows
+8. DIALOGUE ↔ VISUAL MATCH — CRITICAL RULE:
+What the character SAYS must be EXACTLY what the scene SHOWS. No exceptions.
+- If dialogue = "tengok ni packaging dia" → visual MUST show hands holding/showing packaging
+- If dialogue = "battery dia 7 hari" → visual MUST show device screen showing battery % or person checking battery
+- If dialogue = "kulit aku jadi lagi glowing" → visual MUST show close-up of glowing skin, NOT product bottle
+- If dialogue = "harga dia murah je" → visual MUST show price tag, phone screen with price, or reaction to price
+- If dialogue = "kau boleh tengok dekat bio" → visual MUST show character pointing down toward camera or phone
+- If dialogue is empty ("") → visual can show anything relevant — B-roll, product, reaction
+- NEVER pair dialogue about X with visual showing Y (unrelated)
+- The viewer should be able to close their eyes, hear the dialogue, open them, and immediately understand the visual
+- WRITE visual AFTER you write dialogue — make visual SERVE the dialogue, not the other way around
 
 CHARACTER CONSISTENCY:
 - Maintain exact same age, gender, face, hair, clothing, accessories across ALL scenes
