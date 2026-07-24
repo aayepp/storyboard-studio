@@ -1772,6 +1772,7 @@ const generateFlowSegments = (scenes, durationStr, options = {}) => {
       dialogues ? `\nDIALOGUE (BM):\n${dialogues}` : '',
       `\nCONTINUITY: Same character, product, wardrobe, environment across ALL segments of this ${totalSec}s video. PRODUCT SIZE LOCK: maintain real-world accurate product size — do NOT oversize or shrink the product. Keep exact scale ratio vs human hands/body as shown in reference.`,
       `BACKGROUND LOCK — CRITICAL: The background/environment established in the keyframe reference image MUST remain IDENTICAL across every scene and every segment. Same room, same walls, same furniture placement, same lighting direction, same time of day. Do NOT change location between scenes. Do NOT invent new rooms, windows, or outdoor areas. Any re-framing must stay within the SAME physical space already shown.`,
+      `VOICE & TONE LOCK — CRITICAL: The model/creator voice tone, energy level, and speaking style MUST remain CONSISTENT across ALL scenes and ALL segments. If creator speaks casual BM (e.g. "weh korang, sumpah best gila"), maintain that EXACT tone throughout. Do NOT shift to formal, robotic, or corporate language in later scenes. Same personality, same energy, same BM slang level, same sentence rhythm from scene 1 to last scene. Dialogue must feel like ONE person talking throughout.`,
       `INSTRUCTIONS: Generate only the ${s}s–${e}s portion. Match prior segment identity if extending. Product must appear in its REAL original size — never artificially enlarged.`
     ].filter(Boolean).join('\n');
 
