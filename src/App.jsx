@@ -863,6 +863,7 @@ RULES:
 - Every scene SAME outfit, SAME model, SAME location — no changes between scenes.
 - image_prompt must include: outfit description, location, lighting, camera angle. NO plain white background.
 - i2v_prompt time-coded: "0s–Xs: [motion]. Xs–Ys: [motion]. Outfit and model locked."
+${DIALOGUE_AUTHENTICITY_RULES}
 ${SCENE_JSON_CONTRACT}
 
 Return ONLY valid JSON:
@@ -924,6 +925,7 @@ RULES:
 - Every image_prompt MUST include: product name, exact background, lighting, camera angle. NO plain white background.
 - i2v_prompt must be time-coded: "0s–Xs: [motion]. Xs–Ys: [motion]. Keep product, lighting, background locked."
 - Scene 1 = HOOK (stop-scroll energy). Last scene = CTA or hero beauty shot.
+${DIALOGUE_AUTHENTICITY_RULES}
 ${identityBible ? SCENE_JSON_CONTRACT : SCENE_JSON_CONTRACT}
 
 Return ONLY valid JSON:
@@ -1365,6 +1367,7 @@ PROPS CHECKLIST (include in visual description):
 - Camera angle: flat lay (top-down) / eye level / 45° angle
 
 ${SCENE_ENVIRONMENT_RULES}
+${DIALOGUE_AUTHENTICITY_RULES}
 ${SCENE_JSON_CONTRACT}
 Dialogue should be empty string for all scenes unless text-on-screen is essential (prefer empty).
 Tabletop set must have visible surface texture, props, and lighting — not empty white void.
@@ -1444,6 +1447,7 @@ LOWER-THIRD TEXT RULES:
 Add "lower_third": "[text]" | null to each scene JSON.
 ${SCENE_ENVIRONMENT_RULES}
 
+${DIALOGUE_AUTHENTICITY_RULES}
 ${SCENE_JSON_CONTRACT}
 
 Return ONLY valid JSON (no markdown):
