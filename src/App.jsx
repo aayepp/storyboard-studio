@@ -1153,6 +1153,13 @@ const getNarrativeArcPrompt = (topic, aspect, audience, refCount, identityBible 
   // Fixed-format 30s tab (UI offers no duration control — that is by design).
   // Was "6 scenes x 5s"; 5s per clip drifts in i2v generation, so the same 6-beat
   // 3-act structure is now told in 9 scenes of ~3.3s, which is the i2v sweet spot.
+  const colorGrade = {
+    emotional: 'Warm golden tones, soft shadows, slight vignette',
+    thriller: 'Cold desaturated blues, high contrast, deep shadows',
+    comedy: 'Bright vibrant saturated, clean lighting, no shadows',
+    motivational: 'High contrast bold, dynamic lighting, deep blacks',
+    educational: 'Clean neutral tones, consistent lighting, minimal',
+  };
   const genreContext = {
     emotional: 'GENRE: Emotional/Inspirational — slow burn build, raw authentic moments, music-driven. Dialogue feels like a real confession, not a script. Colour: warm golden tones.',
     thriller: 'GENRE: Thriller/Suspense — fast cuts, unresolved tension early, shocking reveal mid-story. Dialogue: short punchy lines, cliff-hangers. Colour: cold desaturated.',
@@ -3731,6 +3738,7 @@ Keep the subject person, face reference, background layout, and clothes identica
 
     try {
       let assetAnalysis = '';
+      let productAngles = null;
       const hasFace = activeUploadData.useCustomFace && activeUploadData.uploadedFaceBase64;
       const hasBackgrounds = activeUploadData.backgrounds && activeUploadData.backgrounds.length > 0;
       
