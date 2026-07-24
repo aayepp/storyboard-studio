@@ -782,12 +782,127 @@ const StepBadge = ({ number }) => (
   </div>
 );
 
-const getCategoryContext = (category, product = '') => {
+const getOotdStoryboardPrompt = (product, duration, style, location, gender, hijabMode, mirrorMode, narration, refCount, identityBible = '', assetAnalysis = '') => {
+  const sec = parseInt(duration) || 10;
+  const sceneCount = sec <= 10 ? 4 : sec <= 20 ? 6 : sec <= 30 ? 8 : 10;
+  const perScene = (sec / sceneCount).toFixed(1);
+  const hasVO = narration === 'With Voice-Over';
+  const modelDesc = `young Asian ${gender}${(gender === 'Wanita' || gender === 'Female') && hijabMode === 'Hijab' ? ' wearing a stylish matching hijab coordinated with the outfit' : ''}`;
+  const isMirror = mirrorMode === 'true' || mirrorMode === true;
+
+  const stylingTips = /kasut|shoes|sneaker|boot/.test((product||'').toLowerCase())
+    ? 'Styling tip dialogue: mention how the shoes complete the outfit, comfort level, and what to pair with.'
+    : /bag|beg|handbag/.test((product||'').toLowerCase())
+    ? 'Styling tip dialogue: mention versatility, what outfits it matches, day-to-night transition.'
+    : /tudung|hijab|shawl/.test((product||'').toLowerCase())
+    ? 'Styling tip dialogue: mention how to style it, fabric feel, colour coordination.'
+    : 'Styling tip dialogue: mention fit, material quality, how it makes the wearer feel confident.';
+
+  return `You are a professional fashion content director and stylist. Generate a ${sec}s OOTD storyboard for: "${product || 'this outfit'}" (Style: ${style}).
+${assetAnalysis ? `OUTFIT ANALYSIS:\n${assetAnalysis}\n` : ''}
+${identityBible ? `${identityBible}\n` : ''}
+Model: ${modelDesc}
+Location: ${location || 'Aesthetic lifestyle interior'}
+${isMirror ? 'MIRROR MODE: Include a mirror selfie scene.' : ''}
+References: ${refCount > 0 ? 'YES — match outfit exactly' : 'NO'}
+
+SCENE STRUCTURE (${sceneCount} scenes × ${perScene}s):
+- Scene 1: HOOK — full body reveal, stop-scroll energy, confident pose
+- Scene 2: TOP DETAIL — close-up upper body, fabric texture, fit
+- Scene 3: BOTTOM DETAIL — close-up lower body, shoes/bag if any
+- Scene 4: MOVEMENT — walking, twirling, natural movement shot
+${sceneCount >= 6 ? `- Scene 5: STYLING TIP — character speaks to camera, shares styling advice
+- Scene 6: CTA — "link dekat bio" or "tap product card"` : ''}
+${sceneCount >= 8 ? `- Scene 7: ACCESSORIES CLOSE-UP — jewellery, bag, shoes detail
+- Scene 8: FINAL HERO — best angle full body beauty shot` : ''}
+
+CAMERA MOVEMENT (vary per scene):
+- Full body static / Slow tilt up / Close dolly / Tracking walk shot / Mirror POV
+
+${stylingTips}
+
+RULES:
+- Dialogue in natural conversational Malay (max 15 words per scene). ${!hasVO ? 'VO mode OFF — visual only, dialogue = "".' : ''}
+- Every scene SAME outfit, SAME model, SAME location — no changes between scenes.
+- image_prompt must include: outfit description, location, lighting, camera angle. NO plain white background.
+- i2v_prompt time-coded: "0s–Xs: [motion]. Xs–Ys: [motion]. Outfit and model locked."
+${SCENE_JSON_CONTRACT}
+
+Return ONLY valid JSON:
+{
+"title": "👗 OOTD: ${product || style}",
+"duration": "${sec}s",
+"scenes": [...]
+}`;
+};
+
+const getProductPOVPrompt = (product, duration, category, background, gender, hijabMode, narration, mode, refCount, identityBible = '', assetAnalysis = '') => {
+  const sec = parseInt(duration) || 10;
+  const sceneCount = sec <= 10 ? 3 : sec <= 20 ? 5 : sec <= 30 ? 7 : 9;
+  const perScene = (sec / sceneCount).toFixed(1);
+  const cat = (category || '').toLowerCase();
+  const hasModel = mode === 'With Model';
+  const hasVO = narration === 'With Voice-Over';
+
+  // Hero shot formula per category
+  const heroFormula = /gadget|tech|electronic|phone|console|laptop|speaker/.test(cat)
+    ? 'Shot sequence: (1) Reveal from box/bag, (2) Detail close-up of key feature/screen, (3) In-hand real-scale shot, (4) Feature demo (power on/screen lit/button press), (5) Reaction shot if model present.'
+    : /skincare|beauty|serum|cream|mask|toner/.test(cat)
+    ? 'Shot sequence: (1) Packaging reveal, (2) Texture swatch on hand/arm, (3) Application motion on skin, (4) Absorption/blend result, (5) Before-after glow reaction.'
+    : /fashion|baju|kasut|bag|tudung|clothing/.test(cat)
+    ? 'Shot sequence: (1) Flat lay product reveal, (2) Material/texture close-up, (3) On-body or held shot, (4) Detail (stitching/logo/tag), (5) Full look or styled shot.'
+    : /food|drink|snack|supplement|vitamin/.test(cat)
+    ? 'Shot sequence: (1) Packaging reveal, (2) Prep/pour/unwrap, (3) Close-up texture/color, (4) First taste/sip reaction, (5) Finished presentation.'
+    : 'Shot sequence: (1) Packaging reveal, (2) Product detail close-up, (3) In-use demonstration, (4) Key benefit highlight, (5) Final hero shot.';
+
+  const modelDesc = hasModel
+    ? `A young Asian ${gender}${(gender === 'Wanita' || gender === 'Female') && hijabMode === 'Hijab' ? ' wearing a stylish modern hijab' : ''} content creator`
+    : 'Product only (no model)';
+
+  const dialogueRule = hasVO
+    ? 'Each scene with dialogue: write 1 natural conversational Malay line (max 15 words). Hook scene MUST stop the scroll.'
+    : 'No spoken dialogue. Visual storytelling only. Dialogue field = "".';
+
+  return `You are a professional product videographer and creative director. Generate a ${sec}s product showcase storyboard for: "${product}" (Category: ${category}).
+${assetAnalysis ? `PRODUCT ANALYSIS:\n${assetAnalysis}\n` : ''}
+${identityBible ? `${identityBible}\n` : ''}
+Model: ${modelDesc}
+Background: ${background || 'Auto by AI — aesthetic lifestyle interior'}
+References loaded: ${refCount > 0 ? 'YES — match product exactly' : 'NO'}
+
+HERO SHOT FORMULA FOR THIS CATEGORY:
+${heroFormula}
+
+CAMERA MOVEMENT (vary per scene):
+- Dolly in slow / Pull back reveal / Orbit 360 / Macro push-in / Static beauty shot / Handheld natural
+
+LIGHTING:
+- Soft diffused window light for organic feel
+- Hard dramatic side light for premium/luxury feel
+- Match lighting to brand tone (premium = dramatic, everyday = soft)
+
+RULES:
+- Exactly ${sceneCount} scenes, ${perScene}s each. Continuous timecodes, no gaps.
+- ${dialogueRule}
+- Every image_prompt MUST include: product name, exact background, lighting, camera angle. NO plain white background.
+- i2v_prompt must be time-coded: "0s–Xs: [motion]. Xs–Ys: [motion]. Keep product, lighting, background locked."
+- Scene 1 = HOOK (stop-scroll energy). Last scene = CTA or hero beauty shot.
+${identityBible ? SCENE_JSON_CONTRACT : SCENE_JSON_CONTRACT}
+
+Return ONLY valid JSON:
+{
+"title": "🎬 Product POV: ${product}",
+"duration": "${sec}s",
+"scenes": [...]
+}`;
+};
+
+const getCategoryContext = (category, product = '', price = '') => {
   const cat = (category || '').toLowerCase();
   if (/skincare|serum|toner|moistur|sunscreen|beauty|makeup|foundation|mask|essence/.test(cat)) return {
     demo: 'DEMO SEQUENCE: Scene 2 = unbox/reveal packaging; Scene 3 = texture close-up (swatch on hand/arm, show consistency); Scene 4 = application on face/skin (patting motion, absorption); Scene 5 = result reaction (glow, smoothness, before/after feel);',
     hook: `Curiosity gap about skin result — e.g. "Korang tau tak kenapa kulit aku jadi macam ni lepas pakai ${product || 'benda ni'}?" — relatable skin problem or shocking before/after claim.`,
-    cta: `Shopee/TikTok Shop link for ${product || 'this product'}. Mention limited promo or free gift.`,
+    cta: `Shopee/TikTok Shop link for ${product || 'this product'}. ${price ? `Price anchor: RM${price} — sebut harga dalam CTA.` : 'Mention limited promo or free gift.'} Urgency: stok tinggal sikit / promo hari ni je.`,
     negative: 'no dirty skin, no clogged pores, no cakey makeup look'
   };
   if (/food|makanan|snack|minum|drink|beverage|supplement|vitamin|protein|kopi|tea|teh|jus|juice|roti|kek|cake/.test(cat)) return {
@@ -823,7 +938,7 @@ const getCategoryContext = (category, product = '') => {
   };
 };
 
-const getUgcStoryboardPrompt = (product, duration, category, environment, gender, hijabMode, angle, refCount, identityBible = '', assetAnalysis = '') => {
+const getUgcStoryboardPrompt = (product, duration, category, environment, gender, hijabMode, angle, refCount, identityBible = '', assetAnalysis = '', price = '') => {
   const sec = parseInt(duration) || 10;
   // Ladder mirrors the proven Cinematic Pro one: keeps every scene ~2.5-4s, which is
   // the Omni Flash / i2v sweet spot. The old ladder (3/4/6) capped at 6 scenes, so a
@@ -833,7 +948,7 @@ const getUgcStoryboardPrompt = (product, duration, category, environment, gender
   const perScene = (sec / sceneCount).toFixed(1);
   const modelRef = `${gender === 'Wanita' || gender === 'Female' ? 'young Asian female' : 'young Asian male'} influencer${(gender === 'Wanita' || gender === 'Female') && hijabMode === 'Hijab' ? ' wearing an aesthetic modern hijab' : ''}`;
 
-  const catCtx = getCategoryContext(category, product);
+  const catCtx = getCategoryContext(category, product, price);
   return `You are a high-converting affiliate UGC (User Generated Content) video director. Create a detailed ${sec}s storyboard for a video about "${product}" (Category: ${category}).
 Style / Angle: ${angle}
 Environment: ${environment}
@@ -929,8 +1044,9 @@ const getCinematicStoryboardPrompt = (topic, duration, style, aspect, audience, 
 
   return `You are a VIRAL MALAYSIA TIKTOK/REELS STORYBOARD DIRECTOR who speaks like a real human, not AI. Create a ${sec}s ${aspect} storyboard about: ${topic}${style !== 'auto' ? ` in ${style} style` : ''}${audience ? `. Target: ${audience}` : ''}.
 
-PLATFORM CONTEXT (${aspect}):
-${aspect === '9:16' ? 'TikTok/Reels: Hook must land in <1.5s. Mobile-native vertical. Pattern interrupt first frame.' : aspect === '16:9' ? 'YouTube Shorts: Hook can be 2s. Title card friendly. Slightly wider narrative.' : 'Instagram Feed: Visual-first aesthetic. Colour/composition hooks work well.'}
+PLATFORM CONTEXT — ${platform} (${aspect}):
+${platform === 'TikTok' ? 'TikTok MY: Hook MUST land in <1.5s. Pattern interrupt first frame. Fast cuts, trending audio cue, BM slang feels authentic. Algo rewards watch-time — front-load value.' : platform === 'Reels' ? 'Instagram Reels: Hook 1.5-2s. Aesthetic visual hooks work. Slightly slower pacing okay. Captions important.' : platform === 'YouTube' ? 'YouTube Shorts: Hook 2s. Can have more context. Title card friendly. Slightly educational tone okay.' : platform === 'Shopee' ? 'Shopee Live/Video: Product-forward. Price anchor early. Trust-building tone. CTA strong.' : 'TikTok/Reels: Hook MUST land in <1.5s. Mobile-native vertical. Pattern interrupt first frame.'}
+HOOK TYPE for this topic: ${/produk|product|review|unbox|beli/.test((topic||'').toLowerCase()) ? 'Product curiosity hook — lead with surprising result or price reveal' : /tips|cara|how|tutorial/.test((topic||'').toLowerCase()) ? 'Value hook — "Kau tak tau benda ni..."' : /cerita|story|pengalaman/.test((topic||'').toLowerCase()) ? 'Story hook — drop into middle of action' : 'Pattern interrupt — bold claim or question that demands answer'}
 
 PACING: Mark each scene with pace tag — FAST (cut <2s), MEDIUM (2-4s), SLOW (4s+). Hook=FAST, reveal=SLOW.
 
@@ -1030,10 +1146,18 @@ const getNarrativeArcPrompt = (topic, aspect, audience, refCount, identityBible 
   // Fixed-format 30s tab (UI offers no duration control — that is by design).
   // Was "6 scenes x 5s"; 5s per clip drifts in i2v generation, so the same 6-beat
   // 3-act structure is now told in 9 scenes of ~3.3s, which is the i2v sweet spot.
+  const genreContext = {
+    emotional: 'GENRE: Emotional/Inspirational — slow burn build, raw authentic moments, music-driven. Dialogue feels like a real confession, not a script. Colour: warm golden tones.',
+    thriller: 'GENRE: Thriller/Suspense — fast cuts, unresolved tension early, shocking reveal mid-story. Dialogue: short punchy lines, cliff-hangers. Colour: cold desaturated.',
+    comedy: 'GENRE: Comedy/Relatable — self-deprecating humour, unexpected twist, audience laughs WITH creator. Dialogue: natural BM with comedic timing. Colour: bright vibrant.',
+    motivational: 'GENRE: Motivational/Epic — rising energy, problem→overcome→triumph arc. Dialogue: empowering, direct address. Colour: high contrast bold.',
+    educational: 'GENRE: Educational/Tips — clear value delivery, numbered steps feel natural not robotic. Dialogue: "Korang tau tak..." hook. Colour: clean neutral.',
+  };
   return `You are a professional FLOW AI & IMAGE-TO-VIDEO CINEMATIC DIRECTOR. Create a continuous 30-second storyboard with exactly 9 scenes (~3.3 seconds each) optimized for Flow AI.
 Topic: ${topic}
 Aspect Ratio: ${aspect}
 ${audience ? `Target: ${audience}` : ''}
+${genreContext[genre] || genreContext.emotional}
 ${refCount > 0 ? 'Reference assets loaded.' : ''}
 ${assetAnalysis ? `ASSET ANALYSIS:\n${assetAnalysis}\n` : ''}
 ${identityBible ? `${identityBible}\n` : ''}
@@ -1088,6 +1212,7 @@ ${audience ? `Target: ${audience}` : ''}
 ${refCount > 0 ? 'Reference assets loaded.' : ''}
 ${assetAnalysis ? `ASSET ANALYSIS:\n${assetAnalysis}\n` : ''}
 ${identityBible ? `${identityBible}\n` : ''}
+${teleprompter ? `[TELEPROMPTER MODE ON]: Format ALL dialogue as short readable lines (max 5 words per line). Use line breaks. Add natural cues: [PAUSE], [SMILE], [LEAN IN], [LOOK UP], [EMPHASIZE] at natural points. This will be read on-camera.` : '[NATURAL MODE]: Dialogue flows naturally, no cue markers needed.'}
 
 SCENE 1 HOOK — MANDATORY (pick the strongest hook type for this topic):
 - QUESTION HOOK: Open with a bold provocative question in BM that the target audience cannot ignore. e.g. "Korang tau tak kenapa ramai orang rugi buat benda ni?"
@@ -2179,6 +2304,12 @@ I2V: ${s.i2v_prompt || ''}`
   const [thTopic, setThTopic] = useState('');
   const [thDuration, setThDuration] = useState('30');
   const [thTone, setThTone] = useState('personal');
+  const [thTeleprompter, setThTeleprompter] = useState(false);
+  const [narrativeGenre, setNarrativeGenre] = useState('emotional');
+  const [ugcPrice, setUgcPrice] = useState('');
+  const [gfBrandColor, setGfBrandColor] = useState('');
+  const [gfDataInput, setGfDataInput] = useState('');
+  const [smEasingMode, setSmEasingMode] = useState('ease-in-out');
   const [thAudience, setThAudience] = useState('');
   const [smProduct, setSmProduct] = useState('');
   const [smDuration, setSmDuration] = useState('10');
@@ -2188,6 +2319,7 @@ I2V: ${s.i2v_prompt || ''}`
   const [gfDuration, setGfDuration] = useState('30');
   const [gfStyle, setGfStyle] = useState('auto');
   const [gfAudience, setGfAudience] = useState('');
+  const [cinematicPlatform, setCinematicPlatform] = useState('TikTok');
 
   const [apiKey, setApiKey] = useState(getStoredApiKey);
   const [genfityKey, setGenfityKey] = useState(getStoredGenfityKey);
@@ -3635,7 +3767,7 @@ Keep the subject person, face reference, background layout, and clothes identica
       setExpectedTotalScenes(expectedCount);
       setProgressStage(0);
       let promptText = '';
-      if (mode === 'cinematic_pro') promptText = getCinematicStoryboardPrompt(cinematicTopic, cinematicDuration, cinematicStyle, aspectRatio, cinematicAudience, refCount, identityBible, assetAnalysis);
+      if (mode === 'cinematic_pro') promptText = getCinematicStoryboardPrompt(cinematicTopic, cinematicDuration, cinematicStyle, aspectRatio, cinematicAudience, refCount, identityBible, assetAnalysis, cinematicPlatform);
       else if (mode === 'microimpact') promptText = getMicroImpactPrompt(microImpactTopic, aspectRatio, microImpactAudience, refCount, identityBible, assetAnalysis);
       else if (mode === 'narrativearc') promptText = getNarrativeArcPrompt(narrativeArcTopic, aspectRatio, narrativeArcAudience, refCount, identityBible, assetAnalysis);
       else if (mode === 'talkinghead') promptText = getTalkingHeadPrompt(thTopic, thDuration, thTone, aspectRatio, thAudience, refCount, identityBible, assetAnalysis);
@@ -3894,363 +4026,60 @@ MOTION RESOLUTION: 4K Ultra Cinematic Video @24fps.
 CAMERA SYSTEM: Ultra-stable static tripod shot.`;
 
       if (activeTab === 'product') {
-        const isProductModelMode = productPOVMode === 'With Model';
-        const isSpeakingProduct = productNarration === 'With Voice-Over';
         const productTotalSec = parseDurationToSeconds(duration) || 10;
-
-        const productAction = activeProducts.length > 0
-          ? `holding the EXACT product from the PRODUCT REFERENCE`
-          : `holding the product named ${safeProductName}`;
-
-        let productBgPrompt = "";
-        if (productBackground === "Auto by AI") {
-          productBgPrompt = "detailed aesthetic lifestyle interior with furniture, soft window light, depth and color (NOT plain white studio)";
-        } else {
-          productBgPrompt = `${productBackground} — fully detailed background with props and depth (NOT plain white)`;
-        }
-        if (isProductModelMode && productTotalSec >= 10) {
-          const modelDesc = `young Asian ${gender}`;
-          const framingPromptModel = getFramingPrompt(aspectRatio, true);
-          const framingPromptProduct = getFramingPrompt(aspectRatio, false);
-          const envBan = 'NO plain white background, NO empty white studio.';
-          const n = productTotalSec <= 10 ? 2 : productTotalSec <= 20 ? 4 : productTotalSec <= 30 ? 6 : 8;
-
-          // Dynamic dialogue based on product category
-          const productCat = (category || 'General').toLowerCase();
-          const isBeauty = /skincare|beauty|makeup|serum|moisturis|sunscreen|toner|foundation|lipstick|blush|mask/.test(productCat);
-          const isFood = /food|makanan|snack|drink|minuman|supplement|vitamin|protein|beverage/.test(productCat);
-          const isFashion = /fashion|clothing|baju|kasut|shoes|bag|beg|accessories|tudung|hijab|ootd/.test(productCat);
-          const isGadget = /gadget|electronic|tech|phone|earphone|laptop|cable|charger|speaker/.test(productCat);
-          const isHome = /home|rumah|kitchen|dapur|cleaning|organizer|storage|pillow|bedding/.test(productCat);
-
-          const hookDialogues = isSpeakingProduct ? {
-            beauty: `Kau tau tak kenapa kulit aku tiba-tiba jadi lagi cerah? Sebab ${safeProductName} ni. Serious game changer.`,
-            food: `Korang kena cuba ${safeProductName} ni. Rasa dia bukan calang-calang — aku dah habis satu dalam masa 2 hari.`,
-            fashion: `POV: kau jumpa benda yang buat outfit kau naik level 10x. Ni dia — ${safeProductName}.`,
-            gadget: `Aku dah cuba banyak produk dalam kategori ni, tapi ${safeProductName} je yang betul-betul buat aku terkejut.`,
-            home: `Rumah aku rasa lagi neat and organized lepas guna ${safeProductName} ni. Korang pun boleh.`,
-            general: `Tau tak pasal ${safeProductName} ni — first impression memang susah nak lupa.`
-          } : {};
-          const demoDialogues = isSpeakingProduct ? {
-            beauty: `Tengok — tekstur dia ringan, terus absorb. No greasy feel langsung. Kulit aku rasa macam kena upgrade.`,
-            food: `Ingredients dia clean, no artificial stuff. Rasa dia pun natural. Memang worth it.`,
-            fashion: `Material dia quality — tak cepat kedut, comfortable nak pakai seharian. Best part? Harga dia accessible.`,
-            gadget: `Performance dia stable, build quality solid. Berbaloi untuk investment jangka panjang.`,
-            home: `Guna je terus nampak result. Senang, practical, dan jimat masa.`,
-            general: `Tengok detail dia — bukan sekadar cantik tapi functional betul-betul.`
-          } : {};
-          const ctaDialogues = isSpeakingProduct ? {
-            beauty: `Kalau kau serius nak result, ${safeProductName} ni memang kena ada dalam routine. Klik beg kuning sekarang! 🔥`,
-            food: `Stock dia cepat habis sebab ramai dah tau. Grab dulu sebelum terlambat — beg kuning bawah! 🔥`,
-            fashion: `Limited stock. Kalau kau suka apa yang kau nampak, jangan tunggu lagi — klik beg kuning! 🔥`,
-            gadget: `Investment yang betul-betul berbaloi. Grab sekarang sebelum harga naik — beg kuning bawah! 🔥`,
-            home: `Upgrade rumah kau sekarang. Harga special masih ada — klik beg kuning sebelum sold out! 🔥`,
-            general: `Grab cepat sebelum stock habis — beg kuning bawah ni! 🔥`
-          } : {};
-
-
-          const catKey = isBeauty ? 'beauty' : isFood ? 'food' : isFashion ? 'fashion' : isGadget ? 'gadget' : isHome ? 'home' : 'general';
-
-          const roles = n === 2
-            ? [
-                { role: 'HOOK', framing: framingPromptModel, dialogue: hookDialogues[catKey] || '' },
-                { role: 'CTA', framing: framingPromptModel, dialogue: ctaDialogues[catKey] || '' }
-              ]
-            : [
-                { role: 'HOOK', framing: framingPromptModel, dialogue: hookDialogues[catKey] || '' },
-                { role: 'DEMO', framing: framingPromptProduct, dialogue: demoDialogues[catKey] || '' },
-                { role: 'CTA', framing: framingPromptModel, dialogue: ctaDialogues[catKey] || '' }
-              ];
-          const visuals = [
-            `${modelDesc} discovering ${productAction}`,
-            n === 2 ? `${modelDesc} showing satisfaction with ${safeProductName}` : `Hands demonstrating ${safeProductName}`,
-            `${modelDesc} holding ${safeProductName} with confident smile`
-          ];
-          promptInputForAI = roles.map((r, i) =>
-            `[SCENE ${i + 1} — ${r.role}] 4K photography. ${visuals[i]}. Background: ${productBgPrompt}. ${anatomyLock} Aspect ${aspectRatio}. ${hdModifier}. ${r.framing} ${cleanImageInstruction} ${envBan}`
-          );
-          result.productScenes = lockScenesToDuration(roles.map((r, i) => ({
-            sceneNumber: i + 1,
-            scene_num: i + 1,
-            visual: `${targetModelHeader}\n\n[SCENE ${i + 1} — ${r.role}]\n${visuals[i]} in ${productBgPrompt}.`,
-            dialogue: r.dialogue
-          })), productTotalSec);
-          result.videoPrompt = result.productScenes.map(s => s.visual).join('\n\n');
-          result.script = isSpeakingProduct
-            ? result.productScenes.map(s => `[Adegan ${s.sceneNumber}]: "${s.dialogue}"`).join('\n\n')
-            : `[Mute Background Track]`;
-        } else {
-          if (isProductModelMode) {
-            promptInputForAI = `High resolution 4K photography. A young Asian ${gender} model holding and showcasing the ${productAction}. [SCREEN ORIENTATION: If product has a screen, screen faces the person holding it — NOT camera. Back of device faces viewer unless it's a display/showcase shot.] Background: ${productBgPrompt}. Color grading: ${energyImageStyle}. ${anatomyLock} Aspect ratio: ${aspectRatio}. ${hdModifier}. ${framingPrompt} ${cleanImageInstruction} NO plain white background.`;
-            result.videoPrompt = `${targetModelHeader}\nSCENE: A young Asian ${gender} gently showing ${productAction} to the camera in ${productBgPrompt}.`;
-          } else {
-            promptInputForAI = `First-person POV shot of a single human hand holding the ${productAction}. [SCREEN ORIENTATION: If product has a screen, screen faces the person holding it — NOT camera. Back of device faces viewer unless it's a display/showcase shot.] Background: ${productBgPrompt}. Color style: ${energyImageStyle}. ${anatomyLock} Aspect ratio: ${aspectRatio}. ${hdModifier}. ${framingPrompt} ${cleanImageInstruction} NO plain white background.`;
-            result.videoPrompt = `${targetModelHeader}\nSCENE: Single human hand holding ${productAction} against ${productBgPrompt}.`;
-          }
-          const singleCatKey = (() => {
-            const c = (category || '').toLowerCase();
-            if (/skincare|beauty|makeup|serum|moisturis|sunscreen|toner|foundation|lipstick/.test(c)) return 'beauty';
-            if (/food|makanan|snack|drink|minuman|supplement|vitamin|protein/.test(c)) return 'food';
-            if (/fashion|clothing|baju|kasut|shoes|bag|beg|accessories|tudung|hijab/.test(c)) return 'fashion';
-            if (/gadget|electronic|tech|phone|earphone|laptop|cable|charger|speaker/.test(c)) return 'gadget';
-            if (/home|rumah|kitchen|dapur|cleaning|organizer|storage|pillow/.test(c)) return 'home';
-            return 'general';
-          })();
-          const singleHooks = {
-            beauty: `Kulit cerah dalam masa seminggu? Aku tak caya sampai aku try sendiri ${safeProductName} ni.`,
-            food: `Serious, ${safeProductName} ni addictive gila. Sekali rasa, terus nak lagi.`,
-            fashion: `Outfit game changed. ${safeProductName} ni buat aku nampak put-together dalam masa 5 minit.`,
-            gadget: `${safeProductName} ni bukan sekadar gadget biasa. Performance dia buat aku speechless.`,
-            home: `Lepas guna ${safeProductName} ni, rumah aku rasa macam baru renovate. Serius tak tipu.`,
-            general: `Sumpah, ${safeProductName} ni betul-betul berbaloi. First time guna terus jatuh cinta.`
-          };
-          const singleScripts = {
-            beauty: `[VOCAL PROMPT: ${productVoiceTone}]\n\nKorang ada masalah kulit yang sama macam aku? Cuba ${safeProductName} ni — dalam masa beberapa hari, memang nampak perbezaan. Texture ringan, absorb cepat, result pun nampak. Grab sekarang sebelum stock habis!`,
-            food: `[VOCAL PROMPT: ${productVoiceTone}]\n\nAku dah cuba banyak produk dalam kategori ni, tapi ${safeProductName} je yang betul-betul buat aku repeat order. Rasa dia sedap, ingredients pun clean. Korang kena cuba sendiri — klik beg kuning sekarang!`,
-            fashion: `[VOCAL PROMPT: ${productVoiceTone}]\n\nKorang cari outfit yang versatile, quality, tapi tak mahal? ${safeProductName} ni jawapan dia. Material best, design timeless. Aku dah pakai berkali-kali masih nampak cantik. Jangan lepaskan peluang ni!`,
-            gadget: `[VOCAL PROMPT: ${productVoiceTone}]\n\nDalam dunia gadget, ramai yang bagi janji tapi tak deliver. ${safeProductName} ni beza — performance stabil, build quality solid, worth every ringgit. Kalau korang serius nak upgrade, ni masa yang tepat.`,
-            home: `[VOCAL PROMPT: ${productVoiceTone}]\n\nRumah cantik tak perlu mahal. ${safeProductName} ni dah ubah cara aku organize ruang — simple, practical, dan nampak aesthetic. Grab sekarang dan rasa sendiri perbezaannya!`,
-            general: `[VOCAL PROMPT: ${productVoiceTone}]\n\nSumpah weh, aku tak expect ${safeProductName} ni akan bagi impak sebesar ni. Quality memang nampak, function pun deliver. Korang yang tengah consider — jangan tunggu lagi, klik beg kuning sebelum stock habis!`
-          };
-
-          result.productScenes = lockScenesToDuration([{
-            sceneNumber: 1, scene_num: 1,
-            visual: result.videoPrompt,
-            dialogue: isSpeakingProduct ? (singleHooks[singleCatKey] || singleHooks.general) : ''
-          }], productTotalSec);
-
-          if (isSpeakingProduct) {
-            result.script = singleScripts[singleCatKey] || singleScripts.general;
-          } else {
-            result.script = `[Mute Background Track]`;
-          }
-        }
+        const expectedCount = productTotalSec <= 10 ? 3 : productTotalSec <= 20 ? 5 : productTotalSec <= 30 ? 7 : 9;
+        const promptText = getProductPOVPrompt(
+          safeProductName, duration, effectiveCategory,
+          productBackground, gender, hijabMode,
+          productNarration, productPOVMode,
+          activeProducts.length, identityBible, assetAnalysis
+        );
+        setLoadingText('Generating Product POV storyboard...');
+        const parsed = await fetchStoryboardJson(promptText, expectedCount, signal);
+        const locked = lockScenesToDuration(parsed.scenes || [], productTotalSec);
+        locked.forEach(s => { s.i2v_prompt = toTimeCodedI2V(s); });
+        result.scenes = locked;
+        result.productScenes = locked;
+        result.videoPrompt = locked.map(s => s.i2v_prompt).join('\n\n');
+        result.script = locked.map((s, i) => `[Scene ${i+1}]: ${s.dialogue || '(visual)'}`).join('\n');
         result.caption = getCaptionAndHashtags();
         result.duration = `${productTotalSec}s`;
         result.selectedDurationSec = productTotalSec;
+        promptInputForAI = locked.map(s => s.image_prompt || s.visual || '');
+        const finalBible = buildIdentityBible({ mode: 'product', productName: safeProductName, category: effectiveCategory, gender, hijabMode, environment: productBackground, style: energyLevel, assetAnalysis });
+        const negatives = locked.map(s => withEnvNegative(s.negative || DEFAULT_NEGATIVE, false));
+        await generateVisual(promptInputForAI, false, aspectRatio, locked.length, {
+          identityBible: finalBible, useContinuity: true, concurrency: 2, negatives,
+          keyframeScenes: locked, keyframeDurationSec: productTotalSec
+        });
+        setIsGeneratingAll(false);
+        return;
       }
       else if (activeTab === 'ootd') {
-        const outfitDescription = activeProducts.length > 0
-          ? "wearing the EXACT SAME outfit from the PRODUCT REFERENCE with high accuracy"
-          : `wearing a modern fashion attire styled in ${style} aesthetic`;
-
-        let finalLocationPrompt = `${location} background`;
-        let mirrorInstruction = "";
-
-        if (mirrorMode === 'true' || mirrorMode === true) {
-          mirrorInstruction = `MIRROR SELFIE MODE: Large standing mirror selfie reflection.`;
-          if (location === 'Auto by AI') finalLocationPrompt = "aesthetic cozy bedroom interior with bed, decor, large standing mirror, warm lamp light, visible room depth (NOT plain white)";
-        } else {
-          if (location === 'Auto by AI') finalLocationPrompt = "lifestyle interior with furniture, wall texture, window light and soft bokeh depth (NOT plain white studio)";
-          else finalLocationPrompt = `${location} — detailed real location with props and depth (NOT plain white)`;
-        }
-
-        let hijabInstruction = "";
-        if (gender === 'Wanita' || gender === 'Female') {
-          hijabInstruction = hijabMode === 'Hijab'
-            ? "The model is wearing a stylish matching hijab. "
-            : "The model has beautiful modern hair, no head covering. ";
-        }
-
-        promptInputForAI = `Commercial-grade full body fashion photography. A young Asian ${gender} model ${outfitDescription}. Style context: ${style}. Location/Background: ${finalLocationPrompt}. Lighting style: ${energyImageStyle}. ${hijabInstruction}${mirrorInstruction} ${anatomyLock} Aspect ratio: ${aspectRatio}. ${hdModifier}. ${framingPrompt} ${cleanImageInstruction} BACKGROUND BAN: no plain white void.`;
-
-        const isSpeakingOotd = ootdNarration === 'With Voice-Over';
-        let ootdMovementPrompt = "";
-
-        if (location.includes("Passenger Seat")) {
-          ootdMovementPrompt = `IMAGE-TO-VIDEO MODE: High angle POV selfie in a moving car passenger seat, head tilt, softly smiling at camera.`;
-        } else {
-          ootdMovementPrompt = `SCENE DESCRIPTION: High-end fashion showcase of the Asian ${gender} wearing the outfit.`;
-        }
-
-        let ootdPosesMix = [
-          "Natural breathing, maintaining confident steady eye contact.",
-          "Slight head tilt, gentle weight shift."
-        ];
-
-        let scenesVideo = [];
-        let scenesScript = [];
         const ootdTotalSec = parseDurationToSeconds(duration) || 10;
-        let sceneCountInt = sceneCountForVideoDuration(ootdTotalSec);
-        const userScenes = parseInt(ootdSceneCount) || 1;
-        if (userScenes > sceneCountInt) sceneCountInt = userScenes;
-        let ootdScenesData = [];
-        const finalIsSpeakingOotd = location.includes("Passenger Seat") ? false : isSpeakingOotd;
-
-        for (let i = 0; i < sceneCountInt; i++) {
-          let currentPose = ootdPosesMix[i % ootdPosesMix.length];
-          let dialogueText = "";
-
-          // ponytail: adaptive dialog by product name + position
-          const isKasut = /kasut|shoes|sneaker|heel|boot|sandal/i.test(safeProductName + category);
-          const isBeg = /beg|bag|handbag|purse|tote|backpack/i.test(safeProductName + category);
-          const isTudung = /tudung|hijab|shawl|bawal|awning/i.test(safeProductName + category);
-          const hookLine = isKasut
-            ? `Weh korang! Kasut ${safeProductName} ni memang auto upgrade seluruh outfit — tengok ni!`
-            : isBeg
-            ? `Korang! Beg ${safeProductName} ni bukan sekadar cantik — functional gila tau!`
-            : isTudung
-            ? `Harini nak tunjuk cara style ${safeProductName} yang simple tapi nampak put-together habis!`
-            : `Harini I nak spill detail ootd ${safeProductName} ni — design dia up-to-date dan boost keyakinan korang!`;
-          const midLine1 = isKasut
-            ? `Material dia premium, sol dia comfortable gila — boleh pakai seharian tak sakit kaki.`
-            : isBeg
-            ? `Compartment dia banyak, material tahan lama, and saiz dia perfect — muat semua benda!`
-            : isTudung
-            ? `Kain dia tak panas, jatuh cantik, and warna dia versatile — senang nak match dengan apa-apa.`
-            : `Kemasan jahitan dia kemas gila and potongan dia memang fit nicely dekat badan.`;
-          const midLine2 = isKasut
-            ? `Design dia timeless — boleh pakai casual or semi-formal, memang serba boleh!`
-            : isBeg
-            ? `Strap dia adjustable, hardware dia solid — memang worth every penny!`
-            : isTudung
-            ? `Senang nak lipat, tak perlu iron banyak — perfect untuk orang busy macam kita!`
-            : `Kain dia tak panas and super selesa gila kalau nak pakai pergi pusing mall seharian.`;
-          const ctaLine = `Nampak mahal tapi harga dia sumpah marhaen habis. Jangan fikir lama-lama, grab cepat dengan klik beg kuning kat bawah!`;
-
-          if (sceneCountInt === 1) {
-              dialogueText = `${hookLine} ${midLine1} ${ctaLine}`;
-          } else {
-              if (i === 0) {
-                dialogueText = hookLine;
-              } else if (i === sceneCountInt - 1) {
-                dialogueText = ctaLine;
-              } else if (i === 1) {
-                dialogueText = midLine1;
-              } else {
-                dialogueText = midLine2;
-              }
-          }
-
-          let lipSyncInstruction = finalIsSpeakingOotd
-              ? 'LIP-SYNC: Flawless real-time conversational Malay lip-sync.'
-              : 'LIP-SYNC: Muted. Mouth closed.';
-
-          let sceneVideoPrompt = location.includes("Passenger Seat")
-              ? `${ootdMovementPrompt}`
-              : `${targetModelHeader}\n\n${ootdMovementPrompt}\n\n[SCENE ${i + 1}]\nMOTION: ${currentPose}\n${lipSyncInstruction}`;
-
-          if (!location.includes("Passenger Seat")) {
-            scenesVideo.push(`[SCENE ${i + 1}]\nMOTION: ${currentPose}\n${lipSyncInstruction}`);
-          }
-
-          if (finalIsSpeakingOotd) {
-              scenesScript.push(`[Adegan ${i + 1}]: "${dialogueText}"`);
-          } else {
-              scenesScript.push(`[Adegan ${i + 1}]: (MUTE)`);
-          }
-
-          ootdScenesData.push({
-             sceneNumber: i + 1,
-             videoPrompt: sceneVideoPrompt,
-             script: dialogueText,
-             isMute: !finalIsSpeakingOotd
-          });
-        }
-
-        result.ootdScenes = lockScenesToDuration(ootdScenesData, ootdTotalSec);
-        if (location.includes("Passenger Seat")) {
-            result.videoPrompt = ootdMovementPrompt;
-        } else {
-            result.videoPrompt = `${targetModelHeader}\n\n${ootdMovementPrompt}\n\nDURATION: ${ootdTotalSec}s\n\n${scenesVideo.join('\n\n')}`;
-        }
-
-        if (finalIsSpeakingOotd) {
-          result.script = scenesScript.join('\n\n');
-        } else {
-          result.script = `[FULL MUTE]\n\n${scenesScript.join('\n')}`;
-        }
+        const expectedCount = ootdTotalSec <= 10 ? 4 : ootdTotalSec <= 20 ? 6 : ootdTotalSec <= 30 ? 8 : 10;
+        const promptText = getOotdStoryboardPrompt(
+          safeProductName, duration, style, location,
+          gender, hijabMode, mirrorMode, ootdNarration,
+          activeProducts.length, identityBible, assetAnalysis
+        );
+        setLoadingText('Generating OOTD storyboard...');
+        const parsed = await fetchStoryboardJson(promptText, expectedCount, signal);
+        const locked = lockScenesToDuration(parsed.scenes || [], ootdTotalSec);
+        locked.forEach(s => { s.i2v_prompt = toTimeCodedI2V(s); });
+        result.scenes = locked;
+        result.ootdScenes = locked;
+        result.videoPrompt = locked.map(s => s.i2v_prompt).join('\n\n');
+        result.script = locked.map((s, i) => `[Scene ${i+1}]: ${s.dialogue || '(visual)'}`).join('\n');
         result.caption = getCaptionAndHashtags();
         result.duration = `${ootdTotalSec}s`;
         result.selectedDurationSec = ootdTotalSec;
-      }
-      else if (activeTab === 'ugc') {
-        const refCount = activeProducts.length;
-        const is30sUgc = duration === '30';
-        const expectedUgcScenes = expectedSceneCountForDuration(duration, 'ugc');
-
-        // ponytail: removed 30s hardcoded blueprint — route through getUgcStoryboardPrompt same as all durations
-
-        const promptText = getUgcStoryboardPrompt(
-          safeProductName,
-          duration,
-          effectiveCategory,
-          ugcEnvironment,
-          gender,
-          hijabMode,
-          ugcAngle,
-          refCount,
-          identityBible,
-          assetAnalysis
-        );
-
-        setLoadingText(`Building UGC algorithmic sequence ${duration}s...`);
-        const parsedUgc = await fetchStoryboardJson(promptText, expectedUgcScenes, signal);
-
-        const finalBible = parsedUgc.identity_bible
-          ? `${identityBible}\nModel lock: ${parsedUgc.identity_bible}`
-          : identityBible;
-
-        const normalizedScenes = (parsedUgc.scenes || []).map((scene, sIdx) => {
-          const base = normalizeScene(scene, sIdx, aspectRatio, {
-            forceEnrich: true,
-            topic: safeProductName,
-            mode: 'ugc',
-            style: energyImageStyle,
-            allowWhiteStudio: false
-          });
-          const modifiedVisual = [
-            base.image_prompt,
-            `Color style: ${energyImageStyle}.`,
-            anatomyLock,
-            `Aspect ${aspectRatio}.`,
-            hdModifier,
-            cleanImageInstruction,
-            `Location: ${ugcEnvironment || 'Aesthetic Room'} with real furniture/props — NOT plain white.`,
-            finalBible
-          ].join(' ');
-          return {
-            ...base,
-            sceneNumber: sIdx + 1,
-            environment: ugcEnvironment,
-            imageGenerationPrompt: modifiedVisual,
-            image_prompt: modifiedVisual,
-            negative: withEnvNegative(base.negative, false)
-          };
-        });
-
-        const ugcSec = parseDurationToSeconds(duration) || 10;
-        result.scenes = lockScenesToDuration(normalizedScenes, ugcSec);
-        result.identityBible = finalBible;
-        result.videoPrompt = result.scenes.map(s => `[SCENE ${s.sceneNumber}] ${s.visual}\nI2V: ${s.i2v_prompt}`).join('\n\n');
-        result.script = result.scenes.map(s => `[Scene ${s.sceneNumber}]: "${s.dialogue}"`).join('\n\n');
-        result.caption = getCaptionAndHashtags();
-        result.duration = `${ugcSec}s`;
-        result.selectedDurationSec = ugcSec;
-
-        promptInputForAI = result.scenes.map(s => s.image_prompt || s.imageGenerationPrompt);
-
-        setBoxEdits({
-          videoPrompt: result.videoPrompt,
-          script: result.script,
-          caption: result.caption,
-          scenes: normalizedScenes,
-          identityBible: finalBible
-        });
-
-        setGeneratedOutput(result);
-        addToast('Storyboard siap dijana!', 'success', 4000);
-      playSound('success');
-      setSidebarOpen(false);
-        setEditableImagePrompt(promptInputForAI);
-        setCurrentDisplayRatio(aspectRatio);
-        await generateVisual(promptInputForAI, false, aspectRatio, normalizedScenes.length, {
-          identityBible: finalBible,
-          useContinuity: true,
-          concurrency: 2,
-          negatives: normalizedScenes.map((s) => withEnvNegative(s.negative || DEFAULT_NEGATIVE, false)),
-          keyframeScenes: normalizedScenes,
-          keyframeDurationSec: result.selectedDurationSec || parseInt(duration) || 30
+        promptInputForAI = locked.map(s => s.image_prompt || s.visual || '');
+        const finalBible = buildIdentityBible({ mode: 'ootd', productName: safeProductName, category: effectiveCategory, gender, hijabMode, environment: location, style, assetAnalysis });
+        const negatives = locked.map(s => withEnvNegative(s.negative || DEFAULT_NEGATIVE, false));
+        await generateVisual(promptInputForAI, false, aspectRatio, locked.length, {
+          identityBible: finalBible, useContinuity: true, concurrency: 2, negatives,
+          keyframeScenes: locked, keyframeDurationSec: ootdTotalSec
         });
         setIsGeneratingAll(false);
         return;
@@ -5528,6 +5357,18 @@ Pick the ONE that best fits. No explanation, just the tag.`;
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <SelectField
+                  label="Platform Target"
+                  value={cinematicPlatform}
+                  onChange={(e) => setCinematicPlatform(e.target.value)}
+                  options={[
+                    { v: 'TikTok', l: '🎵 TikTok MY' },
+                    { v: 'Reels', l: '📸 Instagram Reels' },
+                    { v: 'YouTube', l: '▶️ YouTube Shorts' },
+                    { v: 'Shopee', l: '🛍️ Shopee Video' },
+                  ]}
+                  isDarkMode={isDarkMode}
+                />
+                <SelectField
                   label="Video Duration"
                   value={cinematicDuration}
                   onChange={(e) => setCinematicDuration(e.target.value)}
@@ -5680,6 +5521,19 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                   placeholder="e.g., Working adults, small business owners..."
                   isDarkMode={isDarkMode}
                 />
+                <SelectField
+                  label="Story Genre"
+                  value={narrativeGenre}
+                  onChange={(e) => setNarrativeGenre(e.target.value)}
+                  options={[
+                    { v: 'emotional', l: '💛 Emotional / Inspirational' },
+                    { v: 'thriller', l: '🖤 Thriller / Suspense' },
+                    { v: 'comedy', l: '😂 Comedy / Relatable' },
+                    { v: 'motivational', l: '🔥 Motivational / Epic' },
+                    { v: 'educational', l: '📚 Educational / Tips' },
+                  ]}
+                  isDarkMode={isDarkMode}
+                />
                 <div>
                   <label className={C.label}>Aspect Ratio Target</label>
                   {renderAspectRatioButtons()}
@@ -5753,6 +5607,18 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                 placeholder="e.g., College students, online shoppers..."
                 isDarkMode={isDarkMode}
               />
+
+              {/* Teleprompter toggle */}
+              <div className={`flex items-center justify-between px-4 py-3 rounded-2xl border transition-all ${t('border-gray-700 bg-gray-800/30','border-gray-200 bg-gray-50')}`}>
+                <div>
+                  <p className={`text-sm font-black ${t('text-gray-200','text-gray-800')}`}>📜 Teleprompter Mode</p>
+                  <p className={`text-[10px] mt-0.5 ${t('text-gray-500','text-gray-400')}`}>Dialog dipecah baris pendek + cue [PAUSE] [SMILE] untuk baca on-camera</p>
+                </div>
+                <button
+                  onClick={() => setThTeleprompter(prev => !prev)}
+                  className={`px-3 py-1.5 rounded-full text-[10px] font-black border transition-all ${thTeleprompter ? 'bg-sky-500/20 border-sky-500/50 text-sky-400' : t('border-gray-700 text-gray-500','border-gray-300 text-gray-400')}`}
+                >{thTeleprompter ? 'ON' : 'OFF'}</button>
+              </div>
 
               {renderGenderBox()}
               {renderProductUploadBox()}
