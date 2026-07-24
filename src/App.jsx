@@ -353,7 +353,7 @@ const DEFAULT_NEGATIVE = 'no text overlay, no watermark, no logo text, no extra 
 const SCENE_ENVIRONMENT_RULES = `
 ENV RULES: Every scene MUST take place in the EXACT SAME core location/set. If the action changes, just change the CAMERA ANGLE of the same room/environment. Do not invent new locations. FORBIDDEN plain white/empty studio. image_prompt must name the location, lighting, props. Keep character, product, and background architecture locked across all scenes.`;
 
-const SCENE_JSON_CONTRACT = `Each scene MUST include: scene_num, timecode, visual (EN — must describe LOCATION + lighting + background props), camera, action, emotion, dialogue (BM or ""), image_prompt (EN still — must include full environment, NOT white background), i2v_prompt (EN motion), negative (must ban plain white background), angle_used (ONLY if product reference sheet is provided — write the exact panel label e.g. "FRONT", "BACK", "IN_HAND", "LEFT_SIDE" that you are copying the product from for this scene; omit if no product sheet), b_roll (optional: 1 short B-roll shot suggestion for editor e.g. "close-up hands unboxing", "macro product texture", "reaction shot face"), sound_note (optional: audio cue for editor e.g. "bass drop", "whoosh", "silence", "snap cut"). [SCREEN ORIENTATION RULE — CRITICAL]: If a character holds/uses a device with a screen (phone, tablet, handheld console, laptop), the screen MUST face TOWARD the character — the BACK of the device faces the camera/viewer. NEVER show the screen facing the camera while the person is looking at the camera or talking — that is physically impossible and looks uncanny. A person cannot watch their own screen AND face the camera at the same time. Choose ONE: either (a) she looks DOWN at the screen while playing (screen tilted toward her face, back visible to camera), OR (b) she looks at the camera and talks with the device held at chest level, screen facing her, back toward camera. Screen may face the camera ONLY in a dedicated product-showcase shot where NO one is looking at the camera. [DIALOGUE EYE-CONTACT RULE — IMPORTANT]: When a scene has spoken dialogue (the character is talking to the audience/viewer), the character SHOULD make direct eye contact with the camera — this is how creators address viewers and it feels natural and engaging. In the visual, action, and image_prompt for any scene that has non-empty dialogue, explicitly state that the character looks directly at the camera / makes eye contact with the viewer while speaking (unless the scene is deliberately a B-roll cutaway with a voiceover, in which case no face is needed). Avoid the uncanny look of a person speaking while staring off to the side for no reason. Silent/visual-only scenes (empty dialogue) do NOT need camera eye contact — they can look at the product, environment, or action naturally.`;
+const SCENE_JSON_CONTRACT = `Each scene MUST include: scene_num, timecode, visual (EN — must describe LOCATION + lighting + background props), camera, action, emotion, dialogue (BM or ""), image_prompt (EN still — must include full environment, NOT white background), i2v_prompt (EN motion), negative (must ban plain white background), angle_used (ONLY if product reference sheet is provided — write the exact panel label e.g. "FRONT", "BACK", "IN_HAND", "LEFT_SIDE" that you are copying the product from for this scene; omit if no product sheet), b_roll (optional: 1 short B-roll shot suggestion for editor e.g. "close-up hands unboxing", "macro product texture", "reaction shot face"), sound_note (optional: audio cue for editor e.g. "bass drop", "whoosh", "silence", "snap cut"). [ANGLE CONSISTENCY RULE]: Within the same 10s segment, keep the same product angle — do NOT switch between FRONT/BACK/SIDE within one segment. Only change angle at segment boundaries. Keep camera distance consistent within a segment (don't mix wide and macro in the same segment). [SCREEN ORIENTATION RULE — CRITICAL]: If a character holds/uses a device with a screen (phone, tablet, handheld console, laptop), the screen MUST face TOWARD the character — the BACK of the device faces the camera/viewer. NEVER show the screen facing the camera while the person is looking at the camera or talking — that is physically impossible and looks uncanny. A person cannot watch their own screen AND face the camera at the same time. Choose ONE: either (a) she looks DOWN at the screen while playing (screen tilted toward her face, back visible to camera), OR (b) she looks at the camera and talks with the device held at chest level, screen facing her, back toward camera. Screen may face the camera ONLY in a dedicated product-showcase shot where NO one is looking at the camera. [DIALOGUE EYE-CONTACT RULE — IMPORTANT]: When a scene has spoken dialogue (the character is talking to the audience/viewer), the character SHOULD make direct eye contact with the camera — this is how creators address viewers and it feels natural and engaging. In the visual, action, and image_prompt for any scene that has non-empty dialogue, explicitly state that the character looks directly at the camera / makes eye contact with the viewer while speaking (unless the scene is deliberately a B-roll cutaway with a voiceover, in which case no face is needed). Avoid the uncanny look of a person speaking while staring off to the side for no reason. Silent/visual-only scenes (empty dialogue) do NOT need camera eye contact — they can look at the product, environment, or action naturally.`;
 
 const enrichSceneImagePrompt = (scene, opts = {}) => {
   const {
@@ -784,7 +784,7 @@ const StepBadge = ({ number }) => (
 
 const getOotdStoryboardPrompt = (product, duration, style, location, gender, hijabMode, mirrorMode, narration, refCount, identityBible = '', assetAnalysis = '') => {
   const sec = parseInt(duration) || 10;
-  const sceneCount = sec <= 10 ? 4 : sec <= 20 ? 6 : sec <= 30 ? 8 : 10;
+  const sceneCount = sec <= 10 ? 3 : sec <= 20 ? 4 : sec <= 30 ? 6 : 8;
   const perScene = (sec / sceneCount).toFixed(1);
   const hasVO = narration === 'With Voice-Over';
   const modelDesc = `young Asian ${gender}${(gender === 'Wanita' || gender === 'Female') && hijabMode === 'Hijab' ? ' wearing a stylish matching hijab coordinated with the outfit' : ''}`;
@@ -838,7 +838,7 @@ Return ONLY valid JSON:
 
 const getProductPOVPrompt = (product, duration, category, background, gender, hijabMode, narration, mode, refCount, identityBible = '', assetAnalysis = '') => {
   const sec = parseInt(duration) || 10;
-  const sceneCount = sec <= 10 ? 3 : sec <= 20 ? 5 : sec <= 30 ? 7 : 9;
+  const sceneCount = sec <= 10 ? 2 : sec <= 20 ? 4 : sec <= 30 ? 6 : 8;
   const perScene = (sec / sceneCount).toFixed(1);
   const cat = (category || '').toLowerCase();
   const hasModel = mode === 'With Model';
@@ -944,7 +944,7 @@ const getUgcStoryboardPrompt = (product, duration, category, environment, gender
   // the Omni Flash / i2v sweet spot. The old ladder (3/4/6) capped at 6 scenes, so a
   // 45s video became 7.5s per scene (motion drift) and could never fit the 7-part
   // demo structure below.
-  const sceneCount = sec <= 10 ? 4 : sec <= 15 ? 5 : sec <= 20 ? 6 : sec <= 30 ? 8 : sec <= 45 ? 12 : 15;
+  const sceneCount = sec <= 10 ? 3 : sec <= 15 ? 4 : sec <= 20 ? 5 : sec <= 30 ? 6 : sec <= 45 ? 9 : 12;
   const perScene = (sec / sceneCount).toFixed(1);
   const modelRef = `${gender === 'Wanita' || gender === 'Female' ? 'young Asian female' : 'young Asian male'} influencer${(gender === 'Wanita' || gender === 'Female') && hijabMode === 'Hijab' ? ' wearing an aesthetic modern hijab' : ''}`;
 
@@ -1015,7 +1015,7 @@ Return ONLY valid JSON:
 
 const getCinematicStoryboardPrompt = (topic, duration, style, aspect, audience, refCount, identityBible = '', assetAnalysis = '', platform = 'TikTok') => {
   const sec = parseInt(duration) || 30;
-  const sceneCount = sec <= 10 ? 4 : sec <= 15 ? 5 : sec <= 20 ? 6 : sec <= 30 ? 8 : sec <= 45 ? 12 : 16;
+  const sceneCount = sec <= 10 ? 3 : sec <= 15 ? 4 : sec <= 20 ? 5 : sec <= 30 ? 6 : sec <= 45 ? 9 : 12;
   const perScene = (sec / sceneCount).toFixed(1);
 
   // Natural 3-Act structure per duration: HOOK → CONTENT → CTA
