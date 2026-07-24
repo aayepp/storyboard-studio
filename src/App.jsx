@@ -1036,109 +1036,101 @@ const getCinematicStoryboardPrompt = (topic, duration, style, aspect, audience, 
   const sec = parseInt(duration) || 30;
   const sceneCount = sec <= 10 ? 3 : sec <= 15 ? 4 : sec <= 20 ? 5 : sec <= 30 ? 6 : sec <= 45 ? 9 : 12;
   const perScene = (sec / sceneCount).toFixed(1);
+  const maxWords = Math.round(parseFloat(perScene) * 3);
 
-  // Natural 3-Act structure per duration: HOOK → CONTENT → CTA
-  const getActMap = (n) => {
-    if (n <= 3) {
-      return [
-        `ACT 1 — HOOK (Scene ${1}): Pattern interrupt — grab attention in 1 second. Open with a provocative question, bold claim, shocking stat, or mid-action story drop in BM. No "Hai korang..." intro. Dialogue must feel like a real person interrupting their friend's scroll.`,
-        `ACT 2 — CONTENT / SOLUTION (Scene ${2}): Deliver the value, show the transformation, explain the problem and solution naturally. Emotional build. Dialogue must feel like someone sharing a genuine experience, not reading a script.`,
-        `ACT 3 — CTA / PAYOFF (Scene ${3}): Strong closing. Emotional payoff, satisfaction, or clear call-to-action. Leave the viewer feeling something. No dead ending like "ok tu je".`
-      ];
-    } else if (n <= 4) {
-      return [
-        `ACT 1 — HOOK (Scene 1): Instant pattern interrupt. Start with curiosity gap, question, or relatable confession. MUST feel like a real TikTok/Reels hook — imperfect, energetic, natural BM.`,
-        `ACT 1 — SETUP (Scene 2): Establish context. Who, what, why now. Make viewer care. Transition naturally from the hook.`,
-        `ACT 2 — SOLUTION / DEMO (Scene 3): Show the transformation, the product, the answer. Demonstrate with real energy. Dialogues must include natural BM fillers: "eh", "kan", "tau tak", "sumpah".`,
-        `ACT 3 — CTA (Scene 4): Strong close with emotional payoff. Point to action (beg kuning, swipe up, etc.). Make viewer feel FOMO or satisfaction.`
-      ];
-    } else {
-      return [
-        `ACT 1 — HOOK (Scene 1): Pattern interrupt. Bold question, controversial take, or shocking stat. Must stop the scroll in under 1.5s. Natural BM hook — think kawan sembang, bukan script.`,
-        `ACT 1 — SETUP (Scene 2): Establish the world, character, stakes. Why should the viewer care? Build curiosity naturally.`,
-        `ACT 2 — CONFLICT / PROBLEM (Scene 3): Introduce the tension, pain point, or challenge. Make it relatable. "Korang pernah rasa..." style.`,
-        `ACT 2 — BUILD / SOLUTION (Scene 4): Start revealing the solution or demonstration. Energy builds. Show transformation beginning.`,
-        `ACT 2 — DEEPER SOLUTION (Scene 5): Full demonstration, proof, or emotional breakthrough. Most valuable content here. Dialogue should feel like an excited friend sharing something amazing.`,
-        `ACT 3 — CTA / PAYOFF (Scene 6): Strong emotional close. Satisfaction, transformation complete, clear action step. Leave viewer with a feeling or urge to act.`
-      ];
-    }
-  };
+  const marketingObjective = /review|unbox|beli|produk|product/.test((topic||'').toLowerCase()) ? 'Sales / Product Launch'
+    : /tips|cara|how|tutorial|belajar/.test((topic||'').toLowerCase()) ? 'Education / Awareness'
+    : /cerita|story|pengalaman|kisah/.test((topic||'').toLowerCase()) ? 'Brand Recall / Entertainment'
+    : 'Awareness / Engagement';
 
-  const actMap = getActMap(sceneCount);
+  const emotionalDriver = /takut|risau|masalah|sakit|susah/.test((topic||'').toLowerCase()) ? 'Fear → Hope'
+    : /best|bagus|best gila|wow|amazing/.test((topic||'').toLowerCase()) ? 'Excitement → Desire'
+    : /kenapa|why|rahsia|secret|tahu tak/.test((topic||'').toLowerCase()) ? 'Curiosity → Revelation'
+    : /murah|jimat|afford|harga/.test((topic||'').toLowerCase()) ? 'Urgency → Value'
+    : 'Curiosity → Satisfaction';
 
-  return `You are a VIRAL MALAYSIA TIKTOK/REELS STORYBOARD DIRECTOR who speaks like a real human, not AI. Create a ${sec}s ${aspect} storyboard about: ${topic}${style !== 'auto' ? ` in ${style} style` : ''}${audience ? `. Target: ${audience}` : ''}.
+  const styleGuide = style === 'auto'
+    ? `Auto-select strongest style for "${topic}". Options: UGC, Documentary, Cinematic, POV, Product Demo, Lifestyle, Luxury Commercial, Before vs After, Transformation, Testimonial, Comedy, Emotional Storytelling. Pick what maximises retention for THIS topic.`
+    : `Mandatory style: ${style}.`;
 
-PLATFORM CONTEXT — ${platform} (${aspect}):
-${platform === 'TikTok' ? 'TikTok MY: Hook MUST land in <1.5s. Pattern interrupt first frame. Fast cuts, trending audio cue, BM slang feels authentic. Algo rewards watch-time — front-load value.' : platform === 'Reels' ? 'Instagram Reels: Hook 1.5-2s. Aesthetic visual hooks work. Slightly slower pacing okay. Captions important.' : platform === 'YouTube' ? 'YouTube Shorts: Hook 2s. Can have more context. Title card friendly. Slightly educational tone okay.' : platform === 'Shopee' ? 'Shopee Live/Video: Product-forward. Price anchor early. Trust-building tone. CTA strong.' : 'TikTok/Reels: Hook MUST land in <1.5s. Mobile-native vertical. Pattern interrupt first frame.'}
-HOOK TYPE for this topic: ${/produk|product|review|unbox|beli/.test((topic||'').toLowerCase()) ? 'Product curiosity hook — lead with surprising result or price reveal' : /tips|cara|how|tutorial/.test((topic||'').toLowerCase()) ? 'Value hook — "Kau tak tau benda ni..."' : /cerita|story|pengalaman/.test((topic||'').toLowerCase()) ? 'Story hook — drop into middle of action' : 'Pattern interrupt — bold claim or question that demands answer'}
+  const narrativeOptions = 'escalating problem, desire progression, mystery reveal, curiosity loop, before vs after, transformation journey, documentary discovery, character journey, problem to consequence, comedy setup to punchline, visual escalation, expectation vs reality, social experiment, countdown, hidden truth';
 
-PACING: Mark each scene with pace tag — FAST (cut <2s), MEDIUM (2-4s), SLOW (4s+). Hook=FAST, reveal=SLOW.
+  const platformContext = platform === 'TikTok'
+    ? 'TikTok MY: Hook MUST land in <1.5s. Fast cuts, BM slang authentic. Front-load value.'
+    : platform === 'Reels' ? 'Instagram Reels: Hook 1.5-2s. Aesthetic visual hooks. Captions important.'
+    : platform === 'YouTube' ? 'YouTube Shorts: Hook 2s. Educational tone ok. Title card friendly.'
+    : platform === 'Shopee' ? 'Shopee Video: Product-forward. Price anchor early. Strong CTA.'
+    : 'TikTok/Reels: Hook <1.5s. Pattern interrupt first frame.';
 
-CRITICAL RULES — Your life depends on following these:
-1. Exactly ${sceneCount} scenes, ~${perScene}s each. Continuous story with no gaps.
-2. ${sec <= 15 ? 'This is a SHORT video — every second counts. No filler scenes.' : 'Build a proper narrative arc with rising tension.'}
-3. DIALOGUE MUST SOUND 100% HUMAN — not like AI copywriting. Rules:
-   - Use natural Malay fillers: "eh", "kan", "tau tak", "sumpah", "weh", "gila", "macam", "serious"
-   - Include incomplete sentences, self-corrections, rhetorical questions
-   - Each scene's dialogue must have DIFFERENT emotional energy than the scene before
-   - NEVER start with "Hai korang hari ni aku nak share tentang..."
-   - NEVER repeat the same word twice in a row (e.g. "baru baru", "best best", "gila gila") — use a different word instead
-   - Think how a real Malaysian creator talks to their close friend on TikTok Live
-4. 3-ACT STRUCTURE (HOOK → CONTENT/SOLUTION → CTA) — MUST follow:
-${actMap.map((act, i) => `Scene ${i+1}: ${act}`).join('\n')}
-5. Emotional journey: Curiosity → Engagement → Satisfaction/FOMO
-6. Each scene MUST push the story forward — zero filler.
-7. Visual/image fields in English. Dialogue in natural BM.
+  return `You are an elite Creative Director, Storyboard Artist, Film Director, Short-Form Video Strategist, Cinematographer, and AI Video Prompt Engineer.
 
-DIALOG PACING & SEGMENT CONTINUITY (CRITICAL FOR AI VIDEO GENERATION):
-8. Each scene's dialogue must be SHORT enough to speak naturally within ${perScene}s. Max ~${Math.round(parseFloat(perScene) * 3)} words per scene at natural BM speech pace (~3 words/sec).
-9. NOT every scene needs dialogue. Leave 1-2 scenes as VISUAL-ONLY (dialogue: "") for breathing room — let the visuals tell the story.
-10. Scene N's dialogue must CONNECT to Scene N+1. Use bridging: "lepas tu kan...", "tapi...", "so...", "pastu..." at scene transitions.
-11. The full dialogue across all scenes must read as ONE continuous conversation — not isolated random sentences.
-12. For videos >${sec > 15 ? '15s' : '10s'}: group every 2-3 scenes into a mini-thought that resolves before the next group begins. This ensures each 10s segment feels complete when cut.
-13. STORY LOGIC (MUST be coherent): The scenes must form a logical cause-and-effect chain. Each scene is a direct consequence of the previous one. A viewer must be able to follow WHY each moment happens. For a product story, a natural logical arc is: (a) show the problem/pain → (b) introduce the product as the answer → (c) show it working/being used → (d) show the happy result → (e) call to action. Do NOT jump to "she's happily using it" before establishing WHY she picked it up. Do NOT show the CTA before the benefit is proven. The emotion in each scene must match where we are in the story (frustrated at the problem, curious at discovery, delighted at the result).
-14. SEGMENT SELF-CONTAINMENT: This video will be cut into 10-second segments. Every group of scenes that falls within a 10s window must make sense on its own. Therefore: the FIRST scene of each ~10s block should NOT open with a dangling bridge word ("tapi...", "lepas tu...", "so...") that depends on a scene the viewer may not have seen — instead it should re-anchor lightly (name the product or the situation) before continuing. Mid-block scenes can still bridge naturally.
-15. DIALOGUE ↔ VISUAL MATCH: What the character SAYS must match what the scene SHOWS. If the dialogue talks about battery life, the visual should relate to using/checking the device, not an unrelated action. If she says "tengok ni" (look at this), she must be showing something to the camera. Never pair a line of dialogue with a visual that contradicts or ignores it.
-
-NARRATIVE ENGINE — Select the STRONGEST progression for this topic (do NOT force Hook→Problem→Solution→CTA if another works better):
-Available progressions: escalating problem, desire progression, mystery reveal, curiosity loop, before vs after, transformation journey, documentary discovery, character journey, problem to consequence, comedy setup to punchline, visual escalation, expectation vs reality, social experiment, countdown, hidden truth.
-Pick the one that creates the most retention for THIS specific topic. Announce your chosen progression in the JSON "style" field.
-
-CAMERA VARIETY (MANDATORY):
-- NEVER repeat the same camera angle/shot type in consecutive scenes.
-- Use at least 4 different camera types across ${sceneCount} scenes.
-- Available: Extreme Close Up, Close Up, Medium Shot, Wide Shot, POV, Over Shoulder, Tracking Shot, Dolly In, Low Angle, High Angle, Top Down, Macro, Handheld, Orbit Shot, Whip Pan.
-- Vary strategically: close-up for emotion, wide for context, POV for immersion, tracking for energy.
-
-STYLE INFERENCE (when style is "auto"):
-${style === 'auto' ? `Automatically select the strongest visual style for "${topic}". Consider: Cinematic, UGC, POV, Documentary, Product Demo, Emotional Storytelling, Comedy Skit, Hyperreal Commercial, Aesthetic B-Roll, Visual Metaphor, Macro Product Film. Pick what creates the most impact.` : `Mandatory style: ${style}.`}
-
-RETENTION — SCENE 1 MUST create immediate interest using one of these:
-- Unexpected movement or action mid-frame
-- Unfinished action (viewer needs to see what happens next)
-- Emotional tension or human reaction
-- Visual contradiction or unusual scale
-- Mystery or transformation beginning
-- Sensory imagery (texture, sound implication, touch)
-- Pattern interruption (something viewers don't expect)
-Do NOT open with generic talking-to-camera unless the topic demands it.
-
-CONTINUITY RULES (STRICT):
-- Every scene must: connect to previous scene, move story forward, show progression, include movement, reveal new information.
-- NEVER create random disconnected scenes. NEVER use filler. NEVER repeat the same message in different words.
-- No random character changes between scenes. No wardrobe changes unless specified. No face changes. No product redesign. No disconnected transitions. No unexplained environment changes.
-
-AUDIO DIRECTION: Include an "audio_direction" field in the JSON output suggesting the best audio mood (e.g., "emotional piano", "tension pulse", "fast percussion", "trending beat", "minimal ambience", "ASMR texture", "silence before reveal").
-
-${refCount > 0 ? 'Reference assets loaded — lock product/identity consistency across ALL scenes.' : ''}
-${assetAnalysis ? `ASSET ANALYSIS for visual consistency:\n${assetAnalysis}\n` : ''}
+Transform this idea into a production-ready ${sec}s storyboard for ${platform} (${aspect}):
+TOPIC: "${topic}"
+${audience ? `TARGET AUDIENCE: ${audience}` : ''}
+${refCount > 0 ? 'REFERENCE ASSETS: Loaded — lock product/character consistency across ALL scenes.' : ''}
+${assetAnalysis ? `ASSET ANALYSIS:\n${assetAnalysis}\n` : ''}
 ${identityBible ? `${identityBible}\n` : ''}
+
+MARKETING OBJECTIVE: ${marketingObjective}
+EMOTIONAL DRIVER: ${emotionalDriver}
+PLATFORM: ${platformContext}
+
+STYLE ENGINE: ${styleGuide}
+
+NARRATIVE ENGINE: Select ONE from: ${narrativeOptions}
+Pick the structure that creates the most retention for THIS specific topic. Do NOT announce the structure name.
+
+DURATION ENGINE: ${sceneCount} scenes × ${perScene}s each.
+
+SCENE DESIGN — Every scene MUST include all these fields:
+- visual: location, environment, objects, props, color palette, wardrobe, facial expression, body posture, lighting, depth of field, foreground, background (ENGLISH, high specificity)
+- camera: shot type from [Extreme Close Up, Close Up, Medium Shot, Wide Shot, POV, Over Shoulder, Tracking, Dolly In, Pull Back, Low Angle, High Angle, Top Down, Macro, Handheld, Orbit, Whip Pan] — VARY every scene, never repeat consecutively
+- lens_suggestion: e.g. "24mm wide", "85mm portrait", "macro 100mm", "50mm standard"
+- lighting: e.g. "soft diffused window light", "dramatic hard side light", "golden hour backlight", "cool blue practical LED"
+- composition: e.g. "rule of thirds — subject left", "centered symmetry", "leading lines toward product", "foreground frame with bokeh background"
+- action: what happens — must include movement, no static scenes
+- emotion: facial expression + body language (specific, not just "happy")
+- dialogue: natural BM max ${maxWords} words — or "" for visual-only scenes. NEVER "Hai korang hari ni aku nak...". Sound like real Malaysian friend on TikTok.
+- ambient_sound: e.g. "coffee shop murmur + soft lo-fi", "silence then bass drop", "ASMR product touch sound", "crowd energy + beat"
+- transition: e.g. "cut on action", "whip pan right", "fade through black", "match cut", "jump cut", "smash cut", "dissolve"
+- purpose: one sentence explaining WHY this scene exists in the story
+- i2v_prompt: time-coded English motion prompt
+- image_prompt: English still with full environment, NOT white background
+- negative: must ban plain white background and other artifacts
+
+CINEMATIC QUALITY STANDARD:
+- Netflix documentary quality
+- Apple commercial aesthetics
+- Nike campaign energy
+- Professional color grading
+- Realistic natural lighting
+- High production value
+
+STORY FLOW RULES:
+1. Every scene advances the story — zero filler, zero repetition
+2. Scene N must naturally motivate Scene N+1
+3. NEVER repeat same camera angle consecutively
+4. Dialogue across all scenes = ONE continuous conversation
+5. FAST pace for hook/CTA, MEDIUM for demo, SLOW for emotional reveals
+6. 1-2 scenes must be VISUAL-ONLY (dialogue: "") for breathing room
+7. STORY LOGIC: problem → solution → proof → CTA (logical cause-effect chain)
+8. DIALOGUE ↔ VISUAL MATCH: what character says MUST match what scene shows
+
+CHARACTER CONSISTENCY:
+- Maintain exact same age, gender, face, hair, clothing, accessories across ALL scenes
+- Never change character appearance without explicit instruction
+
+PRODUCT CONSISTENCY (if reference uploaded):
+- Maintain exactly: shape, dimensions, branding, colors, label, logo, materials, texture
+- Never redesign the product — copy ONLY what is visible in reference
+
 ${SCENE_ENVIRONMENT_RULES}
 ${SCENE_JSON_CONTRACT}
 
 Return ONLY valid JSON — no markdown, no commentary:
-{"title":"🎬 [organic-sounding title in BM]","duration":"${sec}s","style":"[chosen style]","audio_direction":"[mood]","identity_bible":"[lock string]","scenes":[{"scene_num":1,"timecode":"0s–${perScene}s","visual":"[English with LOCATION + lighting + concrete details]","camera":"[specific shot type + movement — VARY each scene]","action":"[what happens — include movement]","emotion":"[facial expression + body language]","dialogue":"[NATURAL BM max ${Math.round(parseFloat(perScene) * 3)} words — or empty string for visual-only scenes]","image_prompt":"[English still with full environment]","i2v_prompt":"[English motion prompt]","negative":"${DEFAULT_NEGATIVE}","sound_design":"[BGM mood + SFX suggestion]"}]}`;
+{"title":"🎬 [organic BM title]","duration":"${sec}s","platform":"${platform}","style":"[chosen style]","marketing_objective":"${marketingObjective}","emotional_driver":"${emotionalDriver}","audio_direction":"[overall BGM mood for full video]","identity_bible":"[character+product lock string]","scenes":[{"scene_num":1,"timecode":"0s–${perScene}s","pace":"FAST|MEDIUM|SLOW","visual":"[English — location + environment + props + lighting + color]","camera":"[specific shot + movement]","lens_suggestion":"[focal length suggestion]","lighting":"[lighting setup]","composition":"[framing rule]","action":"[what happens — include movement]","emotion":"[facial expression + body language]","dialogue":"[natural BM max ${maxWords} words or empty string]","ambient_sound":"[sound design note]","transition":"[transition to next scene]","purpose":"[why this scene exists]","image_prompt":"[English still with full environment]","i2v_prompt":"[time-coded English motion]","negative":"${DEFAULT_NEGATIVE}"}]}`;
 };
+
 
 const getMicroImpactPrompt = (topic, aspect, audience, refCount, identityBible = '', assetAnalysis = '', punchCut = false) =>
   `You are a 10s MICRO-IMPACT SPECIALIST. Create ${punchCut ? '5 scenes (~2s each)' : 'exactly 3 scenes (~3.3s)'} for: ${topic}. Aspect ${aspect}.${audience ? ` Target: ${audience}.` : ''}${refCount ? ' Refs loaded.' : ''}
