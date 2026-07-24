@@ -3023,7 +3023,7 @@ return parsed;
       if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
         e.preventDefault();
         if (!isGeneratingAll && !isGeneratingImage) {
-          if (['cinematic_pro','microimpact','narrativearc','talkinghead','stopmotion','grafix'].includes(activeTab)) {
+          if (['cinematic_pro','microimpact','narrativearc','talkinghead','stopmotion','grafix','ugc'].includes(activeTab)) {
             generateNewMode(activeTab);
           } else {
             generateAllContent();
@@ -3801,6 +3801,7 @@ Keep the subject person, face reference, background layout, and clothes identica
       else if (mode === 'talkinghead') promptText = getTalkingHeadPrompt(thTopic, thDuration, thTone, aspectRatio, thAudience, refCount, identityBible, assetAnalysis, thTeleprompter, thSubtitleFormat);
       else if (mode === 'stopmotion') promptText = getStopMotionPrompt(smProduct, smDuration, smStyle, aspectRatio, smAudience, refCount, identityBible, assetAnalysis, smEasingMode);
       else if (mode === 'grafix') promptText = getGrafixPrompt(topicText, gfDuration, aspectRatio, gfStyle, gfAudience, refCount, identityBible, assetAnalysis, gfBrandColor, gfDataInput);
+      else if (mode === 'ugc') promptText = getUgcStoryboardPrompt(productName.trim(), duration, category, ugcEnvironment, gender, hijabMode, ugcAngle, refCount, identityBible, assetAnalysis, ugcPrice);
 
       setLoadingText(isGrafix ? 'Generating Grafix framework series...' : 'Building JSON sequence array...');
       setGenerationStep(2);
