@@ -441,5 +441,136 @@ src/App.jsx
 **Files changed:** src/App.jsx
 
 ---
+
+## Session Changes — 2026-07-24 (Part 2)
+
+### 6. Cinematic Pro — Elite Creative Director Upgrade
+
+**`getCinematicStoryboardPrompt` fully rewritten:**
+- Role: Elite Creative Director + Film Director + AI Video Prompt Engineer
+- Auto-detect `marketingObjective` dari topic (Sales/Education/Awareness/Entertainment)
+- Auto-detect `emotionalDriver` dari topic (Fear→Hope/Curiosity→Satisfaction/Urgency→Value)
+- Platform context strengthened per platform (TikTok/Reels/YouTube/Shopee)
+- Style engine: auto-select strongest style dari 27 options
+- Narrative engine: pick from 15 structures (mystery reveal, curiosity loop, transformation, etc.)
+
+**New fields per scene:**
+- `pace` — FAST/MEDIUM/SLOW
+- `lens_suggestion` — focal length (24mm, 85mm, macro 100mm)
+- `lighting` — setup specific (soft window, dramatic side, golden hour)
+- `composition` — framing rule (rule of thirds, centered symmetry, leading lines)
+- `ambient_sound` — sound design note (ASMR texture, bass drop, silence)
+- `transition` — cut type (whip pan, match cut, smash cut, dissolve)
+- `purpose` — why this scene exists in the story
+
+**Top-level JSON fields:**
+- `marketing_objective` — auto-detected
+- `emotional_driver` — auto-detected
+- `audio_direction` — overall BGM mood for full video
+- `platform` — platform target
+
+**Cinematic quality standard:**
+- Netflix documentary quality
+- Apple commercial aesthetics
+- Nike campaign energy
+
+---
+
+### 7. Dialogue-Visual Match Fixes
+
+**`DIALOGUE_AUTHENTICITY_RULES` strengthened:**
+- Added `VISUAL-DIALOGUE SYNC` as most important rule
+- Rule: Write action first, then write dialogue that MATCHES that action
+- NEVER write dialogue about Topic A while visual shows Topic B
+
+**`getCinematicStoryboardPrompt` explicit examples:**
+- "tengok ni packaging" → visual MUST show packaging
+- "battery dia 7 hari" → visual MUST show battery %
+- "kulit aku glowing" → visual MUST show skin close-up
+- Rule: Write visual AFTER dialogue — visual SERVES dialogue
+
+**Applied to ALL 8 tabs:**
+- UGC ✅ (dah ada)
+- Micro Impact ✅ (dah ada)
+- Narrative Arc ✅ (dah ada)
+- Talking Head ✅ (dah ada)
+- Stop Motion ✅ (baru tambah)
+- Grafix ✅ (baru tambah)
+- Product POV ✅ (baru tambah)
+- OOTD ✅ (baru tambah)
+
+---
+
+### 8. JSON Parsing Fixes
+
+**`normalizeStoryboardPayload` strengthened:**
+- Handle array at root
+- Auto-detect scenes under any key with `scene_num` field
+- Fallback to any array key
+- Always return `scenes: []` instead of null
+
+**`validateStoryboard` auto-normalize:**
+- Before throwing "Missing scenes array", try to find array in any key
+- Prevents false errors when AI returns scenes under different key name
+
+**`parseModelJson` auto-close truncated JSON:**
+- 3-tier recovery: direct parse → repair → auto-close brackets
+- `autoClose()` helper: balance open brackets, close open strings
+- Prevents `Unexpected end of JSON input` error
+
+---
+
+### 9. Additional Bug Fixes
+
+**`Missing scenes array` error:**
+- Root cause: AI return JSON dengan scenes tapi normalizer tak detect
+- Fix: Strengthen `normalizeStoryboardPayload` + `validateStoryboard`
+
+**JSON export format:**
+- Universal format untuk semua tabs
+- Includes: title, duration, identity_bible, full scenes array
+- Each scene: scene_num, timecode, visual, camera, action, emotion, dialogue, i2v_prompt, image_prompt, negative, angle_used, b_roll, sound_note
+
+**JSON copy button per Flow AI segment:**
+- Added `{ } JSON` button sebelah `📋 Copy` dalam setiap segment
+- `scenes` array ditambah ke segment object dalam `generateFlowSegments`
+
+**Background lock:**
+- `toTimeCodedI2V` — `[BACKGROUND LOCK]` dalam setiap i2v_prompt
+- Flow AI segment — `BACKGROUND LOCK — CRITICAL` + `VOICE & TONE LOCK — CRITICAL`
+
+**Voice & tone consistency:**
+- Creator voice tone, energy, BM slang kekal consistent across all segments
+
+**No-invention lock:**
+- `[NO-INVENTION LOCK]` dalam product reference rules
+- `analyzeReferenceAssets` — describe ONLY what is visible
+
+**Scene count reduced:**
+- 30s: 8 → 6 scenes (lagi consistent per segment)
+
+**Angle consistency rule:**
+- `[ANGLE CONSISTENCY RULE]` dalam SCENE_JSON_CONTRACT
+
+---
+
+## Commits (2026-07-24 Part 2)
+| Commit | Description |
+|--------|-------------|
+| `ceb2da5` | feat: getCinematicStoryboardPrompt elite creative director upgrade |
+| `46aa0ba` | fix: normalizeStoryboardPayload + validateStoryboard auto-normalize |
+| `24471d0` | fix: dialogue-visual match rules strengthened |
+| `a3ec141` | fix: DIALOGUE_AUTHENTICITY_RULES applied to all 8 tabs |
+
+---
+
+## Current File State (2026-07-24 Part 2)
+- **Lines:** ~7750+
+- **Build:** ✅ esbuild zero errors
+- **Latest commit:** `a3ec141`
+- **All 8 tabs:** ✅ DIALOGUE_AUTHENTICITY_RULES applied
+- **Cinematic Pro:** ✅ Elite creative director format
+
+---
 ### Auto-log: 2026-07-25 02:47 (branch: main)
 **Files changed:** src/App.jsx
