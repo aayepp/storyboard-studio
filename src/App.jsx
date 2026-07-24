@@ -6848,6 +6848,37 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                                 <span style={{ fontSize: '12px', lineHeight: 1 }}>{copiedSection === `flow_seg_${i}` ? '✅' : '📋'}</span>
                                 {copiedSection === `flow_seg_${i}` ? 'Copied' : 'Copy'}
                               </button>
+                              <button
+                                onClick={() => {
+                                  const segScenes = seg.scenes || [];
+                                  const jsonVal = JSON.stringify({
+                                    segment: seg.label,
+                                    part: `${seg.part}/${seg.parts}`,
+                                    scenes: segScenes.map(s => ({
+                                      scene_num: s.scene_num,
+                                      timecode: s.timecode,
+                                      visual: s.visual,
+                                      camera: s.camera,
+                                      action: s.action,
+                                      dialogue: s.dialogue,
+                                      i2v_prompt: s.i2v_prompt,
+                                      image_prompt: s.image_prompt,
+                                      angle_used: s.angle_used || '',
+                                      b_roll: s.b_roll || '',
+                                      sound_note: s.sound_note || ''
+                                    }))
+                                  }, null, 2);
+                                  copyToClipboard(jsonVal, `flow_seg_json_${i}`);
+                                }}
+                                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1.5 transition-all ${
+                                  copiedSection === `flow_seg_json_${i}`
+                                  ? 'bg-[#15803d] text-white'
+                                  : 'bg-[#1a2f3a] text-[#38bdf8] hover:bg-[#1e4d5f]'
+                                }`}
+                              >
+                                <span style={{ fontSize: '12px', lineHeight: 1 }}>{copiedSection === `flow_seg_json_${i}` ? '✅' : '{ }'}</span>
+                                {copiedSection === `flow_seg_json_${i}` ? 'Copied' : 'JSON'}
+                              </button>
                             </div>
                             
                             {isSegExpanded && (
