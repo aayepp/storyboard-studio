@@ -1799,6 +1799,7 @@ const generateFlowSegments = (scenes, durationStr, options = {}) => {
       label: `${s}S–${e}S`,
       sceneCount: segScenes.length || 1,
       prompt,
+      scenes: segScenes,
       start: s,
       end: e,
       totalSec,
