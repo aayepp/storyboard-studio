@@ -452,13 +452,24 @@ const parseModelJson = (rawText) => {
 };
 
 const normalizeStoryboardPayload = (parsed) => {
+  if (!parsed) return { scenes: [] };
   let data = parsed;
+  // Handle array at root
   if (Array.isArray(data)) {
     data = { title: '🎬 Papan Cerita Storyboard', duration: 'Kustom', style: 'Auto', scenes: data };
   } else if (data && !data.scenes) {
-    const arrayKey = Object.keys(data).find((k) => Array.isArray(data[k]));
-    if (arrayKey) data = { ...data, scenes: data[arrayKey] };
+    // Try to find scenes under any array key
+    const arrayKey = Object.keys(data).find((k) => Array.isArray(data[k]) && data[k].length > 0 && data[k][0]?.scene_num !== undefined);
+    if (arrayKey) {
+      data = { ...data, scenes: data[arrayKey] };
+    } else {
+      // Try any array key as fallback
+      const anyArrayKey = Object.keys(data).find((k) => Array.isArray(data[k]));
+      if (anyArrayKey) data = { ...data, scenes: data[anyArrayKey] };
+    }
   }
+  // Ensure scenes is always an array
+  if (!Array.isArray(data.scenes)) data.scenes = [];
   return data;
 };
 
@@ -538,8 +549,14 @@ const toTimeCodedI2V = (scene) => {
 };
 
 const validateStoryboard = (data, expectedSceneCount = null) => {
-  if (!data || !Array.isArray(data.scenes) || data.scenes.length === 0) {
+  if (!data) {
     return { ok: false, reason: 'Missing scenes array' };
+  }
+  // Auto-normalize if scenes missing
+  if (!Array.isArray(data.scenes) || data.scenes.length === 0) {
+    const anyArray = data ? Object.keys(data).find(k => Array.isArray(data[k]) && data[k].length > 0) : null;
+    if (anyArray) data.scenes = data[anyArray];
+    else return { ok: false, reason: 'Missing scenes array' };
   }
   
   // Relaxed strict check to prevent 'Expected X scenes, got Y' crashes.
