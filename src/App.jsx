@@ -4512,7 +4512,9 @@ ${aspectStr}`;
   const handleDownloadHD = async (url, index, resolution = '4k') => {
     if (!url) return;
     const baseName = getDownloadName() || 'Storyboard_Studio';
-    const safeName = baseName.replace(/\s+/g, '_').toLowerCase();
+    const safeName = activeTab === 'fake_influencer'
+      ? `model - ${baseName}`
+      : baseName.replace(/\s+/g, '_').toLowerCase();
     // 4K = 3840px, 2K = 1920px (good enough for Flow AI video generation)
     const is2k = resolution === '2k';
     try {
