@@ -2028,6 +2028,37 @@ const getStoredGenfityKey = () => {
   try { return localStorage.getItem('genfity_api_key') || ''; } catch { return ''; }
 };
 
+const getStoredOpenAIKey = () => {
+  try { return localStorage.getItem('openai_api_key') || ''; } catch { return ''; }
+};
+const setStoredOpenAIKey = (key) => {
+  try { localStorage.setItem('openai_api_key', key); } catch {}
+};
+
+const callDallE3Api = async (prompt, size = '1792x1024', signal = null) => {
+  const key = getStoredOpenAIKey();
+  if (!key) throw new Error('OpenAI API Key belum diset. Pergi Settings untuk tambah key.');
+  const res = await fetch('https://api.openai.com/v1/images/generations', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+    body: JSON.stringify({
+      model: 'dall-e-3',
+      prompt,
+      n: 1,
+      size,
+      quality: 'hd',
+      response_format: 'url'
+    }),
+    signal
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err?.error?.message || `OpenAI error ${res.status}`);
+  }
+  const json = await res.json();
+  return json?.data?.[0]?.url || null;
+};
+
 const getStoredTextProvider = () => {
   try { return localStorage.getItem('text_provider') || 'gemini'; } catch { return 'gemini'; }
 };
@@ -2377,9 +2408,13 @@ export default function App() {
   const handleGenerateStoryboardSheetImage = async () => {
     const allScenes = generatedOutput?.scenes || generatedOutput?.productScenes || generatedOutput?.ootdScenes || [];
     if (!allScenes.length) return;
+    if (!getStoredOpenAIKey()) {
+      addToast('Tambah OpenAI API Key dulu dalam Settings!', 'error', 4000);
+      return;
+    }
     setIsGeneratingSheet(true);
     setSheetImageUrl(null);
-    addToast('Generating 2K storyboard sheet...', 'info', 5000);
+    addToast('Generating 2K storyboard sheet via DALL-E 3...', 'info', 8000);
     playSound('start');
     try {
       const prompt = buildStoryboardSheetImagePrompt(
@@ -2389,11 +2424,7 @@ export default function App() {
         generatedOutput?.platform || cinematicPlatform || 'TikTok',
         generatedOutput?.identityBible || ''
       );
-      const url = await fetchSingleImage(prompt, '16:9', null, 0, {
-        identityBible: generatedOutput?.identityBible || '',
-        motionGraphicsMode: false,
-        topicLock: generatedOutput?.title || ''
-      });
+      const url = await callDallE3Api(prompt, '1792x1024');
       if (url) {
         setSheetImageUrl(url);
         playSound('success');
@@ -2552,6 +2583,7 @@ I2V: ${s.i2v_prompt || ''}`
   const [cinematicPlatform, setCinematicPlatform] = useState('TikTok');
 
   const [apiKey, setApiKey] = useState(getStoredApiKey);
+  const [openAIKey, setOpenAIKey] = useState(getStoredOpenAIKey);
   const [genfityKey, setGenfityKey] = useState(getStoredGenfityKey);
   const [textProvider, setTextProvider] = useState(getStoredTextProvider);
   const [generateMode, setGenerateMode] = useState(getStoredGenerateMode);
@@ -5426,6 +5458,32 @@ Pick the ONE that best fits. No explanation, just the tag.`;
             </button>
           </div>
         )}
+
+        {/* OpenAI API Key for DALL-E 3 Sheet Generation */}
+        <div className={`mb-4 p-4 rounded-2xl border flex flex-col sm:flex-row items-center gap-3 ${t('bg-[#11131a] border-gray-800', 'bg-gray-50 border-gray-200')}`}>
+          <div className="flex items-center gap-2 shrink-0">
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${t('bg-green-900/40', 'bg-green-100')}`}>
+              <span className="text-sm">🤖</span>
+            </div>
+            <span className={`text-xs font-black ${t('text-gray-300', 'text-gray-700')}`}>OpenAI Key <span className="text-[9px] text-green-400">(DALL-E 3 Sheet)</span></span>
+          </div>
+          <div className="flex-1 w-full relative">
+            <input
+              type="password"
+              value={openAIKey}
+              onChange={(e) => { setOpenAIKey(e.target.value); setStoredOpenAIKey(e.target.value); }}
+              placeholder="sk-... (untuk 2K Storyboard Sheet)"
+              className={`w-full rounded-xl px-4 py-2.5 text-sm border focus:outline-none focus:ring-1 focus:ring-green-400 ${t('bg-[#0a0c10] border-gray-700 text-white placeholder-gray-600', 'bg-white border-gray-200 text-gray-800')}`}
+            />
+          </div>
+          <button
+            onClick={() => { setStoredOpenAIKey(openAIKey); addToast('OpenAI key saved!', 'success', 2000); }}
+            disabled={!openAIKey.trim()}
+            className="px-5 py-2.5 rounded-xl text-xs font-black bg-green-500 text-white disabled:opacity-50 hover:bg-green-600 transition-colors shrink-0"
+          >
+            Save Key
+          </button>
+        </div>
 
         {/* Arahan cara dapatkan Gemini API Key */}
         {(showApiKeyInput || !apiKey) && (
