@@ -1148,6 +1148,14 @@ CINEMATIC QUALITY STANDARD:
 - Realistic natural lighting
 - High production value
 
+SCROLL-STOP FORMULA — SCENE 1 (CRITICAL — first 1.5s decides everything):
+Pick ONE of these proven scroll-stop openers for Scene 1:
+- EXTREME CLOSE-UP HOOK: Start with a macro/extreme close-up of the most visually interesting detail — product texture, face reaction, unexpected object. No context yet. Pure visual curiosity.
+- PATTERN INTERRUPT: Show something unexpected in frame — unusual angle, upside-down, unexpected color contrast, or subject mid-action already in progress.
+- BOLD TEXT OPENER: Scene 1 dialogue = the most controversial/surprising statement possible. No "Hai korang". Start mid-sentence: "Serious tak pernah jumpa benda macam ni sebelum ni..."
+- RESULT-FIRST: Show the AFTER/RESULT in Scene 1, then reveal HOW in middle scenes. Curiosity loop.
+Scene 1 image_prompt MUST be scroll-stopping thumbnail quality — high contrast, clear emotion, dynamic composition. Add "scroll_stop_type": "extreme_closeup|pattern_interrupt|bold_text|result_first" to Scene 1 JSON only.
+
 STORY FLOW RULES:
 1. Every scene advances the story — zero filler, zero repetition
 2. Scene N must naturally motivate Scene N+1
@@ -1485,6 +1493,14 @@ LAYOUT GRID LOCK (MANDATORY):
 BRAND COLOR INTEGRATION:
 ${assetAnalysis ? "Reference image analyzed — extract dominant brand colors: use in typography, icons, backgrounds throughout. Maintain brand palette consistency across all scenes." : "No brand reference — choose a cohesive color palette that matches the topic mood (tech=blue/dark, finance=green/gold, lifestyle=warm tones, etc.)"}
 Add "brand_palette": "[primary color + accent color]" to JSON root.
+
+TEXT HIERARCHY PER SCENE (MANDATORY):
+Every scene must follow this 3-tier text structure — AI must assign each text element to the correct tier:
+- TIER 1 — HEADLINE: Largest text. 1-4 words. The single most important message of this scene. Bold, high contrast. Always present.
+- TIER 2 — SUBHEAD: Medium text. 5-8 words. Supporting context, stat, or secondary message. Present in data/proof scenes.
+- TIER 3 — DATA/LABEL: Smallest text. Numbers, percentages, captions, source labels. Only when scene has data.
+Rule: NEVER show Tier 2 or Tier 3 without Tier 1. NEVER put long sentences in Tier 1.
+Add "text_hierarchy": {"t1": "[headline]", "t2": "[subhead or null]", "t3": "[data or null]"} to each scene JSON.
 
 LOWER-THIRD TEXT RULES:
 - Every scene that introduces a new concept MUST have a lower-third text overlay
