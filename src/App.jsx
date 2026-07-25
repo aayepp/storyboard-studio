@@ -2353,6 +2353,9 @@ I2V: ${s.i2v_prompt || ''}`
   };
 
   const [sheetView, setSheetView] = useState(false);
+  const [sheetPrintMode, setSheetPrintMode] = useState(false);
+  const [sheetHoveredScene, setSheetHoveredScene] = useState(null);
+  const [sheetGeneratingAll, setSheetGeneratingAll] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(() => {
     try { return localStorage.getItem('sound_alerts') !== 'off'; } catch { return true; }
   });
@@ -6844,10 +6847,13 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                 const imgCount = imageUrls.filter(Boolean).length;
                 const getImg = (i) => imageUrls[i] || (imgCount > 0 ? imageUrls[Math.floor(i * imgCount / allScenes.length)] || imageUrls[imgCount - 1] : null);
 
-                // Print mode state
-                const [printMode, setPrintMode] = React.useState(false);
-                const [hoveredScene, setHoveredScene] = React.useState(null);
-                const [generatingAll, setGeneratingAll] = React.useState(false);
+                // States from component level
+                const printMode = sheetPrintMode;
+                const setPrintMode = setSheetPrintMode;
+                const hoveredScene = sheetHoveredScene;
+                const setHoveredScene = setSheetHoveredScene;
+                const generatingAll = sheetGeneratingAll;
+                const setGeneratingAll = setSheetGeneratingAll;
 
                 // Export PNG via browser print
                 const handleExport = () => {
