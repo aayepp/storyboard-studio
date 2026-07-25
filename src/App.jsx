@@ -3830,7 +3830,6 @@ Keep the subject person, face reference, background layout, and clothes identica
 
     setIsGeneratingAll(true);
     playSound('start');
-    setSidebarOpen(false);
     setGeneratedOutput(null);
     setImageUrls([]);
     setShowMagicBox({});
@@ -4020,8 +4019,7 @@ Keep the subject person, face reference, background layout, and clothes identica
       setGeneratedOutput(combinedRes);
       addToast('Storyboard siap dijana!', 'success', 4000);
       playSound('success');
-      setSidebarOpen(false);
-      setGenerateHistory(prev => [{ tab: activeTab, topic: cinematicTopic || productName || thTopic || gfTopic || smProduct || narrativeArcTopic || characterName || fiName, timestamp: Date.now() }, ...prev.slice(0, 4)]);
+        setGenerateHistory(prev => [{ tab: activeTab, topic: cinematicTopic || productName || thTopic || gfTopic || smProduct || narrativeArcTopic || characterName || fiName, timestamp: Date.now() }, ...prev.slice(0, 4)]);
       setEditableImagePrompt(imagePrompts);
       setBoxEdits({
         videoPrompt: vp,
@@ -4086,7 +4084,6 @@ Keep the subject person, face reference, background layout, and clothes identica
 
     setIsGeneratingAll(true);
     playSound('start');
-    setSidebarOpen(false);
     setGeneratedOutput(null);
     setImageUrls([]);
     setZoomedImages({});
@@ -4435,8 +4432,7 @@ ${aspectStr}`;
       setGeneratedOutput(result);
       addToast('Storyboard siap dijana!', 'success', 4000);
       playSound('success');
-      setSidebarOpen(false);
-      setEditableImagePrompt(promptInputForAI);
+        setEditableImagePrompt(promptInputForAI);
 
       setBoxEdits({
         videoPrompt: result.videoPrompt || promptInputForAI,
@@ -5177,7 +5173,7 @@ Pick the ONE that best fits. No explanation, just the tag.`;
         </div>
       </header>
 
-      <div className="flex min-h-[calc(100vh-64px)] relative z-10">
+      <div className="flex h-[calc(100vh-64px)] overflow-hidden relative z-10">
 
         {/* SIDEBAR */}
         {sidebarOpen && (
@@ -5269,7 +5265,7 @@ Pick the ONE that best fits. No explanation, just the tag.`;
         </aside>
 
         {/* MAIN CONTENT */}
-        <main className="flex-1 min-w-0 px-5 sm:px-8 py-10">
+        <main className="flex-1 min-w-0 overflow-y-auto h-full px-5 sm:px-8 py-10">
         {errorMessage && (
           <div className="mb-6 p-4 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-500 font-bold text-sm flex items-center justify-between shadow-lg">
             <span>{errorMessage}</span>
