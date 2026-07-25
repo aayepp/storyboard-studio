@@ -7466,7 +7466,98 @@ ABSOLUTE RULES:
                               </button>
                               </div>
                             </div>
-                            
+
+                            {/* === PER-SEGMENT IMAGE GRID 2×2 === */}
+                            {(() => {
+                              const segScenes = (seg.scenes || []).filter(Boolean);
+                              if (!segScenes.length) return null;
+                              const segImgCount = imageUrls.filter(Boolean).length;
+                              const getSegImg = (sceneIdx) => imageUrls[sceneIdx] || (segImgCount > 0 ? imageUrls[Math.floor(sceneIdx * segImgCount / (generatedOutput?.scenes?.length || segScenes.length))] || imageUrls[segImgCount - 1] : null);
+                              const globalStart = segScenes[0]?.scene_num ? segScenes[0].scene_num - 1 : i * segScenes.length;
+
+                              const exportSegPNG = async () => {
+                                const PW = 360, PH = 640, PAD = 12, INFO = 80, H = 60;
+                                const cols = 2;
+                                const cw = cols * (PW + PAD) + PAD;
+                                const ch = H + 2 * (PH + INFO + PAD) + PAD;
+                                const canvas = document.createElement('canvas');
+                                canvas.width = cw * 2; canvas.height = ch * 2;
+                                const ctx = canvas.getContext('2d'); ctx.scale(2, 2);
+                                ctx.fillStyle = '#0a0c10'; ctx.fillRect(0, 0, cw, ch);
+                                ctx.fillStyle = '#fff'; ctx.font = 'bold 14px sans-serif';
+                                ctx.fillText('🎬 ' + seg.label + ' · Segment ' + seg.part + '/' + seg.parts, PAD, 28);
+                                ctx.fillStyle = '#38bdf8'; ctx.font = '10px sans-serif';
+                                ctx.fillText(segScenes.length + ' scenes · ' + (generatedOutput?.duration || ''), PAD, 44);
+                                for (let si = 0; si < segScenes.length && si < 4; si++) {
+                                  const sc = segScenes[si];
+                                  const col = si % cols, row = Math.floor(si / cols);
+                                  const x = PAD + col * (PW + PAD), y = H + row * (PH + INFO + PAD);
+                                  ctx.strokeStyle = sc.pace === 'FAST' ? '#f59e0b' : sc.pace === 'SLOW' ? '#8b5cf6' : '#38bdf8';
+                                  ctx.lineWidth = 2; ctx.beginPath(); ctx.roundRect(x, y, PW, PH + INFO, 10); ctx.stroke();
+                                  const img = getSegImg(globalStart + si);
+                                  if (img) {
+                                    try { await new Promise(res => { const im = new Image(); im.crossOrigin = 'anonymous'; im.onload = () => { ctx.save(); ctx.beginPath(); ctx.roundRect(x, y, PW, PH, 10); ctx.clip(); const ar = im.width / im.height, par = PW / PH; let sw, sh, sx, sy; if (ar > par) { sh = PH; sw = sh * ar; sx = x - (sw - PW)/2; sy = y; } else { sw = PW; sh = sw / ar; sx = x; sy = y - (sh - PH)/2; } ctx.drawImage(im, sx, sy, sw, sh); ctx.restore(); res(); }; im.onerror = res; im.src = img; }); } catch {}
+                                  }
+                                  ctx.fillStyle = ctx.strokeStyle; ctx.beginPath(); ctx.arc(x + 16, y + 16, 12, 0, Math.PI * 2); ctx.fill();
+                                  ctx.fillStyle = '#fff'; ctx.font = 'bold 10px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(si + 1, x + 16, y + 20);
+                                  ctx.fillStyle = 'rgba(0,0,0,0.7)'; ctx.beginPath(); ctx.roundRect(x + PW - 64, y + 5, 58, 16, 4); ctx.fill();
+                                  ctx.fillStyle = '#fff'; ctx.font = '8px sans-serif'; ctx.fillText(sc.timecode || '', x + PW - 35, y + 16);
+                                  ctx.textAlign = 'left';
+                                  ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 8px sans-serif'; ctx.fillText((sc.camera || '').slice(0, 36), x + 6, y + PH + 14);
+                                  ctx.fillStyle = '#cbd5e1'; ctx.font = '8px sans-serif'; ctx.fillText(String(sc.visual || '').slice(0, 44), x + 6, y + PH + 26);
+                                  if (sc.dialogue) { ctx.fillStyle = '#fde68a'; ctx.font = 'italic 8px sans-serif'; ctx.fillText('"' + sc.dialogue.slice(0, 40) + '"', x + 6, y + PH + 40); }
+                                }
+                                const link = document.createElement('a'); link.download = 'segment-' + (i+1) + '-sheet.png'; link.href = canvas.toDataURL('image/png', 1.0); link.click();
+                                addToast('Segment ' + (i+1) + ' sheet downloaded!', 'success', 2000); playSound('success');
+                              };
+
+                              const exportSegCSV = () => {
+                                const rows = [['scene_num','timecode','visual','camera','action','emotion','dialogue','i2v_prompt','pace']];
+                                segScenes.forEach(s => rows.push([s.scene_num||'',s.timecode||'',s.visual||'',s.camera||'',s.action||'',s.emotion||'',s.dialogue||'',s.i2v_prompt||'',s.pace||'']));
+                                const csv = rows.map(r => r.map(c => '"' + String(c).replace(/"/g,'""') + '"').join(',')).join('\n');
+                                const blob = new Blob([csv], { type: 'text/csv' });
+                                const link = document.createElement('a'); link.download = 'segment-' + (i+1) + '.csv'; link.href = URL.createObjectURL(blob); link.click();
+                                addToast('Segment ' + (i+1) + ' CSV downloaded!', 'success', 2000); playSound('success');
+                              };
+
+                              return (
+                                <div className="p-4 border-b border-[#143e4f]">
+                                  <div className="grid grid-cols-2 gap-2 mb-3">
+                                    {segScenes.slice(0, 4).map((sc, si) => {
+                                      const img = getSegImg(globalStart + si);
+                                      const pace = sc.pace || 'MEDIUM';
+                                      const borderColor = pace === 'FAST' ? 'border-amber-500/60' : pace === 'SLOW' ? 'border-purple-500/60' : 'border-sky-500/60';
+                                      return (
+                                        <div key={si} className={`rounded-xl border ${borderColor} overflow-hidden bg-[#0d1117]`}>
+                                          <div className="relative aspect-[9/16] bg-gray-900">
+                                            {img ? <img src={img} alt={'Scene ' + (si+1)} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><I name="Image" size={16} className="text-gray-700" /></div>}
+                                            <div className={`absolute top-1 left-1 w-4 h-4 rounded-full text-white text-[7px] font-black flex items-center justify-center ${pace === 'FAST' ? 'bg-amber-500' : pace === 'SLOW' ? 'bg-purple-500' : 'bg-sky-500'}`}>{si+1}</div>
+                                            <div className="absolute top-1 right-1 px-1 py-0.5 rounded bg-black/70 text-white text-[6px] font-bold">{sc.timecode || ''}</div>
+                                          </div>
+                                          <div className="p-1.5 space-y-0.5">
+                                            <p className="text-[7px] uppercase tracking-widest font-bold text-sky-400/80">{(sc.camera || '').slice(0, 24)}</p>
+                                            <p className="text-[7px] leading-snug text-gray-400">{String(sc.visual || '').slice(0, 40)}</p>
+                                            {sc.dialogue && <p className="text-[7px] italic text-amber-200/90">"{sc.dialogue.slice(0, 35)}"</p>}
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                  <div className="flex gap-1.5">
+                                    <button onClick={exportSegPNG} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[9px] font-black border border-sky-700 text-sky-400 hover:bg-sky-500/10 transition-all">
+                                      <I name="Download" size={10} /> PNG
+                                    </button>
+                                    <button onClick={exportSegCSV} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[9px] font-black border border-green-700 text-green-400 hover:bg-green-500/10 transition-all">
+                                      <I name="FileText" size={10} /> CSV
+                                    </button>
+                                    <button onClick={() => copyToClipboard(currentPromptVal, `flow_seg_${i}`)} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[9px] font-black border border-violet-700 text-violet-400 hover:bg-violet-500/10 transition-all">
+                                      <I name="Copy" size={10} /> Prompt
+                                    </button>
+                                  </div>
+                                </div>
+                              );
+                            })()}
+
                             {isSegExpanded && (
                               <div className="px-4 pb-4 space-y-3 border-t border-[#143e4f] pt-3 animate-fade-in">
                                 {/* Editable Prompt */}
