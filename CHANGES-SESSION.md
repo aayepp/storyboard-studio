@@ -574,3 +574,31 @@ src/App.jsx
 ---
 ### Auto-log: 2026-07-25 02:47 (branch: main)
 **Files changed:** src/App.jsx
+
+---
+
+## Session Changes — 2026-07-25
+
+### 1. Energy Curve (All Tabs)
+- Added `energy_level` field to `SCENE_JSON_CONTRACT` — HIGH/MED/LOW/PEAK per scene
+- Energy curve injected per duration: 10s = [HIGH,HIGH,HIGH,HIGH,PEAK], 30s = [HIGH,MED,MED,HIGH,MED,PEAK]
+- PEAK used once only — last scene (climax/payoff)
+
+### 2. Bridge Field (All Tabs)
+- Added `bridge_to_next` field to `SCENE_JSON_CONTRACT`
+- Short physical action/camera movement (max 10 words) that connects scene N to scene N+1
+- Last scene bridge_to_next = "" (empty)
+- Makes visual flow smooth — no jarring cuts
+
+### 3. Dialogue Continuity Rule (All Tabs)
+- Added `DIALOGUE CONTINUITY RULE` block to `DIALOGUE_AUTHENTICITY_RULES`
+- All dialogue across scenes must read as ONE continuous monologue
+- Natural connectors enforced: pastu, lepas tu, so, tapi yang best, then, kan
+- Applied to all tabs automatically (both use DIALOGUE_AUTHENTICITY_RULES)
+
+### Commit
+- `e09c20d` feat: energy curve, bridge_to_next, dialogue continuity rules — all tabs
+
+## Current File State (2026-07-25)
+- **Build:** ✅ esbuild zero errors
+- **Latest commit:** `e09c20d`
