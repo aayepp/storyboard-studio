@@ -7104,7 +7104,27 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                                       sound_note: s.sound_note || ''
                                     }))
                                   }, null, 2);
-                                  copyToClipboard(jsonVal, `flow_seg_json_${i}`);
+                                  const flowAiBrief = `[STORYBOARD DIRECTOR BRIEF]
+You are generating a video that strictly follows a pre-approved storyboard.
+Your job is to execute the storyboard EXACTLY — not interpret, not improve, not deviate.
+
+ABSOLUTE RULES:
+1. Follow each scene visual description WORD FOR WORD
+2. Keep the SAME background/location across ALL scenes — do NOT change environment
+3. Keep the SAME character (face, outfit, hair) across ALL scenes
+4. Match camera angle exactly as specified per scene
+5. Match the pace: FAST=quick motion, MEDIUM=normal, SLOW=gradual reveal
+6. Dialogue timing must match scene duration exactly
+7. Do NOT add props, people, or elements not in the storyboard
+8. Do NOT change lighting direction between scenes
+9. Transitions must follow exactly as specified
+10. Output must feel like ONE continuous video, not separate clips
+
+---
+
+[STORYBOARD JSON — EXECUTE EXACTLY]
+`;
+                                  copyToClipboard(flowAiBrief + jsonVal, `flow_seg_json_${i}`);
                                 }}
                                 className={`px-3 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1.5 transition-all ${
                                   copiedSection === `flow_seg_json_${i}`
