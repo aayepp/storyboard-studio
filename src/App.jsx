@@ -1551,6 +1551,42 @@ const FI_VIBE_OPTIONS_FEMALE = ['Malaysia Local Influencer (main)', 'Kakak Affil
 const FI_VIBE_OPTIONS_MALE = ['Malaysia Local Influencer (main)', 'Abang Affiliate Shopee vibe', 'KL Clean Boy', 'Campus guy natural', 'Gym bro aesthetic MY', 'Kopitiam casual creator', 'Premium tech reviewer', 'Raya smart formal'];
 const FI_FORMAT_OPTIONS = ['9:16 TikTok / Reels MY Pose', '9:16 Full Body OOTD', '1:1 Instagram Feed Portrait', 'Product Review Pose (hold box)', 'Beauty Close Up / GRWM', '4 Pose Character Sheet', 'Shopee Live Talking Head'];
 
+const buildStoryboardSheetImagePrompt = (scenes, title, duration, platform, identityBible = '') => {
+  if (!scenes || !scenes.length) return '';
+  const cols = scenes.length <= 3 ? 3 : scenes.length <= 4 ? 4 : scenes.length <= 6 ? 3 : scenes.length <= 8 ? 4 : 3;
+  const rows = Math.ceil(scenes.length / cols);
+
+  const scenePanels = scenes.map((s, i) => {
+    const dialogue = s.dialogue ? `"${s.dialogue.slice(0, 60)}${s.dialogue.length > 60 ? '...' : ''}"` : '(visual only)';
+    return `PANEL ${i+1}: Timecode ${s.timecode || ''} | Shot: ${s.camera || 'Medium Shot'} | ${s.visual ? s.visual.slice(0, 80) : ''} | Dialogue: ${dialogue}`;
+  }).join('\n');
+
+  return `Generate a SINGLE professional storyboard sheet image at 2K resolution (2048×${rows <= 2 ? '1365' : rows <= 3 ? '2048' : '2730'}px).
+
+LAYOUT: ${cols}-column grid, ${rows} rows, total ${scenes.length} panels.
+Title: "${title || 'Storyboard'}" — Platform: ${platform || 'TikTok'} — Duration: ${duration || '30s'}
+
+PANEL REQUIREMENTS:
+- Each panel: numbered badge (top-left), timecode (top-right), illustrated scene (main area), camera label (bottom-left), short dialogue text (bottom, italic)
+- Panel style: cinematic illustration or photorealistic sketch, dark card background, clean white text labels
+- Consistent character appearance across ALL panels (same face, outfit, hijab if applicable): ${identityBible ? identityBible.slice(0, 200) : 'maintain consistency'}
+- VARY camera angles per panel as specified
+- Background/location consistent across all panels
+
+SCENES TO ILLUSTRATE:
+${scenePanels}
+
+SHEET STYLING:
+- Dark professional background (#0a0c10) with subtle grid lines between panels
+- Title bar at top with show name, duration, platform badge
+- Each panel has thin border, rounded corners, scene number in colored circle
+- Pace color coding: FAST panels = amber border, SLOW = purple border, MEDIUM = cyan border
+- Bottom legend: FAST/MEDIUM/SLOW color guide + "Storyboard Studio AI" watermark
+- Overall aesthetic: Netflix production brief / agency storyboard quality
+
+OUTPUT: ONE single cohesive image. 2K resolution. All ${scenes.length} panels clearly visible and readable. No blurry text.`;
+};
+
 const buildSheetPrompt = (subjectType, name, charGenderLabel, hijabModifier, characterDescription, charShotType, cleanImageInstruction) => {
   const category = subjectType || 'HUMAN_CHARACTER';
 
@@ -2338,6 +2374,39 @@ export default function App() {
   const [showShortcuts, setShowShortcuts] = useState(false);
 
   // Copy all scenes
+  const handleGenerateStoryboardSheetImage = async () => {
+    const allScenes = generatedOutput?.scenes || generatedOutput?.productScenes || generatedOutput?.ootdScenes || [];
+    if (!allScenes.length) return;
+    setIsGeneratingSheet(true);
+    setSheetImageUrl(null);
+    addToast('Generating 2K storyboard sheet...', 'info', 5000);
+    playSound('start');
+    try {
+      const prompt = buildStoryboardSheetImagePrompt(
+        allScenes,
+        generatedOutput?.title || '',
+        generatedOutput?.duration || '',
+        generatedOutput?.platform || cinematicPlatform || 'TikTok',
+        generatedOutput?.identityBible || ''
+      );
+      const url = await fetchSingleImage(prompt, '16:9', null, 0, {
+        identityBible: generatedOutput?.identityBible || '',
+        motionGraphicsMode: false,
+        topicLock: generatedOutput?.title || ''
+      });
+      if (url) {
+        setSheetImageUrl(url);
+        playSound('success');
+        addToast('2K Sheet siap! Scroll bawah untuk tengok.', 'success', 4000);
+      }
+    } catch (err) {
+      addToast('Sheet generation failed: ' + String(err.message || ''), 'error', 4000);
+      playSound('error');
+    } finally {
+      setIsGeneratingSheet(false);
+    }
+  };
+
   const handleGenerateAllSheetImages = async (totalScenes) => {
     setSheetGeneratingAll(true);
     addToast('Generating all scene images...', 'info', 3000);
@@ -2366,6 +2435,8 @@ I2V: ${s.i2v_prompt || ''}`
   };
 
   const [sheetView, setSheetView] = useState(false);
+  const [sheetImageUrl, setSheetImageUrl] = useState(null);
+  const [isGeneratingSheet, setIsGeneratingSheet] = useState(false);
   const [sheetPrintMode, setSheetPrintMode] = useState(false);
   const [sheetHoveredScene, setSheetHoveredScene] = useState(null);
   const [sheetGeneratingAll, setSheetGeneratingAll] = useState(false);
@@ -6907,6 +6978,14 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                               <I name="Image" size={11} /> {generatingAll ? 'Generating...' : `Generate ${allScenes.length - imgCount} missing`}
                             </button>
                           )}
+                          {/* Generate 2K Sheet Image */}
+                          <button
+                            onClick={handleGenerateStoryboardSheetImage}
+                            disabled={isGeneratingSheet}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black border transition-all ${isGeneratingSheet ? 'opacity-50' : ''} ${printMode ? 'hidden' : t('border-violet-700 text-violet-400 hover:bg-violet-500/10','border-violet-400 text-violet-600')}`}
+                          >
+                            <I name="Sparkles" size={11} /> {isGeneratingSheet ? 'Generating 2K...' : 'Generate 2K Sheet'}
+                          </button>
                           {/* Print/Export */}
                           <button onClick={handleExport} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black border transition-all ${printMode ? 'hidden' : t('border-gray-700 text-gray-400 hover:border-sky-500 hover:text-sky-400','border-gray-300 text-gray-500')}`}>
                             <I name="Download" size={11} /> Export / Print
@@ -7000,6 +7079,28 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                           );
                         })}
                       </div>
+
+                      {/* 2K Sheet Image Result */}
+                      {sheetImageUrl && (
+                        <div className="mt-4">
+                          <div className={`flex items-center justify-between mb-2`}>
+                            <p className={`text-[10px] font-black ${t('text-violet-400','text-violet-600')}`}>✨ 2K Storyboard Sheet</p>
+                            <a
+                              href={sheetImageUrl}
+                              download="storyboard-sheet-2k.png"
+                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black border transition-all ${t('border-violet-700 text-violet-400 hover:bg-violet-500/10','border-violet-400 text-violet-600')}`}
+                            >
+                              <I name="Download" size={11} /> Download 2K
+                            </a>
+                          </div>
+                          <img
+                            src={sheetImageUrl}
+                            alt="2K Storyboard Sheet"
+                            className="w-full rounded-2xl border border-violet-500/30 shadow-lg cursor-pointer hover:scale-[1.01] transition-transform"
+                            onClick={() => setFullscreenImage(sheetImageUrl)}
+                          />
+                        </div>
+                      )}
 
                       {/* Legend + Audio */}
                       <div className={`flex items-center justify-between mt-4 flex-wrap gap-2 pt-3 border-t ${printMode ? 'border-gray-300' : t('border-gray-800','border-gray-200')}`}>
