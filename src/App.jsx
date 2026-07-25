@@ -4142,6 +4142,12 @@ Keep the subject person, face reference, background layout, and clothes identica
       setGeneratedOutput(combinedRes);
       addToast('Storyboard siap dijana!', 'success', 4000);
       playSound('success');
+      // Auto-collapse all flow AI segments after generate
+      setEditModes(prev => {
+        const next = { ...prev };
+        Object.keys(next).forEach(k => { if (k.startsWith('flow_seg_expand_')) next[k] = false; });
+        return next;
+      });
         setGenerateHistory(prev => [{ tab: activeTab, topic: cinematicTopic || productName || thTopic || gfTopic || smProduct || narrativeArcTopic || characterName || fiName, timestamp: Date.now() }, ...prev.slice(0, 4)]);
       setEditableImagePrompt(imagePrompts);
       setBoxEdits({
@@ -4555,6 +4561,12 @@ ${aspectStr}`;
       setGeneratedOutput(result);
       addToast('Storyboard siap dijana!', 'success', 4000);
       playSound('success');
+      // Auto-collapse all flow AI segments after generate
+      setEditModes(prev => {
+        const next = { ...prev };
+        Object.keys(next).forEach(k => { if (k.startsWith('flow_seg_expand_')) next[k] = false; });
+        return next;
+      });
         setEditableImagePrompt(promptInputForAI);
 
       setBoxEdits({
