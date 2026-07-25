@@ -2481,7 +2481,13 @@ I2V: ${s.i2v_prompt || ''}`
 
 const CHANGELOG = [
   {
-    version: 'v2.4', date: '25 Jul 2026', isNew: true,
+    version: 'v2.5', date: '25 Jul 2026', isNew: true,
+    changes: [
+      'feat: flow AI segments side-by-side grid, copy+json buttons side by side',
+    ]
+  },
+  {
+    version: 'v2.4', date: '25 Jul 2026', isNew: false,
     changes: [
       'feat: auto-changelog hook + footer scroll fix + cleanup',
     ]
@@ -6905,7 +6911,7 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                     <p className="text-[10px] mb-4 text-gray-500 uppercase tracking-widest">
                       {segs.map((s) => s.label).join('  →  ')}
                     </p>
-                    <div className="space-y-3 mt-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 mt-2">
                       {segs.map((seg, i) => {
                         const isSegExpanded = editModes[`flow_seg_expand_${i}`];
                         const segPromptKey = `flow_seg_prompt_${i}`;
@@ -6935,6 +6941,7 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                                 <I name={isSegExpanded ? "ChevronDown" : "ChevronRight"} size={12} />
                                 {seg.label} · SEGMENT {seg.part}{'/'}{seg.parts}
                               </button>
+                              <div className="flex gap-1">
                               <button
                                 onClick={() => copyToClipboard(currentPromptVal, `flow_seg_${i}`)}
                                 className={`px-3 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1.5 transition-all ${
@@ -6977,6 +6984,7 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                                 <span style={{ fontSize: '12px', lineHeight: 1 }}>{copiedSection === `flow_seg_json_${i}` ? '✅' : '{ }'}</span>
                                 {copiedSection === `flow_seg_json_${i}` ? 'Copied' : 'JSON'}
                               </button>
+                              </div>
                             </div>
                             
                             {isSegExpanded && (
