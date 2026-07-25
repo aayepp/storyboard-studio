@@ -6940,12 +6940,142 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                 const setGeneratingAll = setSheetGeneratingAll;
 
                 // Export PNG via browser print
-                const handleExport = () => {
-                  setPrintMode(true);
-                  setTimeout(() => {
-                    window.print();
-                    setTimeout(() => setPrintMode(false), 1000);
-                  }, 300);
+                const handleExport = async () => {
+                  // Canvas-based export — combine real generated images into 1 PNG sheet
+                  const PANEL_W = 400;
+                  const PANEL_H = sheetAspect === '16:9' ? 225 : sheetAspect === '1:1' ? 400 : 711;
+                  const PAD = 16;
+                  const INFO_H = 90;
+                  const HEADER_H = 80;
+                  const FOOTER_H = 40;
+                  const totalCols = cols;
+                  const totalRows = Math.ceil(allScenes.length / totalCols);
+                  const canvasW = totalCols * (PANEL_W + PAD) + PAD;
+                  const canvasH = HEADER_H + totalRows * (PANEL_H + INFO_H + PAD) + PAD + FOOTER_H;
+
+                  const canvas = document.createElement('canvas');
+                  canvas.width = canvasW * 2; // 2x for 2K quality
+                  canvas.height = canvasH * 2;
+                  const ctx = canvas.getContext('2d');
+                  const scale = 2;
+                  ctx.scale(scale, scale);
+
+                  // Background
+                  ctx.fillStyle = '#0a0c10';
+                  ctx.fillRect(0, 0, canvasW, canvasH);
+
+                  // Header
+                  ctx.fillStyle = '#ffffff';
+                  ctx.font = 'bold 18px sans-serif';
+                  ctx.fillText('🎬 ' + (generatedOutput?.title || 'Storyboard Sheet'), PAD, 30);
+                  ctx.font = '11px sans-serif';
+                  ctx.fillStyle = '#38bdf8';
+                  ctx.fillText(`${allScenes.length} scenes · ${generatedOutput?.duration || ''} · ${generatedOutput?.platform || 'TikTok'}`, PAD, 50);
+                  if (generatedOutput?.audio_direction) {
+                    ctx.fillStyle = '#a78bfa';
+                    ctx.fillText('🎵 ' + generatedOutput.audio_direction, PAD, 68);
+                  }
+
+                  // Draw panels
+                  for (let i = 0; i < allScenes.length; i++) {
+                    const scene = allScenes[i];
+                    const col = i % totalCols;
+                    const row = Math.floor(i / totalCols);
+                    const x = PAD + col * (PANEL_W + PAD);
+                    const y = HEADER_H + row * (PANEL_H + INFO_H + PAD);
+                    const pace = scene.pace || 'MEDIUM';
+                    const borderColor = pace === 'FAST' ? '#f59e0b' : pace === 'SLOW' ? '#8b5cf6' : '#38bdf8';
+
+                    // Panel border
+                    ctx.strokeStyle = borderColor;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.roundRect(x, y, PANEL_W, PANEL_H + INFO_H, 12);
+                    ctx.stroke();
+
+                    // Draw image
+                    const img = getImg(i);
+                    if (img) {
+                      try {
+                        await new Promise((res) => {
+                          const im = new Image();
+                          im.crossOrigin = 'anonymous';
+                          im.onload = () => {
+                            ctx.save();
+                            ctx.beginPath();
+                            ctx.roundRect(x, y, PANEL_W, PANEL_H, 12);
+                            ctx.clip();
+                            // Cover fit
+                            const ar = im.width / im.height;
+                            const par = PANEL_W / PANEL_H;
+                            let sw, sh, sx, sy;
+                            if (ar > par) { sh = PANEL_H; sw = sh * ar; sx = x - (sw - PANEL_W)/2; sy = y; }
+                            else { sw = PANEL_W; sh = sw / ar; sx = x; sy = y - (sh - PANEL_H)/2; }
+                            ctx.drawImage(im, sx, sy, sw, sh);
+                            ctx.restore();
+                            res();
+                          };
+                          im.onerror = res;
+                          im.src = img;
+                        });
+                      } catch {}
+                    } else {
+                      ctx.fillStyle = '#1e293b';
+                      ctx.beginPath();
+                      ctx.roundRect(x, y, PANEL_W, PANEL_H, 12);
+                      ctx.fill();
+                    }
+
+                    // Scene number badge
+                    ctx.fillStyle = borderColor;
+                    ctx.beginPath();
+                    ctx.arc(x + 18, y + 18, 14, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 11px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(i + 1, x + 18, y + 22);
+                    ctx.textAlign = 'left';
+
+                    // Timecode
+                    ctx.fillStyle = 'rgba(0,0,0,0.7)';
+                    ctx.beginPath();
+                    ctx.roundRect(x + PANEL_W - 70, y + 6, 64, 18, 4);
+                    ctx.fill();
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = '9px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(scene.timecode || '', x + PANEL_W - 38, y + 18);
+                    ctx.textAlign = 'left';
+
+                    // Info area
+                    const iy = y + PANEL_H + 6;
+                    ctx.fillStyle = '#94a3b8';
+                    ctx.font = 'bold 9px sans-serif';
+                    ctx.fillText((scene.camera || '').slice(0, 32), x + 6, iy + 12);
+                    ctx.fillStyle = '#cbd5e1';
+                    ctx.font = '8px sans-serif';
+                    const vis = String(scene.visual || '').slice(0, 48);
+                    ctx.fillText(vis, x + 6, iy + 26);
+                    if (scene.dialogue) {
+                      ctx.fillStyle = '#e2e8f0';
+                      ctx.font = 'italic 8px sans-serif';
+                      ctx.fillText('"' + scene.dialogue.slice(0, 44) + (scene.dialogue.length > 44 ? '...' : '') + '"', x + 6, iy + 42);
+                    }
+                  }
+
+                  // Footer
+                  ctx.fillStyle = '#475569';
+                  ctx.font = '10px sans-serif';
+                  ctx.fillText('Storyboard Studio AI · ' + new Date().toLocaleDateString('ms-MY'), PAD, canvasH - 12);
+
+                  // Download
+                  const link = document.createElement('a');
+                  link.download = 'storyboard-sheet-2k.png';
+                  link.href = canvas.toDataURL('image/png', 1.0);
+                  link.click();
+                  addToast('Sheet exported!', 'success', 2000);
+                  playSound('success');
                 };
 
                 return (
