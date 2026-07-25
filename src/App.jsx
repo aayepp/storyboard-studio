@@ -850,8 +850,18 @@ Location: ${location || 'Aesthetic lifestyle interior'}
 ${isMirror ? 'MIRROR MODE: Include a mirror selfie scene.' : ''}
 References: ${refCount > 0 ? 'YES — match outfit exactly' : 'NO'}
 
+OUTFIT REVEAL FORMULA (mandatory):
+- Scene 1 (COVER): Show partial detail ONLY — shoes, OR accessory close-up, OR fabric texture. Build anticipation. Do NOT show full outfit yet.
+- Scene 2 (UNVEIL): Full body reveal — camera pulls back or tilts up. This is the payoff moment.
+
+MOVEMENT SCHEDULING (mandatory rhythm):
+- Odd scenes (1,3,5,7): STATIC or slow hold — let viewer absorb detail
+- Even scenes (2,4,6,8): MOVEMENT — walk, twirl, fabric flow, hair movement
+- Alternation creates visual rhythm and prevents monotony.
+
 SCENE STRUCTURE (${sceneCount} scenes × ${perScene}s):
-- Scene 1: HOOK — full body reveal, stop-scroll energy, confident pose
+- Scene 1: COVER HOOK — partial reveal teaser (shoes/bag/accessory detail only). No full outfit yet.
+- Scene 2: FULL REVEAL — camera pulls back/tilts up. Complete outfit unveiled. Stop-scroll energy.
 - Scene 2: TOP DETAIL — close-up upper body, fabric texture, fit
 - Scene 3: BOTTOM DETAIL — close-up lower body, shoes/bag if any
 - Scene 4: MOVEMENT — walking, twirling, natural movement shot
@@ -928,6 +938,8 @@ LIGHTING:
 
 RULES:
 - Exactly ${sceneCount} scenes, ${perScene}s each. Continuous timecodes, no gaps.
+- FEATURE SPOTLIGHT RULE: Each scene = 1 unique product feature ONLY. Never double up features in one scene. Scene 1=hook reveal, Scene 2=feature A, Scene 3=feature B... Never repeat a feature.
+- SCALE REFERENCE RULE: At least 1 scene MUST show product held in hand or next to recognizable object (coin, phone, bottle) for real-world size context.
 - ${dialogueRule}
 - Every image_prompt MUST include: product name, exact background, lighting, camera angle. NO plain white background.
 - i2v_prompt must be time-coded: "0s–Xs: [motion]. Xs–Ys: [motion]. Keep product, lighting, background locked."
@@ -1026,6 +1038,9 @@ ${sceneCount <= 4
   ? `  Scene 1 = HOOK. Scene 2 = UNBOX/REVEAL. Scene 3 = TEXTURE/DETAIL close-up. Scene 4 = APPLICATION/USE. Scene ${sceneCount - 1} = RESULT/TRANSFORMATION (fold social proof into this dialogue). Scene ${sceneCount} = CTA.`
   : `  Scene 1 = HOOK. Scene 2 = UNBOX/REVEAL. Scene 3 = TEXTURE/DETAIL close-up. Scene 4 = APPLICATION/USE. Scene 5 = RESULT/TRANSFORMATION. Scene 6 = SOCIAL PROOF (phone screen with rating, creator reaction, or "days later" shot — authentic, not an ad read). Remaining middle scenes = extra angles of use/result that add NEW information. Scene ${sceneCount} = CTA.`}
   Follow this progression in order — do not output random product angles.
+- TRUST SIGNAL PLACEMENT: Order MUST be face first → product second → CTA last. Hook MUST show creator face first to build trust before showing product. Never open with product floating in void.
+- COMMENT BAIT RULE: One middle scene MUST contain a relatable/controversial statement that triggers comments. E.g. "Korang selalu beli kat mana sebenarnya?" or "Aku rasa semua orang kena try ni at least sekali". Add "comment_bait": true to that scene JSON.
+- SCALE REFERENCE RULE: At least 1 scene must show product held in hand or next to a common object for real-world size context.
 - Final scene: CTA — pick the most contextually appropriate variant:
   SHOPEE CTA: "Klik beg kuning bawah ni — free shipping harini je" / "Link ada dekat bio, grab sebelum stok habis"
   TIKTOK SHOP CTA: "Tap the link below / Check the product card" / "Dah ada dekat TikTok Shop — swipe up!"
@@ -1141,7 +1156,8 @@ STORY FLOW RULES:
 5. FAST pace for hook/CTA, MEDIUM for demo, SLOW for emotional reveals
 6. 1-2 scenes must be VISUAL-ONLY (dialogue: "") for breathing room
 7. STORY LOGIC: problem → solution → proof → CTA (logical cause-effect chain)
-8. DIALOGUE ↔ VISUAL MATCH — CRITICAL RULE:
+8. CALLBACK ENDING: Scene 1 visual concept MUST be echoed or visually rhymed in the last scene (same framing, same location, same subject — but transformed). Creates cinematic closure.
+9. DIALOGUE ↔ VISUAL MATCH — CRITICAL RULE:
 What the character SAYS must be EXACTLY what the scene SHOWS. No exceptions.
 - If dialogue = "tengok ni packaging dia" → visual MUST show hands holding/showing packaging
 - If dialogue = "battery dia 7 hari" → visual MUST show device screen showing battery % or person checking battery
@@ -1187,10 +1203,15 @@ THUMBNAIL RULE: Scene 1 image_prompt MUST also work as a standalone scroll-stopp
 
 WORD COUNT CAP: Max 10 words per scene dialogue (3.3s / 3 words per sec). Keep it punchy.
 
+MICRO ARC (mandatory energy flow for 10s):
+- 0s-2s: HOOK (HIGH energy — pattern interrupt, extreme close-up, shocking opener)
+- 2s-8s: PROOF (HIGH→PEAK — deliver the payoff fast, no slow build)
+- 8s-10s: CTA (PEAK — final punch, leave them wanting)
+
 SCENE STRUCTURE (3 scenes for 10s):
-- Scene 1: HOOK — stop-scroll moment. Provocative question or shocking statement in BM.
-- Scene 2: PAYOFF/DEMO — deliver the hook's promise immediately. Show key detail/result.
-- Scene 3: CTA — urgency-driven close. No dead-end "ok tu je".
+- Scene 1 (0-2s): HOOK — stop-scroll moment. Extreme close-up OR shocking statement OR visual pattern interrupt. MUST grab in <0.5s.
+- Scene 2 (2s-8s): PROOF/DEMO — deliver the hook's promise IMMEDIATELY. Show the result, not the setup.
+- Scene 3 (8s-10s): CTA — urgency-driven close with gesture or product reveal. No dead-end "ok tu je".
 
 ${DIALOGUE_AUTHENTICITY_RULES}
 
@@ -1246,6 +1267,10 @@ Scene 9 — PAYOFF (pick one):
   C) CTA DIRECT: Character looks straight to camera, speaks CTA line with genuine energy. Point gesture.
   D) LINGERING VISUAL: Beautiful environmental/atmospheric shot that encapsulates the story emotion. No dialogue.
 Emotional arc: Curiosity → Tension → Release. Action in scene N must flow naturally into scene N+1.
+
+EMOTIONAL BEAT PER SCENE (MANDATORY): Each scene must make the viewer FEEL something specific. Add "emotional_beat" field per scene: curiosity / tension / hope / dread / relief / joy / awe / peak. This is NOT the character emotion — it is what the VIEWER feels watching this scene.
+
+CALLBACK RULE: Scene 9 (final) MUST visually echo or rhyme with Scene 1 — same framing angle, same location element, or same subject — but transformed/resolved. Creates cinematic closure and makes the story feel complete.
 
 ${SCENE_ENVIRONMENT_RULES}
 ${SCENE_JSON_CONTRACT}
@@ -1309,6 +1334,13 @@ ${SCENE_ENVIRONMENT_RULES}
 ${SCENE_JSON_CONTRACT}
 Keep same face identity. Dialogue natural BM. Visuals English. Background must be a real room/location (bedroom, cafe, office, street) — never plain white.
 
+CAMERA DISTANCE VARIATION (MANDATORY):
+- Scene 1 HOOK: Medium Close-Up — fills frame with emotion, creates intimacy
+- Middle scenes: alternate Close-Up (personal) / Medium Shot (body language) / Extreme Close-Up (emphasis)
+- B-roll scenes: Macro or Detail shot — break talking-head monotony
+- Final CTA: Medium Close-Up with gesture — direct and actionable
+- NEVER Wide Shot for talking head (too distant, loses intimacy)
+
 CAMERA VARIETY (MANDATORY):
 - NEVER repeat the same camera angle in consecutive scenes.
 - Use at least 4 different camera types across ${sceneCount} scenes.
@@ -1334,6 +1366,8 @@ RULES:
 - Format: 9:16 vertical. Style: Stop Motion / ${style}.
 - Scene 1 MUST create immediate visual curiosity (object slides/jumps/snaps into frame).
 - Scene ${sceneCount} (the final frame) MUST be a strong hero shot (main object centered, clean background, premium composition).
+- LOOP POINT RULE: Final frame position/composition MUST visually match or rhyme with Scene 1 — enables seamless loop playback.
+- OBJECT DELTA (MANDATORY per scene): Each scene must describe the state CHANGE — "from state A to state B". Add "delta": "[state A] → [state B]" to each scene JSON. Example: "product flat [A] → slides upright center [B]".
 - Every scene must visually connect to the next — one continuous sequence, NOT random disconnected shots.
 - Each scene has ONE dominant stop-motion action only.
 - Prefer movements: Slide, Jump, Rotate, Assemble, Appear, Flip, Stack, Pop Up, Spin, Expand, Collapse, Roll, Snap Into Place, Split, Merge, Unfold, Scatter, Gather, Pour, Drop, Rise, Orbit, Swap, Reveal.
@@ -1441,6 +1475,12 @@ DATA VISUALIZATION TYPES (use when topic involves numbers/stats/comparisons):
 - Map highlight: region/country lighting up
 - Icon grid: multiple icons animating in simultaneously
 When topic involves data, specify "viz_type" field with most appropriate type.
+
+LAYOUT GRID LOCK (MANDATORY):
+- Establish ONE consistent grid in Scene 1: headline position (top/bottom/center), icon zone (left/right/full), data zone.
+- Every subsequent scene MUST use the SAME grid. Only content changes, not layout positions.
+- Prevents jarring layout jumps between scenes. Creates professional consistency.
+- Add "layout_zone": "[headline:top/bottom/center] [icon:left/right/full] [data:bottom/center]" to each scene JSON.
 
 BRAND COLOR INTEGRATION:
 ${assetAnalysis ? "Reference image analyzed — extract dominant brand colors: use in typography, icons, backgrounds throughout. Maintain brand palette consistency across all scenes." : "No brand reference — choose a cohesive color palette that matches the topic mood (tech=blue/dark, finance=green/gold, lifestyle=warm tones, etc.)"}
