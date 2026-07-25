@@ -2481,14 +2481,26 @@ I2V: ${s.i2v_prompt || ''}`
 
 const CHANGELOG = [
   {
-    version: 'v2.1', date: '20 Jul 2026', isNew: true,
+    version: 'v2.4', date: '25 Jul 2026', isNew: true,
+    changes: [
+      'feat: auto-changelog hook + footer scroll fix + cleanup',
+    ]
+  },
+  {
+    version: 'v2.3', date: '25 Jul 2026', isNew: false,
+    changes: [
+      'fix: footer inside main scroll area — no more overlap, full scroll to bottom',
+    ]
+  },
+  {
+    version: 'v2.1', date: '20 Jul 2026', isNew: false,
     changes: [
       '3D animated background — particle universe + glassmorphism orbs + mouse parallax',
       'License/agreement page removed — straight to app',
     ]
   },
   {
-    version: 'v2.2', date: '21 Jul 2026', isNew: true,
+    version: 'v2.2', date: '21 Jul 2026', isNew: false,
     changes: [
       'Glassmorphism cards — backdrop-blur-xl pada semua card',
       'Gradient text headings — h2 & title pakai sky→cyan→emerald gradient',
@@ -2536,7 +2548,7 @@ const CHANGELOG = [
     ]
   },
   {
-    version: 'v1.6', date: '20 Jul 2026', isNew: true,
+    version: 'v1.6', date: '20 Jul 2026', isNew: false,
     changes: [
       'UX improvements — sticky generate button, progress steps, tab descriptions',
       'Keyboard shortcuts: Ctrl+Enter generate, Esc cancel',
