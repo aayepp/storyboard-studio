@@ -2481,7 +2481,13 @@ I2V: ${s.i2v_prompt || ''}`
 
 const CHANGELOG = [
   {
-    version: 'v2.5', date: '25 Jul 2026', isNew: true,
+    version: 'v2.6', date: '25 Jul 2026', isNew: true,
+    changes: [
+      'fix: flow AI segments full width — remove max-w-4xl constraint',
+    ]
+  },
+  {
+    version: 'v2.5', date: '25 Jul 2026', isNew: false,
     changes: [
       'feat: flow AI segments side-by-side grid, copy+json buttons side by side',
     ]
@@ -6900,7 +6906,7 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                 if (!segs.length) return null;
 
                 return (
-                  <div className="border rounded-[1.25rem] p-6 shadow-sm relative transition-all duration-300 bg-[#09151c] border-[#12313f] mt-8 max-w-4xl mx-auto">
+                  <div className="border rounded-[1.25rem] p-6 shadow-sm relative transition-all duration-300 bg-[#09151c] border-[#12313f] mt-8">
                     <h3 className="font-extrabold text-sm flex items-center gap-2 uppercase tracking-wide mb-2 text-[#38bdf8]">
                       <I name="Zap" size={16} className="text-sky-400" /> FLOW AI CONTINUITY SEGMENTS (I2V)
                     </h3>
