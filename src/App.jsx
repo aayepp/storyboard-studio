@@ -2338,6 +2338,19 @@ export default function App() {
   const [showShortcuts, setShowShortcuts] = useState(false);
 
   // Copy all scenes
+  const handleGenerateAllSheetImages = async (totalScenes) => {
+    setSheetGeneratingAll(true);
+    addToast('Generating all scene images...', 'info', 3000);
+    for (let i = 0; i < totalScenes; i++) {
+      if (imageUrls[i]) continue;
+      await regenerateSingleVisual(i);
+      await new Promise(r => setTimeout(r, 500));
+    }
+    setSheetGeneratingAll(false);
+    addToast('All images generated!', 'success', 3000);
+    playSound('success');
+  };
+
   const handleCopyAllScenes = () => {
     if (!generatedOutput?.scenes) return;
     const text = generatedOutput.scenes.map((s, i) =>
@@ -6887,18 +6900,7 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                           {/* Generate All Images */}
                           {imgCount < allScenes.length && (
                             <button
-                              onClick={async () => {
-                                setGeneratingAll(true);
-                                addToast('Generating all scene images...', 'info', 3000);
-                                for (let idx = 0; idx < allScenes.length; idx++) {
-                                  if (imageUrls[idx]) continue;
-                                  await regenerateSingleVisual(idx);
-                                  await new Promise(r => setTimeout(r, 500));
-                                }
-                                setGeneratingAll(false);
-                                addToast('All images generated!', 'success', 3000);
-                                playSound('success');
-                              }}
+                              onClick={() => handleGenerateAllSheetImages(allScenes.length)}
                               disabled={generatingAll}
                               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black border transition-all ${generatingAll ? 'opacity-50' : ''} ${printMode ? 'hidden' : t('border-emerald-700 text-emerald-400 hover:bg-emerald-500/10','border-emerald-400 text-emerald-600')}`}
                             >
