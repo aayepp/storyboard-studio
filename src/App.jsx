@@ -6828,121 +6828,189 @@ Pick the ONE that best fits. No explanation, just the tag.`;
               {sheetView && generatedOutput && (() => {
                 const allScenes = (generatedOutput.scenes || generatedOutput.productScenes || generatedOutput.ootdScenes || []).filter(Boolean);
                 if (!allScenes.length) return null;
+
+                // Auto aspect ratio
+                const sheetAspect = currentDisplayRatio || aspectRatio;
+                const panelAspect = sheetAspect === '16:9' ? 'aspect-video' : sheetAspect === '1:1' ? 'aspect-square' : 'aspect-[9/16]';
+
+                // Grid cols
                 const cols = allScenes.length <= 3 ? 3 : allScenes.length <= 4 ? 4 : allScenes.length <= 6 ? 3 : allScenes.length <= 8 ? 4 : 3;
-                const paceColor = (pace) => pace === 'FAST' ? 'border-amber-500/60 shadow-amber-500/20' : pace === 'SLOW' ? 'border-purple-500/60 shadow-purple-500/20' : 'border-sky-500/60 shadow-sky-500/20';
+
+                // Pace colors
+                const paceColor = (pace) => pace === 'FAST' ? 'border-amber-500/70 shadow-amber-500/20' : pace === 'SLOW' ? 'border-purple-500/70 shadow-purple-500/20' : 'border-sky-500/70 shadow-sky-500/20';
                 const paceBg = (pace) => pace === 'FAST' ? 'bg-amber-500' : pace === 'SLOW' ? 'bg-purple-500' : 'bg-sky-500';
+
+                // Image mapping
+                const imgCount = imageUrls.filter(Boolean).length;
+                const getImg = (i) => imageUrls[i] || (imgCount > 0 ? imageUrls[Math.floor(i * imgCount / allScenes.length)] || imageUrls[imgCount - 1] : null);
+
+                // Print mode state
+                const [printMode, setPrintMode] = React.useState(false);
+                const [hoveredScene, setHoveredScene] = React.useState(null);
+                const [generatingAll, setGeneratingAll] = React.useState(false);
+
+                // Export PNG via browser print
+                const handleExport = () => {
+                  setPrintMode(true);
+                  setTimeout(() => {
+                    window.print();
+                    setTimeout(() => setPrintMode(false), 1000);
+                  }, 300);
+                };
+
                 return (
                   <div className="mt-6 animate-fade-in-up" id="storyboard-sheet">
-                    <div className={`rounded-3xl border p-6 ${t('bg-[#0a0c10] border-gray-800','bg-gray-50 border-gray-200')}`}>
+                    {/* Print CSS */}
+                    <style>{`@media print { body > *:not(#storyboard-sheet) { display: none !important; } #storyboard-sheet { background: white !important; color: black !important; } }`}</style>
+
+                    <div className={`rounded-3xl border p-6 transition-all ${printMode ? 'bg-white text-black border-gray-300' : t('bg-[#0a0c10] border-gray-800','bg-gray-50 border-gray-200')}`}>
+
                       {/* Sheet Header */}
-                      <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
                         <div>
-                          <h3 className={`text-lg font-black ${t('text-white','text-gray-900')}`}>🎬 Storyboard Sheet</h3>
-                          <p className={`text-[10px] mt-0.5 ${t('text-gray-500','text-gray-400')}`}>{allScenes.length} scenes · {generatedOutput.duration || ''} · {generatedOutput.platform || ''}</p>
+                          <h3 className={`text-lg font-black ${printMode ? 'text-black' : t('text-white','text-gray-900')}`}>🎬 Storyboard Sheet</h3>
+                          <div className="flex items-center gap-2 mt-1 flex-wrap">
+                            <span className={`text-[9px] px-2 py-0.5 rounded-full font-black ${printMode ? 'bg-gray-200 text-gray-700' : t('bg-gray-800 text-sky-400','bg-gray-200 text-sky-600')}`}>{allScenes.length} scenes</span>
+                            <span className={`text-[9px] px-2 py-0.5 rounded-full font-black ${printMode ? 'bg-gray-200 text-gray-700' : t('bg-gray-800 text-gray-400','bg-gray-200 text-gray-600')}`}>{generatedOutput.duration || ''}</span>
+                            {generatedOutput.platform && <span className={`text-[9px] px-2 py-0.5 rounded-full font-black ${printMode ? 'bg-blue-100 text-blue-700' : 'bg-sky-500/20 text-sky-400'}`}>{generatedOutput.platform}</span>}
+                            {generatedOutput.marketing_objective && <span className={`text-[9px] px-2 py-0.5 rounded-full font-black ${printMode ? 'bg-green-100 text-green-700' : 'bg-emerald-500/20 text-emerald-400'}`}>{generatedOutput.marketing_objective}</span>}
+                            {generatedOutput.emotional_driver && <span className={`text-[9px] px-2 py-0.5 rounded-full font-black ${printMode ? 'bg-purple-100 text-purple-700' : 'bg-purple-500/20 text-purple-400'}`}>{generatedOutput.emotional_driver}</span>}
+                          </div>
                         </div>
-                        <button
-                          onClick={() => {
-                            const el = document.getElementById('storyboard-sheet');
-                            if (!el) return;
-                            import('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js').then(() => {
-                              window.html2canvas(el, { backgroundColor: '#0a0c10', scale: 2 }).then(canvas => {
-                                const link = document.createElement('a');
-                                link.download = `storyboard-${Date.now()}.png`;
-                                link.href = canvas.toDataURL();
-                                link.click();
-                              });
-                            }).catch(() => addToast('Export PNG requires internet connection', 'error'));
-                          }}
-                          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black border transition-all ${t('border-gray-700 text-gray-400 hover:border-sky-500 hover:text-sky-400','border-gray-300 text-gray-500 hover:border-sky-400 hover:text-sky-500')}`}
-                        >
-                          <I name="Download" size={12} /> Export PNG
-                        </button>
-                      </div>
-                      {/* Grid */}
-                      <div className={`grid gap-3`} style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}>
-                        {allScenes.map((scene, i) => {
-                          // Map scene to closest available image
-                          // If per-segment keyframe: 3 images for 8 scenes — map each scene to its segment's keyframe
-                          const imgCount = imageUrls.filter(Boolean).length;
-                          const img = imageUrls[i] || (imgCount > 0
-                            ? imageUrls[Math.floor(i * imgCount / allScenes.length)] || imageUrls[imgCount - 1]
-                            : null);
-                          const pace = scene.pace || 'MEDIUM';
-                          return (
-                            <div
-                              key={i}
-                              className={`rounded-2xl border overflow-hidden transition-all duration-300 cursor-pointer hover:scale-[1.02] hover:shadow-lg ${paceColor(pace)} shadow-sm ${t('bg-[#0d1117]','bg-white')}`}
-                              style={{ animationDelay: `${i * 60}ms` }}
-                              onClick={() => { setFullscreenImage(img); setLightboxIndex(i); }}
+                        <div className="flex items-center gap-2">
+                          {/* Generate All Images */}
+                          {imgCount < allScenes.length && (
+                            <button
+                              onClick={async () => {
+                                setGeneratingAll(true);
+                                addToast('Generating all scene images...', 'info', 3000);
+                                for (let idx = 0; idx < allScenes.length; idx++) {
+                                  if (imageUrls[idx]) continue;
+                                  await regenerateSingleVisual(idx);
+                                  await new Promise(r => setTimeout(r, 500));
+                                }
+                                setGeneratingAll(false);
+                                addToast('All images generated!', 'success', 3000);
+                                playSound('success');
+                              }}
+                              disabled={generatingAll}
+                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black border transition-all ${generatingAll ? 'opacity-50' : ''} ${printMode ? 'hidden' : t('border-emerald-700 text-emerald-400 hover:bg-emerald-500/10','border-emerald-400 text-emerald-600')}`}
                             >
-                              {/* Image */}
-                              <div className="relative aspect-[9/16] overflow-hidden bg-gray-900">
-                                {img ? (
-                                  <img src={img} alt={`Scene ${i+1}`} className="w-full h-full object-cover" />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center">
-                                    <I name="Image" size={24} className="text-gray-700" />
-                                  </div>
-                                )}
-                                {/* Scene number badge */}
-                                <div className={`absolute top-2 left-2 w-6 h-6 rounded-full ${paceBg(pace)} text-white text-[9px] font-black flex items-center justify-center shadow-lg`}>
-                                  {i + 1}
+                              <I name="Image" size={11} /> {generatingAll ? 'Generating...' : `Generate ${allScenes.length - imgCount} missing`}
+                            </button>
+                          )}
+                          {/* Print/Export */}
+                          <button onClick={handleExport} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black border transition-all ${printMode ? 'hidden' : t('border-gray-700 text-gray-400 hover:border-sky-500 hover:text-sky-400','border-gray-300 text-gray-500')}`}>
+                            <I name="Download" size={11} /> Export / Print
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Audio Direction Bar */}
+                      {generatedOutput.audio_direction && (
+                        <div className={`flex items-center gap-2 px-3 py-2 rounded-xl mb-4 ${printMode ? 'bg-gray-100' : t('bg-gray-800/50','bg-gray-100')}`}>
+                          <span className="text-sm">🎵</span>
+                          <span className={`text-[10px] font-bold ${printMode ? 'text-gray-700' : t('text-gray-300','text-gray-600')}`}>BGM: {generatedOutput.audio_direction}</span>
+                        </div>
+                      )}
+
+                      {/* Grid */}
+                      <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}>
+                        {allScenes.map((scene, i) => {
+                          const img = getImg(i);
+                          const pace = scene.pace || 'MEDIUM';
+                          const isHovered = hoveredScene === i;
+                          const nextScene = allScenes[i + 1];
+
+                          return (
+                            <div key={i} className="relative flex flex-col">
+                              {/* Panel */}
+                              <div
+                                className={`rounded-2xl border overflow-hidden transition-all duration-200 cursor-pointer ${paceColor(pace)} shadow-sm ${printMode ? 'border-gray-300 bg-white' : t('bg-[#0d1117]','bg-white')} ${isHovered ? 'scale-[1.02] shadow-lg z-10' : ''}`}
+                                onMouseEnter={() => setHoveredScene(i)}
+                                onMouseLeave={() => setHoveredScene(null)}
+                                onClick={() => { if (img) { setFullscreenImage(img); setLightboxIndex(i); } }}
+                              >
+                                {/* Image */}
+                                <div className={`relative ${panelAspect} overflow-hidden ${printMode ? 'bg-gray-100' : 'bg-gray-900'}`}>
+                                  {img ? (
+                                    <img src={img} alt={`Scene ${i+1}`} className="w-full h-full object-cover" />
+                                  ) : (
+                                    <div className={`w-full h-full flex flex-col items-center justify-center gap-1 ${printMode ? 'bg-gray-100' : 'bg-gray-800/50'}`}>
+                                      <I name="Image" size={20} className="text-gray-600" />
+                                      <span className="text-[8px] text-gray-600 font-bold">No image</span>
+                                    </div>
+                                  )}
+                                  {/* Badges */}
+                                  <div className={`absolute top-1.5 left-1.5 w-5 h-5 rounded-full ${paceBg(pace)} text-white text-[8px] font-black flex items-center justify-center shadow`}>{i+1}</div>
+                                  <div className={`absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md text-[7px] font-bold ${printMode ? 'bg-gray-200 text-gray-700' : 'bg-black/70 text-white'}`}>{scene.timecode || ''}</div>
+                                  {scene.pace && <div className={`absolute bottom-1.5 left-1.5 px-1.5 py-0.5 rounded-md text-[7px] font-black uppercase ${pace === 'FAST' ? 'bg-amber-500/90 text-white' : pace === 'SLOW' ? 'bg-purple-500/90 text-white' : 'bg-sky-500/90 text-white'}`}>{pace}</div>}
+                                  {/* Per-panel regenerate */}
+                                  {!printMode && (
+                                    <button
+                                      className="absolute bottom-1.5 right-1.5 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 hover:opacity-100 hover:bg-sky-500 transition-all"
+                                      onClick={(e) => { e.stopPropagation(); regenerateSingleVisual(i); addToast(`Regenerating scene ${i+1}...`, 'info', 2000); }}
+                                      title="Regenerate this scene"
+                                    >
+                                      <I name="RefreshCw" size={10} />
+                                    </button>
+                                  )}
                                 </div>
-                                {/* Timecode badge */}
-                                <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded-md bg-black/70 text-white text-[8px] font-bold">
-                                  {scene.timecode || ''}
+
+                                {/* Info */}
+                                <div className="p-2 space-y-1">
+                                  {scene.camera && <p className={`text-[8px] uppercase tracking-widest font-bold ${printMode ? 'text-blue-700' : t('text-sky-400/80','text-sky-600')}`}>📷 {scene.camera.slice(0,28)}{scene.camera.length>28?'...':''}</p>}
+                                  <p className={`text-[8px] leading-snug ${printMode ? 'text-gray-600' : t('text-gray-400','text-gray-600')}`}>{String(scene.visual||'').slice(0,50)}{String(scene.visual||'').length>50?'...':''}</p>
+                                  {scene.dialogue && <p className={`text-[8px] italic font-medium leading-snug border-t pt-1 ${printMode ? 'text-gray-800 border-gray-200' : t('text-gray-300 border-gray-700','text-gray-700 border-gray-200')}`}>"{scene.dialogue.slice(0,45)}{scene.dialogue.length>45?'...':''}"</p>}
                                 </div>
-                                {/* Pace badge */}
-                                {scene.pace && (
-                                  <div className={`absolute bottom-2 right-2 px-1.5 py-0.5 rounded-md text-[7px] font-black uppercase ${pace === 'FAST' ? 'bg-amber-500/80 text-white' : pace === 'SLOW' ? 'bg-purple-500/80 text-white' : 'bg-sky-500/80 text-white'}`}>
-                                    {pace}
+
+                                {/* Hover Tooltip */}
+                                {isHovered && !printMode && (
+                                  <div className={`absolute inset-0 rounded-2xl p-3 z-20 overflow-y-auto ${t('bg-[#0d1117]/95','bg-white/95')} border ${paceColor(pace)}`} onClick={(e) => e.stopPropagation()}>
+                                    <p className="text-[9px] font-black text-sky-400 mb-1">Scene {i+1} — Full Details</p>
+                                    {[['📷 Camera', scene.camera],['🔭 Lens', scene.lens_suggestion],['💡 Lighting', scene.lighting],['🖼️ Composition', scene.composition],['🎭 Emotion', scene.emotion],['🎵 Sound', scene.ambient_sound],['✂️ Transition', scene.transition],['🎯 Purpose', scene.purpose]].map(([label, val]) => val ? (
+                                      <div key={label} className="mb-1">
+                                        <span className={`text-[7px] font-black uppercase ${t('text-gray-500','text-gray-400')}`}>{label}</span>
+                                        <p className={`text-[8px] leading-snug ${t('text-gray-300','text-gray-700')}`}>{val}</p>
+                                      </div>
+                                    ) : null)}
+                                    {scene.dialogue && <div className="mt-1 pt-1 border-t border-gray-700"><span className="text-[7px] font-black uppercase text-amber-400">💬 Dialogue</span><p className="text-[8px] italic text-gray-300">"{scene.dialogue}"</p></div>}
                                   </div>
                                 )}
                               </div>
-                              {/* Info */}
-                              <div className="p-2.5 space-y-1">
-                                {/* Camera */}
-                                {scene.camera && (
-                                  <p className={`text-[8px] uppercase tracking-widest font-bold ${t('text-sky-400/70','text-sky-600')}`}>
-                                    📷 {scene.camera.slice(0, 30)}{scene.camera.length > 30 ? '...' : ''}
-                                  </p>
-                                )}
-                                {/* Visual */}
-                                <p className={`text-[8px] leading-snug ${t('text-gray-400','text-gray-600')}`}>
-                                  {String(scene.visual || '').slice(0, 55)}{String(scene.visual || '').length > 55 ? '...' : ''}
-                                </p>
-                                {/* Dialogue */}
-                                {scene.dialogue && (
-                                  <p className={`text-[8px] italic font-medium leading-snug border-t pt-1 mt-1 ${t('text-gray-300 border-gray-700','text-gray-700 border-gray-200')}`}>
-                                    "{scene.dialogue.slice(0, 50)}{scene.dialogue.length > 50 ? '...' : ''}"
-                                  </p>
-                                )}
-                                {/* Purpose */}
-                                {scene.purpose && (
-                                  <p className={`text-[7px] leading-snug ${t('text-gray-600','text-gray-400')}`}>
-                                    ↳ {scene.purpose.slice(0, 45)}{scene.purpose.length > 45 ? '...' : ''}
-                                  </p>
-                                )}
-                              </div>
+
+                              {/* Transition indicator between panels */}
+                              {nextScene && scene.transition && !printMode && (
+                                <div className="absolute -right-2 top-1/2 -translate-y-1/2 z-10 flex flex-col items-center">
+                                  <div className={`px-1 py-0.5 rounded text-[6px] font-black whitespace-nowrap ${t('bg-gray-800 text-gray-400','bg-gray-200 text-gray-600')}`}>
+                                    {scene.transition.slice(0,10)}
+                                  </div>
+                                  <div className={`text-[10px] ${t('text-gray-600','text-gray-400')}`}>→</div>
+                                </div>
+                              )}
                             </div>
                           );
                         })}
                       </div>
-                      {/* Legend */}
-                      <div className="flex items-center gap-4 mt-4 justify-center">
-                        {[['FAST','bg-amber-500','Potong cepat'],['MEDIUM','bg-sky-500','Sederhana'],['SLOW','bg-purple-500','Perlahan/emosi']].map(([label, bg, desc]) => (
-                          <div key={label} className="flex items-center gap-1.5">
-                            <div className={`w-2 h-2 rounded-full ${bg}`} />
-                            <span className={`text-[8px] font-bold ${t('text-gray-500','text-gray-400')}`}>{label} — {desc}</span>
-                          </div>
-                        ))}
+
+                      {/* Legend + Audio */}
+                      <div className={`flex items-center justify-between mt-4 flex-wrap gap-2 pt-3 border-t ${printMode ? 'border-gray-300' : t('border-gray-800','border-gray-200')}`}>
+                        <div className="flex items-center gap-4">
+                          {[['FAST','bg-amber-500','Potong cepat'],['MEDIUM','bg-sky-500','Sederhana'],['SLOW','bg-purple-500','Emosi/Reveal']].map(([label, bg, desc]) => (
+                            <div key={label} className="flex items-center gap-1.5">
+                              <div className={`w-2 h-2 rounded-full ${bg}`} />
+                              <span className={`text-[8px] font-bold ${printMode ? 'text-gray-600' : t('text-gray-500','text-gray-400')}`}>{label} — {desc}</span>
+                            </div>
+                          ))}
+                        </div>
+                        <span className={`text-[8px] ${printMode ? 'text-gray-500' : t('text-gray-600','text-gray-400')}`}>Storyboard Studio AI · {new Date().toLocaleDateString('ms-MY')}</span>
                       </div>
                     </div>
                   </div>
                 );
               })()}
 
-              {/* === STORYBOARD TIMELINE VIEW === */}}
+              /* === STORYBOARD TIMELINE VIEW === */}}
               {timelineMode === 'on' && generatedOutput && imageUrls.length > 0 && (generatedOutput.scenes || generatedOutput.productScenes || generatedOutput.ootdScenes) && (() => {
                 const allScenes = (generatedOutput.scenes || generatedOutput.productScenes || generatedOutput.ootdScenes || []).filter(Boolean);
                 if (!allScenes.length) return null;
