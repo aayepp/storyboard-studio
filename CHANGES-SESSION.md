@@ -643,3 +643,31 @@ src/App.jsx
 
 ### Commit
 - `b7a93c0` feat: per-tab story improvements (9 tabs)
+
+### 3. UI/Layout Fixes (2026-07-25)
+- Fake Influencer download rename: model - {name}.png
+- Sidebar auto-collapse on generate: REMOVED
+- Separate scroll: tabs sidebar + main content independent scroll
+- Footer inside main scroll area (no more overlap/cut-off)
+- Flow AI segments: side-by-side grid (1 to 2 to 3 cols responsive)
+- Flow AI Copy+JSON buttons: side by side
+- Flow AI section: full width (removed max-w-4xl)
+- Scroll-stop formula Scene 1 — Cinematic Pro (4 types)
+- Text hierarchy 3-tier T1/T2/T3 — Grafix tab
+
+### Commits (2026-07-25)
+| Commit | Description |
+|--------|-------------|
+| e09c20d | Energy curve + bridge_to_next + dialogue continuity |
+| b7a93c0 | Per-tab story improvements (9 tabs) |
+| 6713ddb | Scroll-stop formula + text hierarchy |
+| 5abd702 | Fake influencer download rename |
+| f6ab6b5 | Remove sidebar auto-collapse + separate scroll |
+| 57c5ff6 | Footer inside main scroll area |
+| ef7933b | Flow AI side-by-side grid + copy/json buttons |
+| 660d611 | Flow AI full width |
+
+## Current File State (2026-07-25)
+- Lines: ~7820+
+- Build: esbuild + vite zero errors
+- Latest commit: 660d611

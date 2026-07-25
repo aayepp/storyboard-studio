@@ -2481,7 +2481,13 @@ I2V: ${s.i2v_prompt || ''}`
 
 const CHANGELOG = [
   {
-    version: 'v2.6', date: '25 Jul 2026', isNew: true,
+    version: 'v2.7', date: '25 Jul 2026', isNew: true,
+    changes: [
+      'docs: update CHANGES-SESSION.md — UI/layout fixes 2026-07-25',
+    ]
+  },
+  {
+    version: 'v2.6', date: '25 Jul 2026', isNew: false,
     changes: [
       'fix: flow AI segments full width — remove max-w-4xl constraint',
     ]
