@@ -309,8 +309,10 @@ DIALOGUE RULES (MANDATORY):
 - VISUAL-DIALOGUE SYNC (MOST IMPORTANT RULE): Before writing ANY dialogue, ask yourself: "What is the character DOING in this scene?" Then write dialogue that MATCHES that action. If she's holding a product → she talks about the product. If she's applying skincare → she talks about the texture/feel. If she's looking at camera → she addresses the viewer directly. NEVER write dialogue about Topic A while the visual shows Topic B.
 - Avoid: formal Malay, corporate Malay, textbook Malay, robotic phrasing, advertising-copy dialogue.
 - Preferred length: 10 to 20 words per dialogue line.
-- Maximum: 20 words per dialogue line.
-- Dialogue must fit scene duration — calculate ~3 words/sec for natural BM speech.
+- Maximum: 2.5 words per second of scene duration (e.g., 3.3s scene = max 8 words, 5s scene = max 12 words).
+- Hook scenes: punchy 8-12 words. Demo/action scenes: 5-8 words or empty. CTA scenes: 10-15 words.
+- Leave 1-2 scenes VISUAL-ONLY (dialogue: "") for breathing room — let visuals tell the story.
+- Dialogue must fit scene duration at natural BM speech pace.
 - If dialogue is unnecessary for a scene: Dialogue: "—"
 - Include natural Malay fillers sparingly: eh, kan, tau tak, sumpah, gila, weh.
 - Each scene's dialogue must have DIFFERENT emotional energy than the previous scene.
@@ -876,7 +878,7 @@ CAMERA MOVEMENT (vary per scene):
 ${stylingTips}
 
 RULES:
-- Dialogue in natural conversational Malay (max 15 words per scene). ${!hasVO ? 'VO mode OFF — visual only, dialogue = "".' : ''}
+- Dialogue in natural conversational Malay. Word limit: ~2.5 words per second of scene duration. Hook: 8-12 words. Detail/styling: 5-8 words. CTA: 10-15 words. Leave 1-2 scenes visual-only. ${!hasVO ? 'VO mode OFF — visual only, dialogue = "".' : ''}
 - Every scene SAME outfit, SAME model, SAME location — no changes between scenes.
 - image_prompt must include: outfit description, location, lighting, camera angle. NO plain white background.
 - i2v_prompt time-coded: "0s–Xs: [motion]. Xs–Ys: [motion]. Outfit and model locked."
@@ -915,7 +917,7 @@ const getProductPOVPrompt = (product, duration, category, background, gender, hi
     : 'Product only (no model)';
 
   const dialogueRule = hasVO
-    ? 'Each scene with dialogue: write 1 natural conversational Malay line (max 15 words). Hook scene MUST stop the scroll.'
+    ? 'Each scene with dialogue: write 1 natural conversational Malay line. Word limit: ~2.5 words per second of scene duration (3.3s = 8 words, 5s = 12 words). Hook scene: 8-12 words punchy. Demo scenes: 5-8 words or empty. CTA: 10-15 words. Leave 1-2 scenes visual-only.'
     : 'No spoken dialogue. Visual storytelling only. Dialogue field = "".';
 
   return `You are a professional product videographer and creative director. Generate a ${sec}s product showcase storyboard for: "${product}" (Category: ${category}).
@@ -1078,7 +1080,10 @@ const getCinematicStoryboardPrompt = (topic, duration, style, aspect, audience, 
   const sec = parseInt(duration) || 30;
   const sceneCount = sec <= 10 ? 3 : sec <= 15 ? 4 : sec <= 20 ? 5 : sec <= 30 ? 6 : sec <= 45 ? 9 : 12;
   const perScene = (sec / sceneCount).toFixed(1);
-  const maxWords = Math.round(parseFloat(perScene) * 3);
+  // Adaptive word limit: 2.5 words/sec for natural BM pace (slightly slower for clarity)
+  // Hook scenes get more words (fast burst), demo scenes get fewer (let visual breathe)
+  const maxWordsPerSec = 2.5;
+  const maxWords = Math.round(parseFloat(perScene) * maxWordsPerSec);
 
   const marketingObjective = /review|unbox|beli|produk|product/.test((topic||'').toLowerCase()) ? 'Sales / Product Launch'
     : /tips|cara|how|tutorial|belajar/.test((topic||'').toLowerCase()) ? 'Education / Awareness'
