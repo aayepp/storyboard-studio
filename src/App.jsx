@@ -7384,8 +7384,6 @@ RULES:
             </div>
           </div>
         )}
-      </main>
-      </div>{/* end sidebar+content wrapper */}
 
       <footer className={`max-w-7xl mx-auto px-5 sm:px-8 mt-10 pt-10 pb-12 border-t text-center relative z-10 transition-colors duration-300 ${t('border-gray-800', 'border-gray-200')}`}>
         <p className="text-sm font-medium mb-4 tracking-wide text-gray-500">© 2026 Storyboard Studio Architecture.</p>
@@ -7394,6 +7392,9 @@ RULES:
           <button onClick={() => setIsHelpOpen(true)} className="text-sm font-medium text-gray-500 hover:text-sky-500 transition-colors duration-200">Terminal Access Guideline</button>
         </div>
       </footer>
+      </main>
+      </div>{/* end sidebar+content wrapper */}
+
 
       {/* Keyboard Shortcuts Modal */}
       {showShortcuts && (
