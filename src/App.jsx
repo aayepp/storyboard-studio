@@ -2038,24 +2038,24 @@ const setStoredOpenAIKey = (key) => {
 const callDallE3Api = async (prompt, size = '1792x1024', signal = null) => {
   const key = getStoredOpenAIKey();
   if (!key) throw new Error('OpenAI API Key belum diset. Pergi Settings untuk tambah key.');
-  const res = await fetch('https://api.openai.com/v1/images/generations', {
+  // Use Vercel serverless proxy to avoid CORS
+  const isProd = typeof window !== 'undefined' && window.location.hostname !== 'localhost';
+  const proxyUrl = isProd ? '/api/openai-image' : 'https://storyboard-studio-opal.vercel.app/api/openai-image';
+  const res = await fetch(proxyUrl, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
-    body: JSON.stringify({
-      model: 'dall-e-3',
-      prompt,
-      n: 1,
-      size,
-      quality: 'hd',
-      response_format: 'url'
-    }),
+    headers: { 'Content-Type': 'application/json', 'x-openai-key': key },
+    body: JSON.stringify({ prompt, size, quality: 'hd' }),
     signal
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err?.error?.message || `OpenAI error ${res.status}`);
+    throw new Error(err?.error?.message || err?.error || `OpenAI error ${res.status}`);
   }
   const json = await res.json();
+  // Proxy returns base64 — convert to data URL
+  if (json?.data?.[0]?.b64_json) {
+    return 'data:image/png;base64,' + json.data[0].b64_json;
+  }
   return json?.data?.[0]?.url || null;
 };
 
