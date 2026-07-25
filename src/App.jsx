@@ -6861,7 +6861,12 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                       {/* Grid */}
                       <div className={`grid gap-3`} style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}>
                         {allScenes.map((scene, i) => {
-                          const img = imageUrls[i];
+                          // Map scene to closest available image
+                          // If per-segment keyframe: 3 images for 8 scenes — map each scene to its segment's keyframe
+                          const imgCount = imageUrls.filter(Boolean).length;
+                          const img = imageUrls[i] || (imgCount > 0
+                            ? imageUrls[Math.floor(i * imgCount / allScenes.length)] || imageUrls[imgCount - 1]
+                            : null);
                           const pace = scene.pace || 'MEDIUM';
                           return (
                             <div
