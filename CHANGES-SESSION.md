@@ -602,3 +602,44 @@ src/App.jsx
 ## Current File State (2026-07-25)
 - **Build:** ✅ esbuild zero errors
 - **Latest commit:** `e09c20d`
+
+### 2. Per-Tab Story Improvements (All 9 Tabs)
+
+**Cinematic Pro:**
+- Callback ending rule — Scene 1 visual MUST echo in last scene (cinematic closure)
+
+**Micro Impact (10s):**
+- Micro arc formula: 0-2s HOOK → 2-8s PROOF → 8-10s CTA
+- Explicit energy timing per scene (grab in <0.5s)
+
+**Narrative Arc (30s):**
+- `emotional_beat` field per scene — what VIEWER feels (curiosity/tension/hope/dread/relief/joy/awe/peak)
+- Callback rule — Scene 9 must visually echo Scene 1
+
+**Talking Head:**
+- Camera distance variation schedule — MCU hook, alternate CU/MS/ECU middle, MCU+gesture CTA
+- No Wide Shot rule for talking head
+
+**Stop Motion:**
+- Loop point rule — final frame must match/rhyme Scene 1 (seamless loop)
+- `delta` field per scene — "state A → state B" object change description
+
+**Grafix:**
+- Layout grid lock — Scene 1 establishes grid, all scenes follow same layout positions
+- `layout_zone` field per scene
+
+**UGC:**
+- Trust signal placement — face first → product → CTA order enforced
+- Comment bait rule — 1 scene must trigger comments, `comment_bait: true` field
+- Scale reference rule — 1 scene must show product in hand/vs object
+
+**Product POV:**
+- Feature spotlight rule — each scene = 1 unique feature only, no repeats
+- Scale reference rule — 1 scene must show real-world size context
+
+**OOTD:**
+- Outfit reveal formula — Scene 1=COVER (partial), Scene 2=FULL REVEAL
+- Movement scheduling — odd scenes static, even scenes movement (visual rhythm)
+
+### Commit
+- `b7a93c0` feat: per-tab story improvements (9 tabs)
