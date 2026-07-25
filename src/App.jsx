@@ -2352,6 +2352,7 @@ I2V: ${s.i2v_prompt || ''}`
     }).catch(() => addToast('Copy gagal', 'error', 2000));
   };
 
+  const [sheetView, setSheetView] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(() => {
     try { return localStorage.getItem('sound_alerts') !== 'off'; } catch { return true; }
   });
@@ -6554,6 +6555,11 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                  <button onClick={() => setShowShortcuts(true)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black border transition-all ${t('border-gray-700 text-gray-400 hover:border-purple-500 hover:text-purple-400','border-gray-300 text-gray-500 hover:border-purple-400 hover:text-purple-500')}`}>
                    <I name="Keyboard" size={11} /> Shortcuts
                  </button>
+                 {(generatedOutput?.scenes || generatedOutput?.productScenes || generatedOutput?.ootdScenes) && (
+                   <button onClick={() => setSheetView(prev => !prev)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black border transition-all ${sheetView ? 'bg-sky-500/20 border-sky-500/50 text-sky-400' : t('border-gray-700 text-gray-400 hover:border-sky-500 hover:text-sky-400','border-gray-300 text-gray-500 hover:border-sky-400 hover:text-sky-500')}`}>
+                     <I name={sheetView ? "LayoutGrid" : "LayoutList"} size={11} /> {sheetView ? 'Sheet View' : 'Sheet View'}
+                   </button>
+                 )}
                </div>
                {generatedOutput && (
                  <button
@@ -6818,7 +6824,120 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                 )}
               </div>
 
-              {/* === STORYBOARD TIMELINE VIEW === */}
+              {/* === STORYBOARD SHEET VIEW === */}
+              {sheetView && generatedOutput && (() => {
+                const allScenes = (generatedOutput.scenes || generatedOutput.productScenes || generatedOutput.ootdScenes || []).filter(Boolean);
+                if (!allScenes.length) return null;
+                const cols = allScenes.length <= 3 ? 3 : allScenes.length <= 4 ? 4 : allScenes.length <= 6 ? 3 : allScenes.length <= 8 ? 4 : 3;
+                const paceColor = (pace) => pace === 'FAST' ? 'border-amber-500/60 shadow-amber-500/20' : pace === 'SLOW' ? 'border-purple-500/60 shadow-purple-500/20' : 'border-sky-500/60 shadow-sky-500/20';
+                const paceBg = (pace) => pace === 'FAST' ? 'bg-amber-500' : pace === 'SLOW' ? 'bg-purple-500' : 'bg-sky-500';
+                return (
+                  <div className="mt-6 animate-fade-in-up" id="storyboard-sheet">
+                    <div className={`rounded-3xl border p-6 ${t('bg-[#0a0c10] border-gray-800','bg-gray-50 border-gray-200')}`}>
+                      {/* Sheet Header */}
+                      <div className="flex items-center justify-between mb-6">
+                        <div>
+                          <h3 className={`text-lg font-black ${t('text-white','text-gray-900')}`}>🎬 Storyboard Sheet</h3>
+                          <p className={`text-[10px] mt-0.5 ${t('text-gray-500','text-gray-400')}`}>{allScenes.length} scenes · {generatedOutput.duration || ''} · {generatedOutput.platform || ''}</p>
+                        </div>
+                        <button
+                          onClick={() => {
+                            const el = document.getElementById('storyboard-sheet');
+                            if (!el) return;
+                            import('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js').then(() => {
+                              window.html2canvas(el, { backgroundColor: '#0a0c10', scale: 2 }).then(canvas => {
+                                const link = document.createElement('a');
+                                link.download = `storyboard-${Date.now()}.png`;
+                                link.href = canvas.toDataURL();
+                                link.click();
+                              });
+                            }).catch(() => addToast('Export PNG requires internet connection', 'error'));
+                          }}
+                          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black border transition-all ${t('border-gray-700 text-gray-400 hover:border-sky-500 hover:text-sky-400','border-gray-300 text-gray-500 hover:border-sky-400 hover:text-sky-500')}`}
+                        >
+                          <I name="Download" size={12} /> Export PNG
+                        </button>
+                      </div>
+                      {/* Grid */}
+                      <div className={`grid gap-3`} style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}>
+                        {allScenes.map((scene, i) => {
+                          const img = imageUrls[i];
+                          const pace = scene.pace || 'MEDIUM';
+                          return (
+                            <div
+                              key={i}
+                              className={`rounded-2xl border overflow-hidden transition-all duration-300 cursor-pointer hover:scale-[1.02] hover:shadow-lg ${paceColor(pace)} shadow-sm ${t('bg-[#0d1117]','bg-white')}`}
+                              style={{ animationDelay: `${i * 60}ms` }}
+                              onClick={() => { setFullscreenImage(img); setLightboxIndex(i); }}
+                            >
+                              {/* Image */}
+                              <div className="relative aspect-[9/16] overflow-hidden bg-gray-900">
+                                {img ? (
+                                  <img src={img} alt={`Scene ${i+1}`} className="w-full h-full object-cover" />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center">
+                                    <I name="Image" size={24} className="text-gray-700" />
+                                  </div>
+                                )}
+                                {/* Scene number badge */}
+                                <div className={`absolute top-2 left-2 w-6 h-6 rounded-full ${paceBg(pace)} text-white text-[9px] font-black flex items-center justify-center shadow-lg`}>
+                                  {i + 1}
+                                </div>
+                                {/* Timecode badge */}
+                                <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded-md bg-black/70 text-white text-[8px] font-bold">
+                                  {scene.timecode || ''}
+                                </div>
+                                {/* Pace badge */}
+                                {scene.pace && (
+                                  <div className={`absolute bottom-2 right-2 px-1.5 py-0.5 rounded-md text-[7px] font-black uppercase ${pace === 'FAST' ? 'bg-amber-500/80 text-white' : pace === 'SLOW' ? 'bg-purple-500/80 text-white' : 'bg-sky-500/80 text-white'}`}>
+                                    {pace}
+                                  </div>
+                                )}
+                              </div>
+                              {/* Info */}
+                              <div className="p-2.5 space-y-1">
+                                {/* Camera */}
+                                {scene.camera && (
+                                  <p className={`text-[8px] uppercase tracking-widest font-bold ${t('text-sky-400/70','text-sky-600')}`}>
+                                    📷 {scene.camera.slice(0, 30)}{scene.camera.length > 30 ? '...' : ''}
+                                  </p>
+                                )}
+                                {/* Visual */}
+                                <p className={`text-[8px] leading-snug ${t('text-gray-400','text-gray-600')}`}>
+                                  {String(scene.visual || '').slice(0, 55)}{String(scene.visual || '').length > 55 ? '...' : ''}
+                                </p>
+                                {/* Dialogue */}
+                                {scene.dialogue && (
+                                  <p className={`text-[8px] italic font-medium leading-snug border-t pt-1 mt-1 ${t('text-gray-300 border-gray-700','text-gray-700 border-gray-200')}`}>
+                                    "{scene.dialogue.slice(0, 50)}{scene.dialogue.length > 50 ? '...' : ''}"
+                                  </p>
+                                )}
+                                {/* Purpose */}
+                                {scene.purpose && (
+                                  <p className={`text-[7px] leading-snug ${t('text-gray-600','text-gray-400')}`}>
+                                    ↳ {scene.purpose.slice(0, 45)}{scene.purpose.length > 45 ? '...' : ''}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      {/* Legend */}
+                      <div className="flex items-center gap-4 mt-4 justify-center">
+                        {[['FAST','bg-amber-500','Potong cepat'],['MEDIUM','bg-sky-500','Sederhana'],['SLOW','bg-purple-500','Perlahan/emosi']].map(([label, bg, desc]) => (
+                          <div key={label} className="flex items-center gap-1.5">
+                            <div className={`w-2 h-2 rounded-full ${bg}`} />
+                            <span className={`text-[8px] font-bold ${t('text-gray-500','text-gray-400')}`}>{label} — {desc}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* === STORYBOARD TIMELINE VIEW === */}}
               {timelineMode === 'on' && generatedOutput && imageUrls.length > 0 && (generatedOutput.scenes || generatedOutput.productScenes || generatedOutput.ootdScenes) && (() => {
                 const allScenes = (generatedOutput.scenes || generatedOutput.productScenes || generatedOutput.ootdScenes || []).filter(Boolean);
                 if (!allScenes.length) return null;
