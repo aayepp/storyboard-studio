@@ -2560,8 +2560,8 @@ I2V: ${s.i2v_prompt || ''}`
   const [genfityKey, setGenfityKey] = useState(getStoredGenfityKey);
   const [textProvider, setTextProvider] = useState(getStoredTextProvider);
   const [generateMode, setGenerateMode] = useState(getStoredGenerateMode);
-  const [keyframeMode, setKeyframeMode] = useState(getStoredKeyframeMode);
-  const [timelineMode, setTimelineMode] = useState(getStoredTimelineMode);
+  const [keyframeMode, setKeyframeMode] = useState('off'); // Off — timeline auto-generates all scenes
+  const [timelineMode, setTimelineMode] = useState('on'); // Force ON — auto generate 1 image per scene
   const [genfityModel, setGenfityModel] = useState(getStoredGenfityModel);
   const [showApiKeyInput, setShowApiKeyInput] = useState(!getStoredApiKey());
   const [showProviderPanel, setShowProviderPanel] = useState(false);
@@ -5588,19 +5588,6 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                       </span>
                     )}
                     
-                    <span className={`text-[10px] font-bold uppercase tracking-widest ml-2 ${t('text-gray-500', 'text-gray-400')}`}><I name="Layers" size={12} className="text-sky-400" /> Storyboard Timeline:</span>
-                    <button
-                      onClick={() => handleTimelineModeChange(timelineMode === 'on' ? 'off' : 'on')}
-                      className={`px-3 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all ${timelineMode === 'on' ? 'bg-sky-500 text-white shadow-sm' : t('bg-gray-800 text-gray-400 hover:text-white', 'bg-gray-100 text-gray-500')}`}
-                    >
-                      {timelineMode === 'on' ? 'ON (all scenes)' : 'OFF (1 img)'}
-                    </button>
-                    {timelineMode === 'off' && (
-                      <span className={`text-[10px] font-medium ${t('text-sky-400', 'text-sky-600')}`}>
-                        OFF: Smart Keyframe je (1 gambar). ON untuk semua scene
-                      </span>
-                    )}
-
                     <span className={`text-[10px] font-bold uppercase tracking-widest ml-2 ${t('text-gray-500', 'text-gray-400')}`}><I name="Zap" size={12} className="text-emerald-400" /> Bunyi Siap:</span>
                     <button
                       onClick={() => {
