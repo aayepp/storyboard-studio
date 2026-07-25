@@ -1568,7 +1568,7 @@ Title: "${title || 'Storyboard'}" — Platform: ${platform || 'TikTok'} — Dura
 
 PANEL REQUIREMENTS:
 - Each panel: numbered badge (top-left), timecode (top-right), illustrated scene (main area), camera label (bottom-left), short dialogue text (bottom, italic)
-- Panel style: cinematic illustration or photorealistic sketch, dark card background, clean white text labels
+- Panel style: PHOTOREALISTIC photography — real people, real environments, real lighting. NO cartoon, NO illustration, NO sketch, NO animation, NO anime, NO drawing style. Must look like actual video stills/screenshots.
 - Consistent character appearance across ALL panels (same face, outfit, hijab if applicable): ${identityBible ? identityBible.slice(0, 200) : 'maintain consistency'}
 - VARY camera angles per panel as specified
 - Background/location consistent across all panels
