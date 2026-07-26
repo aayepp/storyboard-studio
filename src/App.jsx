@@ -2671,7 +2671,27 @@ I2V: ${s.i2v_prompt || ''}`
 
 const CHANGELOG = [
   {
-    version: 'v2.7', date: '25 Jul 2026', isNew: true,
+    version: 'v2.8', date: '26 Jul 2026', isNew: true,
+    changes: [
+      'feat: background theme dropdown — 16 options, auto-detect from topic',
+      'feat: outfit style dropdown — 11 options, auto-detect from topic',
+      'feat: both dropdowns in config area (2-col grid), all 10 tabs',
+      'feat: smart keyframe per-segmen default ON',
+      'feat: flow AI segments auto-expand after generate',
+      'fix: outfit lock overrides model reference image (face only, not outfit)',
+      'fix: outfit stripped from scene image_prompt, hard override injected',
+      'fix: bg+outfit locks applied to all generate paths (newMode, product, ootd)',
+      'fix: model upload — subject only, ignore reference background',
+      'fix: Missing scenes array — normalize + smarter repair note',
+      'fix: segment PNG export — canvas adapts to actual image count',
+      'fix: segment 3 dialogue — use seg.scenes directly (no timecode filter)',
+      'fix: keyframe default segment migration — clear stale localStorage off',
+      'feat: demo-focused image instruction — action/demo over plain portrait',
+      'fix: remove segment image grid from flow AI — clean segment view',
+    ]
+  },
+  {
+    version: 'v2.7', date: '25 Jul 2026', isNew: false,
     changes: [
       'docs: update CHANGES-SESSION.md — UI/layout fixes 2026-07-25',
     ]

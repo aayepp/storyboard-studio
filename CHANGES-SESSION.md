@@ -868,5 +868,70 @@ src/App.jsx
 - **Storyboard Timeline:** ❌ Removed
 
 ---
+
+## Session Changes — 2026-07-26
+
+### 1. Background Theme Dropdown
+- `BACKGROUND_THEMES` constant — 16 options (studio, cafe, gym, beach, office, dll)
+- `detectBgTheme(topic)` — auto-detect dari topic (BM + EN keywords)
+- `bgTheme` state, auto-detect bila tab/topic berubah
+- Dropdown dalam config area (2-col grid), semua 10 tabs
+- `[BACKGROUND THEME LOCK]` inject ke identityBible — semua paths
+
+### 2. Outfit Style Dropdown
+- `OUTFIT_THEMES` constant — 11 options (casual, office, streetwear, athletic, formal, beach, editorial, lounge, influencer, baju kurung, outdoor)
+- `detectOutfitStyle(topic)` — auto-detect dari topic (BM + EN)
+- `outfitStyle` state, auto-detect bila tab/topic berubah
+- Dropdown dalam config area (2-col grid), semua 10 tabs
+- `[OUTFIT LOCK]` inject ke identityBible — semua paths
+- Outfit stripped dari scene `image_prompt` bila outfit lock active
+- Hard override `[OUTFIT OVERRIDE — HIGHEST PRIORITY]` prepended ke parts[0]
+- Face lock instruction updated — copy face/hair/skin only, NOT outfit dari reference image
+
+### 3. Smart Keyframe Fixes
+- Default = `segment` (per-segmen) — migration clear stale `off` dari localStorage
+- `handleKeyframeModeChange` fix — sets `timelineMode` correctly (off bila keyframe aktif)
+- Demo-focused image instruction — show subject actively doing/demo, bukan plain portrait
+
+### 4. Flow AI Segment Fixes
+- Auto-expand semua segments selepas generate (sebelum: auto-collapse)
+- Segment 3 dialogue fix — guna `seg.scenes` terus, bukan timecode filter
+- Remove 2×2 image grid dari segment cards — clean view balik
+
+### 5. Other Fixes
+- Model upload face lock — subject only, ignore background dari reference
+- `Missing scenes array` — normalize empty scenes + smarter repair note
+- Segment PNG export — canvas size adapts to actual image count (no empty panels)
+- bg+outfit locks applied ke semua generate paths (generateNewMode, product, ootd)
+
+### Commits (2026-07-26)
+| Commit | Description |
+|--------|-------------|
+| `ceb5689` | feat: background theme dropdown — 16 options, auto-detect from topic |
+| `bfb7575` | fix: Missing scenes array — normalize empty scenes, smarter repair note |
+| `7b333ae` | fix: model upload — extract subject only, ignore reference background |
+| `49953f0` | fix: smart keyframe toggle — ON/segment sets timelineMode off |
+| `2e50608` | fix: segment PNG export — canvas adapts to actual image count |
+| `14e70f6` | feat: auto outfit style — 11 options, auto-detect from topic |
+| `ccea8a6` | feat: background+outfit dropdowns moved to config area — all 10 tabs |
+| `357ecd7` | fix: keyframe default segment, auto-detect bg+outfit on topic change |
+| `a2f6732` | fix: bg+outfit locks applied to all generate paths |
+| `1c04b04` | fix: keyframe default segment migration + demo-focused image instruction |
+| `186e1e0` | fix: remove segment image grid from flow AI |
+| `f69044d` | fix: flow AI segments auto-expand after generate |
+| `7d0ead7` | fix: outfit dropdown overrides model reference image |
+| `e42abd9` | fix: outfit lock prepended as highest priority |
+| `d4c08ad` | fix: strip outfit from scene prompt + hard override |
+| `73646af` | fix: segment 3 dialogue — use seg.scenes directly |
+
+## Current File State (2026-07-26)
+- **Lines:** ~8500
+- **Build:** ✅ esbuild + vite zero errors
+- **Latest commit:** `73646af`
+- **Smart Keyframe:** ✅ Default PER-SEGMEN
+- **Background Theme:** ✅ 16 options, auto-detect
+- **Outfit Style:** ✅ 11 options, auto-detect, overrides reference image
+- **Flow AI Segments:** ✅ Auto-expand, clean view (no image grid)
+
 ### Auto-log: 2026-07-26 13:15 (branch: main)
 **Files changed:** src/App.jsx
