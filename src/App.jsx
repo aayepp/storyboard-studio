@@ -3078,6 +3078,29 @@ return parsed;
     }
   };
 
+  // ponytail: when outfit lock active, physically remove outfit from face reference
+  // by cropping to head+shoulders. Text instructions ALWAYS lose to image pixels —
+  // the model cannot copy an outfit it cannot see. Zero API cost (browser canvas).
+  const cropFaceTop = (base64, mime) => new Promise((resolve) => {
+    const orig = { data: base64, mime: mime || 'image/jpeg' };
+    try {
+      const img = new Image();
+      img.onload = () => {
+        const w = img.width, h = img.height;
+        // Only crop clear portrait/full-body shots; tight headshots pass through
+        if (h < w * 1.25) return resolve(orig);
+        const ch = Math.round(Math.min(h, w * 1.05)); // near-square top crop = head + shoulders
+        const c = document.createElement('canvas');
+        c.width = w; c.height = ch;
+        c.getContext('2d').drawImage(img, 0, 0, w, ch, 0, 0, w, ch);
+        const out = c.toDataURL('image/jpeg', 0.92).split(',')[1];
+        resolve(out ? { data: out, mime: 'image/jpeg' } : orig);
+      };
+      img.onerror = () => resolve(orig);
+      img.src = `data:${mime || 'image/jpeg'};base64,${base64}`;
+    } catch { resolve(orig); }
+  });
+
   const fetchSingleImage = async (customPrompt, ratioToUse, signal = null, idx = 0, options = {}) => {
     const {
       identityBible = '',
@@ -3167,9 +3190,13 @@ return parsed;
       if (!motionGraphicsMode && activeUploadData.useCustomFace && activeUploadData.uploadedFaceBase64) {
         parts[0].text += "\n\n[MANDATORY BIOMETRIC FACE LOCK — SUBJECT ONLY]: Extract ONLY the person/subject from the attached FACE REFERENCE IMAGE. Copy: face structure, skin tone, hair, body proportions EXACTLY.\n[OUTFIT OVERRIDE — CRITICAL]: DO NOT copy the outfit/clothing from the reference image. The outfit is defined by the [OUTFIT LOCK] instruction above — use THAT outfit instead.\n[BACKGROUND IGNORE RULE — CRITICAL]: The background in the reference image is IRRELEVANT. DO NOT use, copy, or reference the background from this image. The background will be set by the scene description and environment instructions ONLY. Render the subject against the scene's stated environment, NOT the reference image's background.";
         parts.push({ text: _outfitActive
-          ? "=== FACE REFERENCE IMAGE (FACE/HAIR/SKIN ONLY — IGNORE OUTFIT AND BACKGROUND) ===\n[STRICT]: Copy ONLY face structure, skin tone, and hair from this image. The clothing/outfit in this image is FORBIDDEN — the subject wears the [OUTFIT LOCK] outfit stated at the top of the prompt instead. Ignore this image's background too."
+          ? "=== FACE REFERENCE IMAGE (HEAD-AND-SHOULDERS CROP — FACE/HAIR/SKIN ONLY) ===\n[STRICT]: Copy ONLY face structure, skin tone, and hair from this image. Any clothing visible in this crop is FORBIDDEN — the subject wears the [OUTFIT LOCK] outfit stated at the top of the prompt instead. Ignore this image's background too."
           : "=== FACE REFERENCE IMAGE (SUBJECT ONLY — IGNORE BACKGROUND) ===" });
-        parts.push({ inlineData: { mimeType: activeUploadData.uploadedFaceMimeType || "image/jpeg", data: activeUploadData.uploadedFaceBase64 } });
+        // ponytail: outfit lock active → send head+shoulders crop only, model cannot copy unseen outfit
+        const _faceRef = _outfitActive
+          ? await cropFaceTop(activeUploadData.uploadedFaceBase64, activeUploadData.uploadedFaceMimeType)
+          : { data: activeUploadData.uploadedFaceBase64, mime: activeUploadData.uploadedFaceMimeType || "image/jpeg" };
+        parts.push({ inlineData: { mimeType: _faceRef.mime, data: _faceRef.data } });
       }
 
       if (activeProducts.length > 0) {
