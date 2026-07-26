@@ -116,6 +116,37 @@ const detectBgTheme = (topic = '') => {
   if (/cinematic|dark|moody|dramatic|noir|thriller/.test(t)) return 'dark_studio';
   return 'auto';
 };
+
+const OUTFIT_THEMES = [
+  { v: 'auto', l: '✨ Auto (AI Decides)', desc: '' },
+  { v: 'casual_chic', l: '👟 Casual Chic', desc: 'Casual chic everyday outfit — clean fitted tee or oversized top, slim jeans or trousers, clean white sneakers or loafers. Relaxed yet put-together.' },
+  { v: 'smart_casual', l: '👔 Smart Casual / Office', desc: 'Smart casual professional look — fitted blazer over kemeja or blouse, tailored trousers or pencil skirt, leather shoes or block heels.' },
+  { v: 'streetwear', l: '🧢 Streetwear / Urban', desc: 'Urban streetwear — graphic tee or hoodie, cargo pants or joggers, chunky sneakers, cap or bucket hat, minimal accessories.' },
+  { v: 'athletic', l: '💪 Athletic / Sporty', desc: 'Athletic performance wear — sports bra or moisture-wicking tank top, compression leggings or shorts, running shoes, hair tied back.' },
+  { v: 'elegant_formal', l: '👗 Elegant / Formal', desc: 'Elegant formal attire — evening dress or tailored suit, heels or dress shoes, statement accessories, refined hair and makeup.' },
+  { v: 'beach_casual', l: '🌊 Beach / Casual Summer', desc: 'Breezy beach casual — linen shirt or sundress, shorts or flowy skirt, sandals or bare feet, minimal accessories, sun-kissed natural look.' },
+  { v: 'editorial_dark', l: '🎨 Editorial / Dark', desc: 'Editorial fashion-forward look — all-black or monochrome outfit, structured jacket or trench coat, boots, bold accessories, high-fashion energy.' },
+  { v: 'home_lounge', l: '🏠 Home / Loungewear', desc: 'Cozy home loungewear — soft oversized hoodie or knit sweater, comfortable sweatpants or yoga pants, slides or fuzzy socks, relaxed natural styling.' },
+  { v: 'trendy_influencer', l: '📱 Trendy / Influencer', desc: 'Trendy social media influencer style — coordinated set or statement piece, platform shoes or trendy sneakers, accessories layered, on-trend colors.' },
+  { v: 'baju_kurung', l: '🌙 Baju Kurung / Modest', desc: 'Modest traditional Malaysian outfit — baju kurung or baju kebaya, tudung/hijab styled neatly, soft pastel or jewel-tone colors, minimal accessories.' },
+  { v: 'outdoor_adventure', l: '🏕️ Outdoor / Adventure', desc: 'Outdoor adventure gear — breathable quick-dry shirt, cargo pants or trekking shorts, hiking boots or trail runners, backpack, functional accessories.' },
+];
+
+const detectOutfitStyle = (topic = '') => {
+  const t = topic.toLowerCase();
+  if (/gym|fitness|workout|exercise|latihan|senaman|sukan|sport|lari|run/.test(t)) return 'athletic';
+  if (/office|pejabat|corporate|business|kerja|meeting|presentation|startup/.test(t)) return 'smart_casual';
+  if (/street|urban|bandar|hypebeast|sneaker|streetwear|hip.?hop/.test(t)) return 'streetwear';
+  if (/beach|pantai|laut|ocean|summer|resort|holiday|bercuti/.test(t)) return 'beach_casual';
+  if (/night|malam|club|event|gala|dinner|formal|wedding|majlis/.test(t)) return 'elegant_formal';
+  if (/dark|moody|editorial|cinematic|noir|thriller|fashion week/.test(t)) return 'editorial_dark';
+  if (/home|rumah|rehat|santai|lounge|pyjama|cozy|rest/.test(t)) return 'home_lounge';
+  if (/raya|kurung|kebaya|hijab|tudung|modest|muslimah|traditional/.test(t)) return 'baju_kurung';
+  if (/hiking|outdoor|camping|alam|nature|trek|adventure|hutan/.test(t)) return 'outdoor_adventure';
+  if (/influencer|content creator|tiktok|review|unboxing|ugc|affiliate/.test(t)) return 'trendy_influencer';
+  if (/cafe|kopi|coffee|brunch|hangout|dating|jalan|mall|shopping/.test(t)) return 'casual_chic';
+  return 'auto';
+};
 const makeEmptyTabUploads = () => Object.fromEntries(TAB_UPLOAD_KEYS.map((k) => [k, { ...EMPTY_UPLOAD, products: [{ name: '', base64: null, mimeType: null }], backgrounds: [] }]));
 
 const _baseCard = 'border rounded-[32px] p-6 sm:p-10 shadow-sm relative overflow-hidden transition-colors duration-300 card-hover scroll-reveal backdrop-blur-xl';
@@ -2597,8 +2628,9 @@ I2V: ${s.i2v_prompt || ''}`
   const [gfAudience, setGfAudience] = useState('');
   const [cinematicPlatform, setCinematicPlatform] = useState('TikTok');
   const [bgTheme, setBgTheme] = useState('auto');
+  const [outfitStyle, setOutfitStyle] = useState('auto');
 
-  // Auto-detect background theme when tab changes
+  // Auto-detect background theme + outfit when tab changes
   useEffect(() => {
     const topicMap = {
       cinematic_pro: cinematicTopic, microimpact: microImpactTopic,
@@ -2607,8 +2639,9 @@ I2V: ${s.i2v_prompt || ''}`
       ugc: productName, product: productName,
       ootd: productName, character: productName, fake_influencer: productName,
     };
-    const detected = detectBgTheme(topicMap[activeTab] || '');
-    setBgTheme(detected);
+    const topic = topicMap[activeTab] || '';
+    setBgTheme(detectBgTheme(topic));
+    setOutfitStyle(detectOutfitStyle(topic));
   }, [activeTab]); // ponytail: tab change only — user can still override manually
 
   const [apiKey, setApiKey] = useState(getStoredApiKey);
@@ -4104,11 +4137,14 @@ Keep the subject person, face reference, background layout, and clothes identica
             assetAnalysis,
             extra: parsedIdentityNote(mode)
           });
-      // Inject background theme if user selected one
+      // Inject background theme + outfit lock
       const _bgThemeData = bgTheme !== 'auto' ? BACKGROUND_THEMES.find(o => o.v === bgTheme) : null;
-      const finalIdentityBible = _bgThemeData
-        ? identityBible + `\n\n[BACKGROUND THEME LOCK]\nBackground environment for ALL scenes: ${_bgThemeData.desc}\nDo NOT use any other background type. Every scene must be set in this environment.`
-        : identityBible;
+      const _outfitData = outfitStyle !== 'auto' ? OUTFIT_THEMES.find(o => o.v === outfitStyle) : null;
+      const _visualLock = [
+        _bgThemeData ? `[BACKGROUND THEME LOCK]\nBackground environment for ALL scenes: ${_bgThemeData.desc}\nDo NOT use any other background type. Every scene must be set in this environment.` : '',
+        _outfitData ? `[OUTFIT LOCK]\nThe model/presenter MUST wear this outfit in ALL scenes: ${_outfitData.desc}\nKeep outfit IDENTICAL across every scene — no wardrobe changes unless scene specifically requires it.` : '',
+      ].filter(Boolean).join('\n\n');
+      const finalIdentityBible = _visualLock ? identityBible + '\n\n' + _visualLock : identityBible;
 
       let expectedCount = expectedSceneCountForDuration(
         durationByMode[mode],
@@ -4356,10 +4392,14 @@ Keep the subject person, face reference, background layout, and clothes identica
         const angleList = productAngles.available_angles.join(', ');
         identityBible += `\n\n[PRODUCT REFERENCE SHEET — AVAILABLE ANGLES]\nThis reference sheet contains these labelled panels: ${angleList}.\nFor EACH scene, pick the ONE angle that matches the scene's camera/action, declare it as "angle_used" in the JSON, and copy the product ONLY from that panel.\nAngles: ${productAngles.angle_notes || ''}`;
       }
-      // Inject background theme lock
+      // Inject background theme + outfit lock
       const _bgThemeDataAll = bgTheme !== 'auto' ? BACKGROUND_THEMES.find(o => o.v === bgTheme) : null;
+      const _outfitDataAll = outfitStyle !== 'auto' ? OUTFIT_THEMES.find(o => o.v === outfitStyle) : null;
       if (_bgThemeDataAll) {
         identityBible += `\n\n[BACKGROUND THEME LOCK]\nBackground environment for ALL scenes: ${_bgThemeDataAll.desc}\nDo NOT use any other background type. Every scene must be set in this environment.`;
+      }
+      if (_outfitDataAll) {
+        identityBible += `\n\n[OUTFIT LOCK]\nThe model/presenter MUST wear this outfit in ALL scenes: ${_outfitDataAll.desc}\nKeep outfit IDENTICAL across every scene — no wardrobe changes unless scene specifically requires it.`;
       }
       result.identityBible = identityBible;
       result.assetAnalysis = assetAnalysis;
@@ -5111,6 +5151,35 @@ Pick the ONE that best fits. No explanation, just the tag.`;
           {bgTheme !== 'auto' && BACKGROUND_THEMES.find(o => o.v === bgTheme)?.desc && (
             <p className={`text-[10px] mt-1 ${t('text-gray-500','text-gray-400')}`}>
               {BACKGROUND_THEMES.find(o => o.v === bgTheme).desc}
+            </p>
+          )}
+        </div>
+
+        {/* Outfit Style Dropdown */}
+        <div className="mb-3">
+          <div className="flex items-center gap-2 mb-1.5">
+            <label className={`text-[11px] font-bold uppercase tracking-wide ${t('text-gray-300','text-gray-500')}`}>Outfit / Style</label>
+            {outfitStyle !== 'auto' && (
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                ✨ Auto-detected
+              </span>
+            )}
+          </div>
+          <div className="relative">
+            <select
+              value={outfitStyle}
+              onChange={(e) => setOutfitStyle(e.target.value)}
+              className={`${C.select(isDarkMode)} pr-8 text-sm`}
+            >
+              {OUTFIT_THEMES.map(opt => (
+                <option key={opt.v} value={opt.v}>{opt.l}</option>
+              ))}
+            </select>
+            <ChevronDown className={U.c1} size={14} />
+          </div>
+          {outfitStyle !== 'auto' && OUTFIT_THEMES.find(o => o.v === outfitStyle)?.desc && (
+            <p className={`text-[10px] mt-1 ${t('text-gray-500','text-gray-400')}`}>
+              {OUTFIT_THEMES.find(o => o.v === outfitStyle).desc}
             </p>
           )}
         </div>
