@@ -5118,71 +5118,48 @@ Pick the ONE that best fits. No explanation, just the tag.`;
     );
   };
 
+  const renderVisualThemeFields = () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+      <div>
+        <div className="flex items-center gap-2 mb-1.5">
+          <label className={C.label} style={{marginBottom:0}}>Background Theme</label>
+          {bgTheme !== 'auto' && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-sky-500/20 text-sky-400 border border-sky-500/30">✨ Auto</span>}
+        </div>
+        <div className="relative">
+          <select value={bgTheme} onChange={e => setBgTheme(e.target.value)} className={`${C.select(isDarkMode)} pr-8 text-sm`}>
+            {BACKGROUND_THEMES.map(o => <option key={o.v} value={o.v}>{o.l}</option>)}
+          </select>
+          <ChevronDown className={U.c1} size={14} />
+        </div>
+        {bgTheme !== 'auto' && BACKGROUND_THEMES.find(o => o.v === bgTheme)?.desc && (
+          <p className={`text-[9px] mt-1 leading-tight ${t('text-gray-500','text-gray-400')}`}>{BACKGROUND_THEMES.find(o => o.v === bgTheme).desc}</p>
+        )}
+      </div>
+      <div>
+        <div className="flex items-center gap-2 mb-1.5">
+          <label className={C.label} style={{marginBottom:0}}>Outfit / Style</label>
+          {outfitStyle !== 'auto' && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/30">✨ Auto</span>}
+        </div>
+        <div className="relative">
+          <select value={outfitStyle} onChange={e => setOutfitStyle(e.target.value)} className={`${C.select(isDarkMode)} pr-8 text-sm`}>
+            {OUTFIT_THEMES.map(o => <option key={o.v} value={o.v}>{o.l}</option>)}
+          </select>
+          <ChevronDown className={U.c1} size={14} />
+        </div>
+        {outfitStyle !== 'auto' && OUTFIT_THEMES.find(o => o.v === outfitStyle)?.desc && (
+          <p className={`text-[9px] mt-1 leading-tight ${t('text-gray-500','text-gray-400')}`}>{OUTFIT_THEMES.find(o => o.v === outfitStyle).desc}</p>
+        )}
+      </div>
+    </div>
+  );
+
   const renderBackgroundUploadBox = () => {
     const activeUploadData = getActiveUploadData();
     const backgrounds = activeUploadData.backgrounds || [];
 
     return (
       <div className="mt-4">
-        <label className={C.label}>Environment / Background / Environment Reference (Optional)</label>
-
-        {/* Background Theme Dropdown */}
-        <div className="mb-3">
-          <div className="flex items-center gap-2 mb-1.5">
-            <label className={`text-[11px] font-bold uppercase tracking-wide ${t('text-gray-300','text-gray-500')}`}>Background Theme</label>
-            {bgTheme !== 'auto' && (
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-400 border border-sky-500/30">
-                ✨ Auto-detected
-              </span>
-            )}
-          </div>
-          <div className="relative">
-            <select
-              value={bgTheme}
-              onChange={(e) => setBgTheme(e.target.value)}
-              className={`${C.select(isDarkMode)} pr-8 text-sm`}
-            >
-              {BACKGROUND_THEMES.map(opt => (
-                <option key={opt.v} value={opt.v}>{opt.l}</option>
-              ))}
-            </select>
-            <ChevronDown className={U.c1} size={14} />
-          </div>
-          {bgTheme !== 'auto' && BACKGROUND_THEMES.find(o => o.v === bgTheme)?.desc && (
-            <p className={`text-[10px] mt-1 ${t('text-gray-500','text-gray-400')}`}>
-              {BACKGROUND_THEMES.find(o => o.v === bgTheme).desc}
-            </p>
-          )}
-        </div>
-
-        {/* Outfit Style Dropdown */}
-        <div className="mb-3">
-          <div className="flex items-center gap-2 mb-1.5">
-            <label className={`text-[11px] font-bold uppercase tracking-wide ${t('text-gray-300','text-gray-500')}`}>Outfit / Style</label>
-            {outfitStyle !== 'auto' && (
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/30">
-                ✨ Auto-detected
-              </span>
-            )}
-          </div>
-          <div className="relative">
-            <select
-              value={outfitStyle}
-              onChange={(e) => setOutfitStyle(e.target.value)}
-              className={`${C.select(isDarkMode)} pr-8 text-sm`}
-            >
-              {OUTFIT_THEMES.map(opt => (
-                <option key={opt.v} value={opt.v}>{opt.l}</option>
-              ))}
-            </select>
-            <ChevronDown className={U.c1} size={14} />
-          </div>
-          {outfitStyle !== 'auto' && OUTFIT_THEMES.find(o => o.v === outfitStyle)?.desc && (
-            <p className={`text-[10px] mt-1 ${t('text-gray-500','text-gray-400')}`}>
-              {OUTFIT_THEMES.find(o => o.v === outfitStyle).desc}
-            </p>
-          )}
-        </div>
+        <label className={C.label}>Environment / Background Reference (Optional)</label>
 
         {/* Upload zone */}
         <div className={`w-full border border-dashed rounded-3xl p-6 transition-all duration-300 ${backgrounds.length > 0 ? t('border-sky-500/50 bg-sky-900/10', 'border-sky-300 bg-sky-50') : t('border-gray-700 bg-gray-800/30', 'border-gray-300 bg-gray-50')}`}>
@@ -5854,6 +5831,7 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                 isDarkMode={isDarkMode}
               />
 
+              {renderVisualThemeFields()}
               {renderGenderBox()}
               {renderProductUploadBox()}
               {renderIdentityBox()}
@@ -5944,6 +5922,7 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                 </div>
               </div>
 
+              {renderVisualThemeFields()}
               {renderGenderBox()}
               {renderProductUploadBox()}
               {renderIdentityBox()}
@@ -6003,6 +5982,7 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                 </div>
               </div>
 
+              {renderVisualThemeFields()}
               {renderGenderBox()}
               {renderProductUploadBox()}
               {renderIdentityBox()}
@@ -6095,6 +6075,7 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                 >{thSubtitleFormat ? 'ON' : 'OFF'}</button>
               </div>
 
+              {renderVisualThemeFields()}
               {renderGenderBox()}
               {renderProductUploadBox()}
               {renderIdentityBox()}
@@ -6202,6 +6183,7 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                 />
               </div>
 
+              {renderVisualThemeFields()}
               {renderGenderBox()}
               {renderProductUploadBox()}
               {renderIdentityBox()}
@@ -6309,6 +6291,7 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                 />
               </div>
 
+              {renderVisualThemeFields()}
               {renderGenderBox()}
               {renderProductUploadBox()}
               {renderIdentityBox()}
@@ -6396,6 +6379,7 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                 isDarkMode={isDarkMode}
               />
 
+              {renderVisualThemeFields()}
               {renderGenderBox()}
               {renderProductUploadBox()}
               {renderIdentityBox()}
@@ -6560,6 +6544,7 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                 </div>
               </div>
 
+              {renderVisualThemeFields()}
               {renderGenderBox()}
               {renderProductUploadBox()}
               {renderBackgroundUploadBox()}
@@ -6640,6 +6625,7 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                 </div>
               </div>
 
+              {renderVisualThemeFields()}
               {renderGenderBox()}
               {renderProductUploadBox()}
               {renderIdentityBox()}
@@ -6759,6 +6745,7 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                 />
               </div>
 
+              {renderVisualThemeFields()}
               {renderGenderBox()}
 
               <div className="border-t border-gray-800 pt-6 mt-6">
