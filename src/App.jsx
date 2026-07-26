@@ -2196,22 +2196,25 @@ const pickBestKeyframe = (scenes) => {
 // Backward-compatible wrapper (returns index only).
 const pickBestKeyframeIndex = (scenes) => pickBestKeyframe(scenes).index;
 
-// For 'segment' mode: pick one representative keyframe index per Flow segment window.
-const pickKeyframeIndicesPerSegment = (scenes, totalSec, segSize = 10) => {
-  if (!Array.isArray(scenes) || !scenes.length) return [0];
+// For 'segment' mode: pick one representative keyframe per Flow segment window — full info.
+const pickKeyframesPerSegmentInfo = (scenes, totalSec, segSize = 10) => {
+  if (!Array.isArray(scenes) || !scenes.length) return [{ sceneIdx: 0, confidence: 0, reason: 'scene 1', segment: 1 }];
   const numSegments = Math.max(1, Math.ceil((totalSec || 30) / segSize));
   const perSeg = Math.ceil(scenes.length / numSegments);
-  const indices = [];
+  const out = [];
   for (let seg = 0; seg < numSegments; seg++) {
     const startIdx = seg * perSeg;
-    const endIdx = Math.min(startIdx + perSeg, scenes.length);
     if (startIdx >= scenes.length) break;
-    const slice = scenes.slice(startIdx, endIdx);
-    const localBest = pickBestKeyframeIndex(slice);
-    indices.push(startIdx + localBest);
+    const slice = scenes.slice(startIdx, Math.min(startIdx + perSeg, scenes.length));
+    const pk = pickBestKeyframe(slice);
+    out.push({ sceneIdx: startIdx + pk.index, confidence: pk.confidence, reason: pk.reason, segment: seg + 1 });
   }
-  return indices.length ? indices : [0];
+  return out.length ? out : [{ sceneIdx: 0, confidence: 0, reason: 'scene 1', segment: 1 }];
 };
+
+// Backward-compatible wrapper (returns indices only).
+const pickKeyframeIndicesPerSegment = (scenes, totalSec, segSize = 10) =>
+  pickKeyframesPerSegmentInfo(scenes, totalSec, segSize).map((k) => k.sceneIdx);
 
 const GEMINI_MODELS = [
   { v: 'gemini-3.5-flash', l: 'Gemini 3.5 Flash (Latest)' },
@@ -2528,6 +2531,8 @@ I2V: ${s.i2v_prompt || ''}`
   });
   // Stores which scene(s) were picked as keyframes + confidence, for UI display.
   const [keyframeInfo, setKeyframeInfo] = useState([]);
+  // ponytail: slot→scene mapping so REGENERATE KEYFRAME uses the correct anchor scene's prompt
+  const [keyframeSceneMap, setKeyframeSceneMap] = useState(null);
   const [copiedSection, setCopiedSection] = useState('');
   const [zoomedImages, setZoomedImages] = useState({});
 
@@ -3795,32 +3800,38 @@ return parsed;
           const safeIdx = Math.min(pick.index, promptsToRun.length - 1);
           promptsToRun = [promptsToRun[safeIdx]];
           runLimit = 1;
+          setKeyframeSceneMap([safeIdx]);
           setKeyframeInfo([{ scene: safeIdx + 1, confidence: pick.confidence, reason: pick.reason }]);
           setLoadingText(`Smart Keyframe: Scene ${safeIdx + 1} picked (${pick.confidence}% confidence — ${pick.reason})...`);
         } else if (keyframeMode === 'segment') {
           // One keyframe per Flow segment window so each 10s block has its own anchor.
           const totalSec = keyframeDurationSec > 0 ? keyframeDurationSec : (sceneList.length > 0 ? sceneList.length * 2.5 : 30);
-          const idxs = sceneList.length
-            ? pickKeyframeIndicesPerSegment(sceneList, totalSec, 10)
-            : [0];
-          const safeIdxs = [...new Set(idxs.map((x) => Math.min(x, promptsToRun.length - 1)))];
-          promptsToRun = safeIdxs.map((x) => promptsToRun[x]);
+          // ponytail: single source of truth — picker returns sceneIdx + confidence together,
+          // so badge info always matches the actual picked scene windows
+          const infos = sceneList.length
+            ? pickKeyframesPerSegmentInfo(sceneList, totalSec, 10)
+            : [{ sceneIdx: 0, confidence: 0, reason: 'scene 1', segment: 1 }];
+          const seen = new Set();
+          const kept = [];
+          for (const k of infos) {
+            const si = Math.min(k.sceneIdx, promptsToRun.length - 1);
+            if (!seen.has(si)) { seen.add(si); kept.push({ ...k, sceneIdx: si }); }
+          }
+          promptsToRun = kept.map((k) => promptsToRun[k.sceneIdx]);
           runLimit = promptsToRun.length;
-          // Capture per-keyframe confidence for the UI.
-          const perSeg = Math.ceil(sceneList.length / Math.max(1, safeIdxs.length));
-          setKeyframeInfo(safeIdxs.map((idx, seg) => {
-            const startIdx = seg * perSeg;
-            const slice = sceneList.slice(startIdx, Math.min(startIdx + perSeg, sceneList.length));
-            const pk = slice.length ? pickBestKeyframe(slice) : { confidence: 0, reason: '' };
-            return { scene: idx + 1, segment: seg + 1, confidence: pk.confidence, reason: pk.reason };
-          }));
+          setKeyframeSceneMap(kept.map((k) => k.sceneIdx));
+          setKeyframeInfo(kept.map((k, seg) => ({ scene: k.sceneIdx + 1, segment: k.segment || seg + 1, confidence: k.confidence, reason: k.reason })));
           setLoadingText(`Smart Keyframe (per-segment): ${runLimit} keyframes — one per 10s block, rest = text prompts...`);
         } else {
           promptsToRun = [];
           runLimit = 0;
+          setKeyframeSceneMap(null);
           setKeyframeInfo([]);
           setLoadingText('Text-only: No scene images (enable Smart Keyframe or Storyboard Timeline)...');
         }
+      } else if (!isRegenerate) {
+        // Full timeline / all-scenes generation: slot == scene index, no remap needed
+        setKeyframeSceneMap(null);
       }
 
       // Early exit if no images to generate
@@ -4025,14 +4036,30 @@ return parsed;
         }
       } else {
         // Standard single-image regeneration
-        // ponytail: use scene-specific prompt — never fallback to index 0 (causes same image bug)
+        // ponytail: keyframe mode stores slot→scene map — regen MUST use the actual anchor
+        // scene's prompt, not scenes[slot] (slot 0/1/2 ≠ scene 0/1/2 in per-segment mode)
         const scenes = generatedOutput?.scenes || generatedOutput?.productScenes || generatedOutput?.ootdScenes || [];
-        const scenePrompt = scenes[index]?.image_prompt || scenes[index]?.visual || '';
-        let basePromptForRegen = Array.isArray(editableImagePrompt)
-          ? (editableImagePrompt[index] || scenePrompt || '')
-          : (editableImagePrompt || scenePrompt || '');
+        const sceneIdx = (Array.isArray(keyframeSceneMap) && keyframeSceneMap[index] != null)
+          ? keyframeSceneMap[index]
+          : index;
+        const sceneObj = scenes[sceneIdx] || {};
+        const scenePrompt = sceneObj.image_prompt || sceneObj.visual || '';
+        let basePromptForRegen = Array.isArray(keyframeSceneMap)
+          ? (scenePrompt || (Array.isArray(editableImagePrompt) ? editableImagePrompt[index] : editableImagePrompt) || '')
+          : (Array.isArray(editableImagePrompt)
+              ? (editableImagePrompt[index] || scenePrompt || '')
+              : (editableImagePrompt || scenePrompt || ''));
+        // Story context — image must match this scene's dialogue + beat, not a generic pose
+        const storyCtx = [
+          sceneObj.dialogue ? `[STORY BEAT]: The creator is speaking this line (BM): "${sceneObj.dialogue}" — expression, mouth, and gesture MUST look like someone naturally saying it.` : '',
+          sceneObj.action ? `[ACTION]: ${sceneObj.action}.` : '',
+          sceneObj.emotion ? `[EMOTION]: ${sceneObj.emotion}.` : ''
+        ].filter(Boolean).join(' ');
+        // Forced variation — regen must NOT repeat the previous composition
+        const mustDiffer = `[NEW TAKE — MUST DIFFER]: This is a REGENERATION because the previous image was rejected. Produce a VISIBLY DIFFERENT pose, gesture, hand position, and camera framing from any previous attempt of this scene — SAME person, SAME outfit, SAME location, but a fresh composition. Do NOT repeat the previous pose.`;
         const continuityDataUrl = index > 0 && imageUrls[0] ? imageUrls[0] : null;
-        const prompt = `${basePromptForRegen}. ${uniqueSeed} [Alternative camera angle. ${stabilitySuffix}]${envRegen}${identityBible ? `\n${identityBible}` : ''} Ultra-sharp 2K resolution, no blur, no grain, crisp commercial quality.`;
+        const prompt = `${basePromptForRegen}. ${storyCtx} ${uniqueSeed} ${mustDiffer} [${stabilitySuffix}]${envRegen}${identityBible ? `\n${identityBible}` : ''} Ultra-sharp 2K resolution, no blur, no grain, crisp commercial quality.`;
+        setLoadingText(`Regenerating Keyframe (Scene ${sceneIdx + 1})...`);
 
         const newImgUrl = await fetchSingleImage(prompt, lockedRatio, gridAbortControllers.current[index].signal, index, {
           identityBible, continuityDataUrl,
@@ -4040,6 +4067,16 @@ return parsed;
         });
         if (newImgUrl) {
           setImageUrls(prev => { const u = [...prev]; u[index] = newImgUrl; return u; });
+          // ponytail: fix stale badge after regen (#6) — tag as regenerated, keep scene/confidence
+          setKeyframeInfo(prev => {
+            if (!Array.isArray(prev) || !prev[index]) return prev;
+            const u = [...prev];
+            const baseReason = String(u[index].reason || '').replace(/ · regenerated( ×\d+)?$/, '');
+            const m = String(u[index].reason || '').match(/ · regenerated ×(\d+)$/);
+            const n = m ? parseInt(m[1]) + 1 : (String(u[index].reason || '').endsWith(' · regenerated') ? 2 : 1);
+            u[index] = { ...u[index], reason: `${baseReason} · regenerated${n > 1 ? ` ×${n}` : ''}` };
+            return u;
+          });
         }
       }
       playDoneSound();
