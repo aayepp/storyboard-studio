@@ -3056,8 +3056,8 @@ return parsed;
       let parts = [{ text: `${ratioDirective}\n\nPROMPT: ${fullPromptWithClean}` }];
       
       if (!motionGraphicsMode && activeUploadData.useCustomFace && activeUploadData.uploadedFaceBase64) {
-        parts[0].text += "\n\n[MANDATORY BIOMETRIC FACE LOCK]: Preserve the exact facial structure from the attached FACE REFERENCE IMAGE.";
-        parts.push({ text: "=== FACE REFERENCE IMAGE ===" });
+        parts[0].text += "\n\n[MANDATORY BIOMETRIC FACE LOCK — SUBJECT ONLY]: Extract ONLY the person/subject from the attached FACE REFERENCE IMAGE. Copy: face structure, skin tone, hair, outfit, body proportions EXACTLY.\n[BACKGROUND IGNORE RULE — CRITICAL]: The background in the reference image is IRRELEVANT. DO NOT use, copy, or reference the background from this image. The background will be set by the scene description and environment instructions ONLY. Render the subject against the scene's stated environment, NOT the reference image's background.";
+        parts.push({ text: "=== FACE REFERENCE IMAGE (SUBJECT ONLY — IGNORE BACKGROUND) ===" });
         parts.push({ inlineData: { mimeType: activeUploadData.uploadedFaceMimeType || "image/jpeg", data: activeUploadData.uploadedFaceBase64 } });
       }
 
