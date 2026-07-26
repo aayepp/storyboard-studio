@@ -121,6 +121,14 @@ const detectBgTheme = (topic = '') => {
 // coordinates with the chosen outfit instead of copying the reference hijab color
 const OUTFIT_HIJAB_RULE = `\n[HIJAB COORDINATION]: IF the subject wears a hijab, restyle the hijab to MATCH this outfit — pick a hijab color from the outfit's own palette (tonal or complementary, never clashing) and a wrap style that suits the outfit vibe (e.g. sporty snug wrap for athletic, neat pinned style for office/formal, soft casual drape for everyday). Do NOT keep the hijab color/style from the reference image if it clashes with this outfit. Face stays IDENTICAL — only the hijab fabric, color, and wrap style adapt.`;
 
+// ponytail: dialog density levels — injected as a lock so it overrides the
+// generic visual-only guidance in SCENE_JSON_CONTRACT
+const DIALOG_DENSITY = [
+  { v: 'santai', l: '\ud83c\udf43 Santai (Visual Heavy)', rule: `[DIALOG DENSITY — SANTAI]: Keep dialogue LIGHT: ~10-15 words TOTAL per 10s of video. 2+ visual-only scenes (dialogue: "") are encouraged — let the visuals breathe. This overrides any other visual-only guidance.` },
+  { v: 'sedang', l: '\ud83d\udcac Sedang (Balanced)', rule: `[DIALOG DENSITY — SEDANG]: Dialogue BALANCED: 18-25 words TOTAL per 10s of video (natural speaking pace). Max 1 visual-only scene per 10s window — NEVER two silent scenes back to back. Spread dialogue across scenes so no 10s stretch feels empty. This overrides any other visual-only guidance.` },
+  { v: 'padat', l: '\ud83d\udd25 Padat (Talk Heavy)', rule: `[DIALOG DENSITY — PADAT]: Dialogue DENSE: 25-32 words TOTAL per 10s of video — continuous natural talking, not rushed. Visual-only scenes: max 1 in the ENTIRE video. Every other scene MUST have a dialogue line that advances the story. This overrides any other visual-only guidance.` },
+];
+
 const OUTFIT_THEMES = [
   { v: 'auto', l: '✨ Auto (AI Decides)', desc: '' },
   { v: 'casual_chic', l: '👟 Casual Chic', desc: 'Casual chic everyday outfit — clean fitted tee or oversized top, slim jeans or trousers, clean white sneakers or loafers. Relaxed yet put-together.' },
@@ -434,12 +442,12 @@ DIALOGUE CONTINUITY RULE (MANDATORY):
 - Read ALL dialogue in sequence out loud mentally — it must sound like one unbroken monologue.
 `;
 
-const DEFAULT_NEGATIVE = 'no text overlay, no watermark, no logo text, no extra fingers, no deformed hands, no plastic skin, no blurry face, no cropped head, plain pure white background, empty white void, featureless white studio cyclorama, blank white backdrop, solid white wall only, no screen facing camera while person is actively playing, no impossible device orientation, no mirrored or flipped screen, no floating hands, no disconnected arms, no warped face, no extra thumbs, no uncanny expression, no melted fingers, no double pupils, no upside-down console, no rotated device in hands, no swapped left-right buttons, no mirrored logo, no scrambled button layout, no controls in wrong position, no reversed branding, no device held the wrong way, no hybrid front-and-back view, no screen visible from behind, no thumbsticks on the rear panel, no impossible mix of angles, no invented room, no new window, no new doorway, no extra furniture not in reference, no changed wall colour, no different lighting direction';
+const DEFAULT_NEGATIVE = 'no text overlay, no watermark, no logo text, no extra fingers, no deformed hands, no plastic skin, no blurry face, no cropped head, plain pure white background, empty white void, featureless white studio cyclorama, blank white backdrop, solid white wall only, no screen facing camera while person is actively playing, no impossible device orientation, no mirrored or flipped screen, no floating hands, no disconnected arms, no warped face, no extra thumbs, no uncanny expression, no melted fingers, no double pupils, no upside-down console, no upside-down product, no inverted logo, no mirrored text, no rotated device in hands, no swapped left-right buttons, no mirrored logo, no scrambled button layout, no controls in wrong position, no reversed branding, no device held the wrong way, no hybrid front-and-back view, no screen visible from behind, no thumbsticks on the rear panel, no impossible mix of angles, no invented room, no new window, no new doorway, no extra furniture not in reference, no changed wall colour, no different lighting direction';
 
 const SCENE_ENVIRONMENT_RULES = `
 ENV RULES: Every scene MUST take place in the EXACT SAME core location/set. If the action changes, just change the CAMERA ANGLE of the same room/environment. Do not invent new locations. FORBIDDEN plain white/empty studio. image_prompt must name the location, lighting, props. Keep character, product, and background architecture locked across all scenes.`;
 
-const SCENE_JSON_CONTRACT = `Each scene MUST include: scene_num, timecode, visual (EN — must describe LOCATION + lighting + background props), camera, action, emotion, dialogue (BM or ""), image_prompt (EN still — must include full environment, NOT white background), i2v_prompt (EN motion), negative (must ban plain white background), angle_used (ONLY if product reference sheet is provided — write the exact panel label e.g. "FRONT", "BACK", "IN_HAND", "LEFT_SIDE" that you are copying the product from for this scene; omit if no product sheet), b_roll (optional: 1 short B-roll shot suggestion for editor e.g. "close-up hands unboxing", "macro product texture", "reaction shot face"), sound_note (optional: audio cue for editor e.g. "bass drop", "whoosh", "silence", "snap cut"). [ANGLE CONSISTENCY RULE]: Within the same 10s segment, keep the same product angle — do NOT switch between FRONT/BACK/SIDE within one segment. Only change angle at segment boundaries. Keep camera distance consistent within a segment (don't mix wide and macro in the same segment). [SCREEN ORIENTATION RULE — CRITICAL]: If a character holds/uses a device with a screen (phone, tablet, handheld console, laptop), the screen MUST face TOWARD the character — the BACK of the device faces the camera/viewer. NEVER show the screen facing the camera while the person is looking at the camera or talking — that is physically impossible and looks uncanny. A person cannot watch their own screen AND face the camera at the same time. Choose ONE: either (a) she looks DOWN at the screen while playing (screen tilted toward her face, back visible to camera), OR (b) she looks at the camera and talks with the device held at chest level, screen facing her, back toward camera. Screen may face the camera ONLY in a dedicated product-showcase shot where NO one is looking at the camera. [DIALOGUE EYE-CONTACT RULE — IMPORTANT]: When a scene has spoken dialogue (the character is talking to the audience/viewer), the character SHOULD make direct eye contact with the camera — this is how creators address viewers and it feels natural and engaging. In the visual, action, and image_prompt for any scene that has non-empty dialogue, explicitly state that the character looks directly at the camera / makes eye contact with the viewer while speaking (unless the scene is deliberately a B-roll cutaway with a voiceover, in which case no face is needed). Avoid the uncanny look of a person speaking while staring off to the side for no reason. Silent/visual-only scenes (empty dialogue) do NOT need camera eye contact — they can look at the product, environment, or action naturally. [ENERGY LEVEL FIELD — REQUIRED]: Each scene MUST include energy_level field: HIGH (fast, exciting, punchy), MED (steady, building, conversational), LOW (intimate, slow, emotional), or PEAK (climax, payoff, best moment — use ONCE, usually last scene). Follow this energy SHAPE across however many scenes this storyboard has (do NOT copy a fixed-length list — map the shape onto your actual scene count): scene 1 = HIGH (hook must grab instantly), the middle scenes alternate MED and HIGH so the video never flatlines (never place two LOW scenes back to back), and the FINAL scene = PEAK. For very short videos (3-4 scenes) stay HIGH throughout and end on PEAK. For longer videos (8+ scenes) you may use one LOW scene for an intimate/emotional beat, but only in the middle third, never in the first or last two scenes. [PACE-ENERGY CONSISTENCY]: If the scene JSON also has a pace field, it MUST agree with energy_level — HIGH or PEAK -> pace "FAST", MED -> pace "MEDIUM", LOW -> pace "SLOW". Never output a contradicting pair like pace SLOW with energy HIGH. [UNIVERSAL STORY FLOW RULES — APPLY TO EVERY SCENE]:
+const SCENE_JSON_CONTRACT = `Each scene MUST include: scene_num, timecode, visual (EN — must describe LOCATION + lighting + background props), camera, action, emotion, dialogue (BM or ""), image_prompt (EN still — must include full environment, NOT white background), i2v_prompt (EN motion), negative (must ban plain white background), angle_used (ONLY if product reference sheet is provided — write the exact panel label e.g. "FRONT", "BACK", "IN_HAND", "LEFT_SIDE" that you are copying the product from for this scene; omit if no product sheet), b_roll (optional: 1 short B-roll shot suggestion for editor e.g. "close-up hands unboxing", "macro product texture", "reaction shot face"), sound_note (optional: audio cue for editor e.g. "bass drop", "whoosh", "silence", "snap cut"). [ANGLE CONSISTENCY RULE]: Within the same 10s segment, keep the same product angle — do NOT switch between FRONT/BACK/SIDE within one segment. Only change angle at segment boundaries. Keep camera distance consistent within a segment (don't mix wide and macro in the same segment). [SCREEN ORIENTATION RULE — CRITICAL]: If a character holds/uses a device with a screen (phone, tablet, handheld console, laptop), the screen MUST face TOWARD the character — the BACK of the device faces the camera/viewer. NEVER show the screen facing the camera while the person is looking at the camera or talking — that is physically impossible and looks uncanny. A person cannot watch their own screen AND face the camera at the same time. Choose ONE: either (a) she looks DOWN at the screen while playing (screen tilted toward her face, back visible to camera), OR (b) she looks at the camera and talks with the device held at chest level, screen facing her, back toward camera. Screen may face the camera ONLY in a dedicated product-showcase shot where NO one is looking at the camera. [PRODUCT ORIENTATION RULE — CRITICAL]: Any product held or shown MUST be in its correct real-world orientation. Handheld consoles/devices: joysticks and buttons on TOP HALF facing up, thumbs resting on the controls, never upside-down or rotated 180°. Bottles/tubes: cap up (or cap down ONLY if that is how it is actually used). Logos and label text MUST read correctly — never inverted or mirrored. In every visual, action, and image_prompt that shows the product being held, explicitly state the correct grip (e.g. "held with both hands, thumbs on the joysticks, screen facing her"). [DIALOGUE EYE-CONTACT RULE — IMPORTANT]: When a scene has spoken dialogue (the character is talking to the audience/viewer), the character SHOULD make direct eye contact with the camera — this is how creators address viewers and it feels natural and engaging. In the visual, action, and image_prompt for any scene that has non-empty dialogue, explicitly state that the character looks directly at the camera / makes eye contact with the viewer while speaking (unless the scene is deliberately a B-roll cutaway with a voiceover, in which case no face is needed). Avoid the uncanny look of a person speaking while staring off to the side for no reason. Silent/visual-only scenes (empty dialogue) do NOT need camera eye contact — they can look at the product, environment, or action naturally. [ENERGY LEVEL FIELD — REQUIRED]: Each scene MUST include energy_level field: HIGH (fast, exciting, punchy), MED (steady, building, conversational), LOW (intimate, slow, emotional), or PEAK (climax, payoff, best moment — use ONCE, usually last scene). Follow this energy SHAPE across however many scenes this storyboard has (do NOT copy a fixed-length list — map the shape onto your actual scene count): scene 1 = HIGH (hook must grab instantly), the middle scenes alternate MED and HIGH so the video never flatlines (never place two LOW scenes back to back), and the FINAL scene = PEAK. For very short videos (3-4 scenes) stay HIGH throughout and end on PEAK. For longer videos (8+ scenes) you may use one LOW scene for an intimate/emotional beat, but only in the middle third, never in the first or last two scenes. [PACE-ENERGY CONSISTENCY]: If the scene JSON also has a pace field, it MUST agree with energy_level — HIGH or PEAK -> pace "FAST", MED -> pace "MEDIUM", LOW -> pace "SLOW". Never output a contradicting pair like pace SLOW with energy HIGH. [UNIVERSAL STORY FLOW RULES — APPLY TO EVERY SCENE]:
 1. Every scene advances the story — zero filler, zero repetition. Scene N must naturally motivate Scene N+1.
 2. NEVER repeat the same camera angle in consecutive scenes.
 3. Dialogue across all scenes = ONE continuous conversation, not disconnected slogans. Read scene 1 to the last scene out loud — it must sound like one person talking without restarting.
@@ -2657,6 +2665,7 @@ I2V: ${s.i2v_prompt || ''}`
   const [cinematicPlatform, setCinematicPlatform] = useState('TikTok');
   const [bgTheme, setBgTheme] = useState('auto');
   const [outfitStyle, setOutfitStyle] = useState('auto');
+  const [dialogDensity, setDialogDensity] = useState('sedang');
   // ponytail: user manual dropdown pick must NEVER be overwritten by auto-detect
   const bgThemeManualRef = useRef(false);
   const outfitManualRef = useRef(false);
@@ -3263,7 +3272,7 @@ return parsed;
         parts[0].text += motionGraphicsMode
           ? "\n\n[CONTINUITY ANCHOR — GRAFIX]: Match the SAME motion-graphics style, color palette, type treatment, and topic branding as the CONTINUITY FRAME. New scene layout/animation pose is OK; do not switch to unrelated live-action people."
           : _outfitActive
-          ? "\n\n[CONTINUITY ANCHOR]: Match the SAME person, face, product, color grade, AND background environment/location as the CONTINUITY FRAME. Keep the same room, lighting, props, and setting. Only change camera angle/pose/action as requested. WARDROBE EXCEPTION: the outfit follows the [OUTFIT LOCK] instruction, NOT the continuity frame's clothing — if they differ, [OUTFIT LOCK] wins."
+          ? "\n\n[CONTINUITY ANCHOR]: Match the SAME person, face, product, color grade, AND background environment/location as the CONTINUITY FRAME. Keep the same room, lighting, props, and setting. Only change camera angle/pose/action as requested. [WARDROBE FREEZE]: Copy the outfit EXACTLY as worn in the CONTINUITY FRAME — same garments, same colors, same hijab color and wrap. The continuity frame's outfit ALREADY implements the [OUTFIT LOCK]; do NOT re-interpret the outfit description into different garments, cuts, or shades."
           : "\n\n[CONTINUITY ANCHOR]: Match the SAME person, face, wardrobe, product, color grade, AND background environment/location as the CONTINUITY FRAME. Keep the same room, lighting, props, and setting. Only change camera angle/pose/action as requested.";
         parts.push({ text: motionGraphicsMode ? "=== CONTINUITY FRAME (STYLE LOCK) ===" : "=== CONTINUITY FRAME (HERO LOCK) ===" });
         parts.push({ inlineData: { mimeType: mimeType || 'image/jpeg', data: base64Data } });
@@ -3834,7 +3843,15 @@ return parsed;
             const si = Math.min(k.sceneIdx, promptsToRun.length - 1);
             if (!seen.has(si)) { seen.add(si); kept.push({ ...k, sceneIdx: si }); }
           }
-          promptsToRun = kept.map((k) => promptsToRun[k.sceneIdx]);
+          // ponytail: each keyframe anchors a distinct 10s story beat — force visibly
+          // different compositions so segments don't look like the same clip repeated
+          const _kfShared = ` [KEYFRAME COMPOSITION LOCK]: This image anchors ONE 10s video segment out of ${kept.length}. It MUST use a visibly DIFFERENT camera distance, angle, pose, and gesture from the other keyframes in this set — SAME person, SAME outfit, SAME location, DIFFERENT composition. It must read as its own story beat, not a near-duplicate of another keyframe.`;
+          const _kfRole = (seg, total) => seg === 0
+            ? ` [KEYFRAME ROLE — HOOK ANCHOR (segment 1/${total})]: Opening hook. Medium close-up framing, direct eye contact with camera, engaging expression that stops the scroll.`
+            : seg === total - 1
+            ? ` [KEYFRAME ROLE — CTA ANCHOR (segment ${total}/${total})]: Closing call-to-action. Clear CTA gesture — pointing down toward camera, thumbs up, or presenting the product to the lens. Confident closing energy.`
+            : ` [KEYFRAME ROLE — DEMO ANCHOR (segment ${seg + 1}/${total})]: Mid-video demonstration. Hands ACTIVELY using/showing the product mid-action, wider or angled framing focused on the product interaction.`;
+          promptsToRun = kept.map((k, i) => promptsToRun[k.sceneIdx] + _kfRole(i, kept.length) + _kfShared);
           runLimit = promptsToRun.length;
           setKeyframeSceneMap(kept.map((k) => k.sceneIdx));
           setKeyframeInfo(kept.map((k, seg) => ({ scene: k.sceneIdx + 1, segment: k.segment || seg + 1, confidence: k.confidence, reason: k.reason })));
@@ -4074,8 +4091,14 @@ return parsed;
         ].filter(Boolean).join(' ');
         // Forced variation — regen must NOT repeat the previous composition
         const mustDiffer = `[NEW TAKE — MUST DIFFER]: This is a REGENERATION because the previous image was rejected. Produce a VISIBLY DIFFERENT pose, gesture, hand position, and camera framing from any previous attempt of this scene — SAME person, SAME outfit, SAME location, but a fresh composition. Do NOT repeat the previous pose.`;
-        const continuityDataUrl = index > 0 && imageUrls[0] ? imageUrls[0] : null;
-        const prompt = `${basePromptForRegen}. ${storyCtx} ${uniqueSeed} ${mustDiffer} [${stabilitySuffix}]${envRegen}${identityBible ? `\n${identityBible}` : ''} Ultra-sharp 2K resolution, no blur, no grain, crisp commercial quality.`;
+        // ponytail: anchor continuity for EVERY regen (incl. index 0 — anchor to the image
+        // being replaced). Without an image anchor the outfit re-rolls from the text
+        // description on every regen: different tee cut, different jeans, different hijab.
+        const continuityDataUrl = imageUrls[0] || imageUrls[index] || null;
+        const wardrobeFreeze = (identityBible || '').includes('[OUTFIT LOCK]') && continuityDataUrl
+          ? ' [WARDROBE FREEZE — REGEN]: Keep the EXACT outfit from the continuity frame — same garments, same colors, same hijab. Only the pose, gesture, and camera change. Never redesign the wardrobe on a regeneration.'
+          : '';
+        const prompt = `${basePromptForRegen}. ${storyCtx} ${uniqueSeed} ${mustDiffer}${wardrobeFreeze} [${stabilitySuffix}]${envRegen}${identityBible ? `\n${identityBible}` : ''} Ultra-sharp 2K resolution, no blur, no grain, crisp commercial quality.`;
         setLoadingText(`Regenerating Keyframe (Scene ${sceneIdx + 1})...`);
 
         const newImgUrl = await fetchSingleImage(prompt, lockedRatio, gridAbortControllers.current[index].signal, index, {
@@ -4306,9 +4329,11 @@ Keep the subject person, face reference, background layout, and clothes identica
       // Inject background theme + outfit lock
       const _bgThemeData = bgTheme !== 'auto' ? BACKGROUND_THEMES.find(o => o.v === bgTheme) : null;
       const _outfitData = outfitStyle !== 'auto' ? OUTFIT_THEMES.find(o => o.v === outfitStyle) : null;
+      const _densityRule = (DIALOG_DENSITY.find(d => d.v === dialogDensity) || DIALOG_DENSITY[1]).rule;
       const _visualLock = [
         _bgThemeData ? `[BACKGROUND THEME LOCK]\nBackground environment for ALL scenes: ${_bgThemeData.desc}\nDo NOT use any other background type. Every scene must be set in this environment.` : '',
         _outfitData ? `[OUTFIT LOCK]\nThe model/presenter MUST wear this outfit in ALL scenes: ${_outfitData.desc}\nKeep outfit IDENTICAL across every scene — no wardrobe changes unless scene specifically requires it.${OUTFIT_HIJAB_RULE}` : '',
+        _densityRule,
       ].filter(Boolean).join('\n\n');
       const finalIdentityBible = _visualLock ? identityBible + '\n\n' + _visualLock : identityBible;
 
@@ -4569,6 +4594,7 @@ Keep the subject person, face reference, background layout, and clothes identica
       }
       if (_outfitDataAll) {
         identityBible += `\n\n[OUTFIT LOCK]\nThe model/presenter MUST wear this outfit in ALL scenes: ${_outfitDataAll.desc}\nKeep outfit IDENTICAL across every scene — no wardrobe changes unless scene specifically requires it.${OUTFIT_HIJAB_RULE}`;
+      identityBible += `\n\n${(DIALOG_DENSITY.find(d => d.v === dialogDensity) || DIALOG_DENSITY[1]).rule}`;
       }
       result.identityBible = identityBible;
       result.assetAnalysis = assetAnalysis;
@@ -5299,7 +5325,7 @@ Pick the ONE that best fits. No explanation, just the tag.`;
   };
 
   const renderVisualThemeFields = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
       <div>
         <div className="flex items-center gap-2 mb-1.5">
           <label className={C.label} style={{marginBottom:0}}>Background Theme</label>
@@ -5329,6 +5355,18 @@ Pick the ONE that best fits. No explanation, just the tag.`;
         {outfitStyle !== 'auto' && OUTFIT_THEMES.find(o => o.v === outfitStyle)?.desc && (
           <p className={`text-[9px] mt-1 leading-tight ${t('text-gray-500','text-gray-400')}`}>{OUTFIT_THEMES.find(o => o.v === outfitStyle).desc}</p>
         )}
+      </div>
+      <div>
+        <div className="flex items-center gap-2 mb-1.5">
+          <label className={C.label} style={{marginBottom:0}}>Dialog Density</label>
+        </div>
+        <div className="relative">
+          <select value={dialogDensity} onChange={e => setDialogDensity(e.target.value)} className={`${C.select(isDarkMode)} pr-8 text-sm`}>
+            {DIALOG_DENSITY.map(o => <option key={o.v} value={o.v}>{o.l}</option>)}
+          </select>
+          <ChevronDown className={U.c1} size={14} />
+        </div>
+        <p className={`text-[9px] mt-1 leading-tight ${t('text-gray-500','text-gray-400')}`}>{dialogDensity === 'santai' ? 'Visual heavy — sikit dialog, banyak B-roll' : dialogDensity === 'padat' ? 'Talk heavy — hampir setiap scene ada dialog' : 'Balanced — 18-25 words setiap 10 saat'}</p>
       </div>
     </div>
   );
