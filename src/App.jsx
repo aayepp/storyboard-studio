@@ -442,7 +442,7 @@ DIALOGUE CONTINUITY RULE (MANDATORY):
 - Read ALL dialogue in sequence out loud mentally — it must sound like one unbroken monologue.
 `;
 
-const DEFAULT_NEGATIVE = 'no text overlay, no watermark, no logo text, no extra fingers, no deformed hands, no plastic skin, no blurry face, no cropped head, plain pure white background, empty white void, featureless white studio cyclorama, blank white backdrop, solid white wall only, no screen facing camera while person is actively playing, no impossible device orientation, no mirrored or flipped screen, no floating hands, no disconnected arms, no warped face, no extra thumbs, no uncanny expression, no melted fingers, no double pupils, no upside-down console, no upside-down product, no inverted logo, no mirrored text, no rotated device in hands, no swapped left-right buttons, no mirrored logo, no scrambled button layout, no controls in wrong position, no reversed branding, no device held the wrong way, no hybrid front-and-back view, no screen visible from behind, no thumbsticks on the rear panel, no impossible mix of angles, no invented room, no new window, no new doorway, no extra furniture not in reference, no changed wall colour, no different lighting direction';
+const DEFAULT_NEGATIVE = 'no text overlay, no subtitles, no captions, no speech bubbles, no rendered dialogue text, no words on screen, no watermark, no logo text, no extra fingers, no deformed hands, no plastic skin, no blurry face, no cropped head, plain pure white background, empty white void, featureless white studio cyclorama, blank white backdrop, solid white wall only, no screen facing camera while person is actively playing, no impossible device orientation, no mirrored or flipped screen, no floating hands, no disconnected arms, no warped face, no extra thumbs, no uncanny expression, no melted fingers, no double pupils, no upside-down console, no upside-down product, no inverted logo, no mirrored text, no rotated device in hands, no swapped left-right buttons, no mirrored logo, no scrambled button layout, no controls in wrong position, no reversed branding, no device held the wrong way, no hybrid front-and-back view, no screen visible from behind, no thumbsticks on the rear panel, no impossible mix of angles, no invented room, no new window, no new doorway, no extra furniture not in reference, no changed wall colour, no different lighting direction';
 
 const SCENE_ENVIRONMENT_RULES = `
 ENV RULES: Every scene MUST take place in the EXACT SAME core location/set. If the action changes, just change the CAMERA ANGLE of the same room/environment. Do not invent new locations. FORBIDDEN plain white/empty studio. image_prompt must name the location, lighting, props. Keep character, product, and background architecture locked across all scenes.`;
@@ -480,6 +480,10 @@ const enrichSceneImagePrompt = (scene, opts = {}) => {
   const action = scene.action || '';
   const emotion = scene.emotion || '';
   const base = scene.image_prompt || scene.imageGenerationPrompt || visual || '';
+  // ponytail: IDEMPOTENT guard — normalizeScene runs in fetchStoryboardJson AND again
+  // in the mode generators. Without this, prompts get double-wrapped (duplicate topic
+  // headers + duplicate Camera/Action/BACKGROUND BAN tails).
+  if (/^High-resolution \d+:\d+ storyboard still frame\./.test(String(base).trim())) return base;
   const envHint = scene.environment || scene.location || scene.setting || '';
   const topicBit = topic ? `Story topic: ${topic}. ` : '';
   const styleBit = style && style !== 'auto' ? `Visual style: ${style}. ` : '';
@@ -4085,7 +4089,7 @@ return parsed;
               : (editableImagePrompt || scenePrompt || ''));
         // Story context — image must match this scene's dialogue + beat, not a generic pose
         const storyCtx = [
-          sceneObj.dialogue ? `[STORY BEAT]: The creator is speaking this line (BM): "${sceneObj.dialogue}" — expression, mouth, and gesture MUST look like someone naturally saying it.` : '',
+          sceneObj.dialogue ? `[STORY BEAT — EXPRESSION REFERENCE ONLY]: The creator is mid-speech, naturally saying (BM): "${sceneObj.dialogue}" — match the facial expression, mouth shape, and hand gesture of someone saying this. CRITICAL: this dialogue is CONTEXT for the expression ONLY — NEVER render these words or ANY text, subtitle, caption, or speech bubble anywhere in the image. The image must contain ZERO readable text.` : '',
           sceneObj.action ? `[ACTION]: ${sceneObj.action}.` : '',
           sceneObj.emotion ? `[EMOTION]: ${sceneObj.emotion}.` : ''
         ].filter(Boolean).join(' ');
@@ -7723,22 +7727,28 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                               <button
                                 onClick={() => {
                                   const segScenes = seg.scenes || [];
+                                  // ponytail: this JSON is for pasting into Flow AI (i2v).
+                                  // image_prompt is a STILL-generation prompt — the keyframe image
+                                  // already carries that info, so shipping it just bloats the paste
+                                  // and risks Flow treating it as instructions. Empty fields omitted.
                                   const jsonVal = JSON.stringify({
                                     segment: seg.label,
                                     part: `${seg.part}/${seg.parts}`,
-                                    scenes: segScenes.map(s => ({
-                                      scene_num: s.scene_num,
-                                      timecode: s.timecode,
-                                      visual: s.visual,
-                                      camera: s.camera,
-                                      action: s.action,
-                                      dialogue: s.dialogue,
-                                      i2v_prompt: s.i2v_prompt,
-                                      image_prompt: s.image_prompt,
-                                      angle_used: s.angle_used || '',
-                                      b_roll: s.b_roll || '',
-                                      sound_note: s.sound_note || ''
-                                    }))
+                                    scenes: segScenes.map(s => {
+                                      const o = {
+                                        scene_num: s.scene_num,
+                                        timecode: s.timecode,
+                                        visual: s.visual,
+                                        camera: s.camera,
+                                        action: s.action,
+                                        dialogue: s.dialogue,
+                                        i2v_prompt: s.i2v_prompt
+                                      };
+                                      if (s.angle_used) o.angle_used = s.angle_used;
+                                      if (s.b_roll) o.b_roll = s.b_roll;
+                                      if (s.sound_note) o.sound_note = s.sound_note;
+                                      return o;
+                                    })
                                   }, null, 2);
                                   const flowAiBrief = `[STORYBOARD DIRECTOR BRIEF]
 You are generating a video that strictly follows a pre-approved storyboard.
