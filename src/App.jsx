@@ -7509,9 +7509,15 @@ ABSOLUTE RULES:
 
                               const exportSegPNG = async () => {
                                 const PW = 360, PH = 640, PAD = 12, INFO = 80, H = 60;
-                                const cols = 2;
+                                // Only draw panels that have images
+                                const panelData = segScenes.slice(0, 4).map((sc, si) => ({
+                                  sc, img: getSegImg(globalStart + si), si
+                                })).filter(p => !!p.img);
+                                const panelCount = panelData.length || 1;
+                                const cols = panelCount === 1 ? 1 : 2;
+                                const rows = Math.ceil(panelCount / cols);
                                 const cw = cols * (PW + PAD) + PAD;
-                                const ch = H + 2 * (PH + INFO + PAD) + PAD;
+                                const ch = H + rows * (PH + INFO + PAD) + PAD;
                                 const canvas = document.createElement('canvas');
                                 canvas.width = cw * 2; canvas.height = ch * 2;
                                 const ctx = canvas.getContext('2d'); ctx.scale(2, 2);
@@ -7519,14 +7525,13 @@ ABSOLUTE RULES:
                                 ctx.fillStyle = '#fff'; ctx.font = 'bold 14px sans-serif';
                                 ctx.fillText('🎬 ' + seg.label + ' · Segment ' + seg.part + '/' + seg.parts, PAD, 28);
                                 ctx.fillStyle = '#38bdf8'; ctx.font = '10px sans-serif';
-                                ctx.fillText(segScenes.length + ' scenes · ' + (generatedOutput?.duration || ''), PAD, 44);
-                                for (let si = 0; si < segScenes.length && si < 4; si++) {
-                                  const sc = segScenes[si];
-                                  const col = si % cols, row = Math.floor(si / cols);
+                                ctx.fillText(panelCount + ' scenes · ' + (generatedOutput?.duration || ''), PAD, 44);
+                                for (let pi = 0; pi < panelData.length; pi++) {
+                                  const { sc, img, si } = panelData[pi];
+                                  const col = pi % cols, row = Math.floor(pi / cols);
                                   const x = PAD + col * (PW + PAD), y = H + row * (PH + INFO + PAD);
                                   ctx.strokeStyle = sc.pace === 'FAST' ? '#f59e0b' : sc.pace === 'SLOW' ? '#8b5cf6' : '#38bdf8';
                                   ctx.lineWidth = 2; ctx.beginPath(); ctx.roundRect(x, y, PW, PH + INFO, 10); ctx.stroke();
-                                  const img = getSegImg(globalStart + si);
                                   if (img) {
                                     try { await new Promise(res => { const im = new Image(); im.crossOrigin = 'anonymous'; im.onload = () => { ctx.save(); ctx.beginPath(); ctx.roundRect(x, y, PW, PH, 10); ctx.clip(); const ar = im.width / im.height, par = PW / PH; let sw, sh, sx, sy; if (ar > par) { sh = PH; sw = sh * ar; sx = x - (sw - PW)/2; sy = y; } else { sw = PW; sh = sw / ar; sx = x; sy = y - (sh - PH)/2; } ctx.drawImage(im, sx, sy, sw, sh); ctx.restore(); res(); }; im.onerror = res; im.src = img; }); } catch {}
                                   }
