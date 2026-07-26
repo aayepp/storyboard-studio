@@ -3101,6 +3101,18 @@ return parsed;
       let fullPromptWithClean = `${customPrompt}${topicBlock}${bibleBlock}${envLock} ${handAnatomyLock} ${cleanImageInstruction}${negBlock}`;
 
       let parts = [{ text: `${ratioDirective}\n\nPROMPT: ${fullPromptWithClean}` }];
+
+      // Prepend outfit lock at very top so it dominates over scene-level image_prompt descriptions
+      const _outfitLockStr = (() => {
+        const bk = bibleBlock || '';
+        const m = bk.match(/\[OUTFIT LOCK\][^\n]*([\s\S]*?)(?=\[|$)/);
+        // Extract from bibleBlock or fallback to outfitStyle state
+        if (m) return `[OUTFIT LOCK — HIGHEST PRIORITY]: ${m[0].replace('[OUTFIT LOCK]','').trim()}`;
+        return '';
+      })();
+      if (_outfitLockStr) {
+        parts[0].text = `${_outfitLockStr}\n\n` + parts[0].text;
+      }
       
       if (!motionGraphicsMode && activeUploadData.useCustomFace && activeUploadData.uploadedFaceBase64) {
         parts[0].text += "\n\n[MANDATORY BIOMETRIC FACE LOCK — SUBJECT ONLY]: Extract ONLY the person/subject from the attached FACE REFERENCE IMAGE. Copy: face structure, skin tone, hair, body proportions EXACTLY.\n[OUTFIT OVERRIDE — CRITICAL]: DO NOT copy the outfit/clothing from the reference image. The outfit is defined by the [OUTFIT LOCK] instruction above — use THAT outfit instead.\n[BACKGROUND IGNORE RULE — CRITICAL]: The background in the reference image is IRRELEVANT. DO NOT use, copy, or reference the background from this image. The background will be set by the scene description and environment instructions ONLY. Render the subject against the scene's stated environment, NOT the reference image's background.";
