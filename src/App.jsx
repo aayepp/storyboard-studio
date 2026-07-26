@@ -2837,7 +2837,12 @@ const CHANGELOG = [
 
   const handleKeyframeModeChange = (mode) => {
     setKeyframeMode(mode);
+    // keyframe OFF = generate all scenes (timelineMode on)
+    // keyframe ON/segment = let keyframe logic decide (timelineMode off)
+    const tMode = mode === 'off' ? 'on' : 'off';
+    setTimelineMode(tMode);
     try { localStorage.setItem('keyframe_mode', mode); } catch {}
+    try { localStorage.setItem('timeline_mode', tMode); } catch {}
   };
   const handleTimelineModeChange = (mode) => {
     setTimelineMode(mode);
