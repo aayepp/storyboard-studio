@@ -2633,8 +2633,12 @@ I2V: ${s.i2v_prompt || ''}`
   const [cinematicPlatform, setCinematicPlatform] = useState('TikTok');
   const [bgTheme, setBgTheme] = useState('auto');
   const [outfitStyle, setOutfitStyle] = useState('auto');
+  // ponytail: user manual dropdown pick must NEVER be overwritten by auto-detect
+  const bgThemeManualRef = useRef(false);
+  const outfitManualRef = useRef(false);
 
   // Auto-detect background theme + outfit when tab OR topic changes
+  // — but ONLY if user has not manually picked from the dropdown
   useEffect(() => {
     const topicMap = {
       cinematic_pro: cinematicTopic, microimpact: microImpactTopic,
@@ -2645,8 +2649,8 @@ I2V: ${s.i2v_prompt || ''}`
     };
     const topic = topicMap[activeTab] || '';
     if (topic.trim().length > 3) {
-      setBgTheme(detectBgTheme(topic));
-      setOutfitStyle(detectOutfitStyle(topic));
+      if (!bgThemeManualRef.current) setBgTheme(detectBgTheme(topic));
+      if (!outfitManualRef.current) setOutfitStyle(detectOutfitStyle(topic));
     }
   }, [activeTab, cinematicTopic, microImpactTopic, narrativeArcTopic, thTopic, smProduct, gfTopic, productName]);
 
@@ -3112,10 +3116,17 @@ return parsed;
         ? `\n[TOPIC LOCK — MANDATORY]: This image MUST visually represent: "${topicLock}". Do not replace with unrelated people or scenes.\n[DEMO INSTRUCTION]: Show the subject ACTIVELY DOING or DEMONSTRATING something related to "${topicLock}" — e.g. using a product, performing an action, showing a result. Prioritise action/demo over plain portrait. Face-only close-up is ONLY allowed if the scene specifically calls for it.\n`
         : '';
       const hasBackgroundRef = activeBackgrounds.length > 0;
+      // ponytail: bg theme dropdown lock — extract desc from identityBible
+      const _bgThemeActive = !motionGraphicsMode && (identityBible || '').includes('[BACKGROUND THEME LOCK]');
+      const _bgThemeDesc = _bgThemeActive
+        ? ((identityBible.match(/\[BACKGROUND THEME LOCK\][^\n]*\n?([\s\S]*?)(?=\n\[|$)/) || [])[1] || '').trim()
+        : '';
       const envLock = allowWhiteStudio
         ? ''
         : hasBackgroundRef
         ? `\n[BACKGROUND OVERRIDE — CRITICAL]: A BACKGROUND REFERENCE IMAGE is attached. You MUST use ONLY that location — ignore any environment description in the prompt that contradicts the reference image. The reference image defines the ONLY allowed space. Do NOT invent cafes, new rooms, outdoor areas, or any location not visible in the reference image.`
+        : _bgThemeActive
+        ? `\n[BACKGROUND THEME OVERRIDE — HIGHEST PRIORITY — MANDATORY]: IGNORE any environment/location description in the scene prompt above if it conflicts. IGNORE the background of any attached reference image. The ONLY allowed environment is: ${_bgThemeDesc} Every part of the frame (walls, floor, lighting, props) must belong to THIS environment.`
         : `\n[BACKGROUND LOCK]: Render the exact environment described in the prompt. Fill the frame with location, lighting, and props. Never collapse to pure white.`;
       const negBlock = `\nNEGATIVE: ${withEnvNegative(negative, allowWhiteStudio)}${motionGraphicsMode ? ', live-action influencer selfie, random human portrait, fashion photoshoot, hijab model stock photo, plain white canvas' : ''}`;
 
@@ -3147,6 +3158,10 @@ return parsed;
       })();
       if (_outfitLockStr) {
         parts[0].text = `${_outfitLockStr}\n\n` + parts[0].text;
+      }
+      // ponytail: bg theme lock also dominates from the very top
+      if (_bgThemeActive && !hasBackgroundRef && _bgThemeDesc) {
+        parts[0].text = `[BACKGROUND THEME LOCK — HIGHEST PRIORITY]: ${_bgThemeDesc}\n\n` + parts[0].text;
       }
       
       if (!motionGraphicsMode && activeUploadData.useCustomFace && activeUploadData.uploadedFaceBase64) {
@@ -5199,7 +5214,7 @@ Pick the ONE that best fits. No explanation, just the tag.`;
           {bgTheme !== 'auto' && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-sky-500/20 text-sky-400 border border-sky-500/30">✨ Auto</span>}
         </div>
         <div className="relative">
-          <select value={bgTheme} onChange={e => setBgTheme(e.target.value)} className={`${C.select(isDarkMode)} pr-8 text-sm`}>
+          <select value={bgTheme} onChange={e => { bgThemeManualRef.current = e.target.value !== 'auto'; setBgTheme(e.target.value); }} className={`${C.select(isDarkMode)} pr-8 text-sm`}>
             {BACKGROUND_THEMES.map(o => <option key={o.v} value={o.v}>{o.l}</option>)}
           </select>
           <ChevronDown className={U.c1} size={14} />
@@ -5214,7 +5229,7 @@ Pick the ONE that best fits. No explanation, just the tag.`;
           {outfitStyle !== 'auto' && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/30">✨ Auto</span>}
         </div>
         <div className="relative">
-          <select value={outfitStyle} onChange={e => setOutfitStyle(e.target.value)} className={`${C.select(isDarkMode)} pr-8 text-sm`}>
+          <select value={outfitStyle} onChange={e => { outfitManualRef.current = e.target.value !== 'auto'; setOutfitStyle(e.target.value); }} className={`${C.select(isDarkMode)} pr-8 text-sm`}>
             {OUTFIT_THEMES.map(o => <option key={o.v} value={o.v}>{o.l}</option>)}
           </select>
           <ChevronDown className={U.c1} size={14} />
