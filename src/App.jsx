@@ -4265,10 +4265,12 @@ Keep the subject person, face reference, background layout, and clothes identica
       setGeneratedOutput(combinedRes);
       addToast('Storyboard siap dijana!', 'success', 4000);
       playSound('success');
-      // Auto-collapse all flow AI segments after generate
+      // Auto-expand all flow AI segments after generate
       setEditModes(prev => {
         const next = { ...prev };
-        Object.keys(next).forEach(k => { if (k.startsWith('flow_seg_expand_')) next[k] = false; });
+        Object.keys(next).forEach(k => { if (k.startsWith('flow_seg_expand_')) next[k] = true; });
+        // Also pre-expand any segments that may not exist in prev yet
+        for (let si = 0; si < 6; si++) next[`flow_seg_expand_${si}`] = true;
         return next;
       });
         setGenerateHistory(prev => [{ tab: activeTab, topic: cinematicTopic || productName || thTopic || gfTopic || smProduct || narrativeArcTopic || characterName || fiName, timestamp: Date.now() }, ...prev.slice(0, 4)]);
@@ -4703,10 +4705,11 @@ ${aspectStr}`;
       setGeneratedOutput(result);
       addToast('Storyboard siap dijana!', 'success', 4000);
       playSound('success');
-      // Auto-collapse all flow AI segments after generate
+      // Auto-expand all flow AI segments after generate
       setEditModes(prev => {
         const next = { ...prev };
-        Object.keys(next).forEach(k => { if (k.startsWith('flow_seg_expand_')) next[k] = false; });
+        Object.keys(next).forEach(k => { if (k.startsWith('flow_seg_expand_')) next[k] = true; });
+        for (let si = 0; si < 6; si++) next[`flow_seg_expand_${si}`] = true;
         return next;
       });
         setEditableImagePrompt(promptInputForAI);
