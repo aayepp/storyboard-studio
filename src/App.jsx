@@ -7516,13 +7516,13 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                         const isPromptEditing = editModes[segPromptKey];
                         const isDialogueEditing = editModes[segDialogueKey];
                         
-                        // Extract dialogue from the segment's scenes
-                        const segScenes = normScenes.filter((sc) => {
+                        // Extract dialogue from seg.scenes directly (reliable) instead of filtering normScenes by timecode
+                        const segScenes = (seg.scenes || normScenes.filter((sc) => {
                           const m = String(sc.timecode || '').match(/(\d+\.?\d*)/);
                           if (!m) return false;
                           const start = parseFloat(m[1]);
                           return start >= seg.start && start < seg.end;
-                        });
+                        })).filter(Boolean);
                         const segDialogue = segScenes.map((sc) => sc.dialogue).filter(Boolean).join('\n');
                         
                         const currentPromptVal = editedValues[segPromptKey] !== undefined ? editedValues[segPromptKey] : seg.prompt;
