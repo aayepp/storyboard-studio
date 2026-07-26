@@ -439,7 +439,25 @@ const DEFAULT_NEGATIVE = 'no text overlay, no watermark, no logo text, no extra 
 const SCENE_ENVIRONMENT_RULES = `
 ENV RULES: Every scene MUST take place in the EXACT SAME core location/set. If the action changes, just change the CAMERA ANGLE of the same room/environment. Do not invent new locations. FORBIDDEN plain white/empty studio. image_prompt must name the location, lighting, props. Keep character, product, and background architecture locked across all scenes.`;
 
-const SCENE_JSON_CONTRACT = `Each scene MUST include: scene_num, timecode, visual (EN — must describe LOCATION + lighting + background props), camera, action, emotion, dialogue (BM or ""), image_prompt (EN still — must include full environment, NOT white background), i2v_prompt (EN motion), negative (must ban plain white background), angle_used (ONLY if product reference sheet is provided — write the exact panel label e.g. "FRONT", "BACK", "IN_HAND", "LEFT_SIDE" that you are copying the product from for this scene; omit if no product sheet), b_roll (optional: 1 short B-roll shot suggestion for editor e.g. "close-up hands unboxing", "macro product texture", "reaction shot face"), sound_note (optional: audio cue for editor e.g. "bass drop", "whoosh", "silence", "snap cut"). [ANGLE CONSISTENCY RULE]: Within the same 10s segment, keep the same product angle — do NOT switch between FRONT/BACK/SIDE within one segment. Only change angle at segment boundaries. Keep camera distance consistent within a segment (don't mix wide and macro in the same segment). [SCREEN ORIENTATION RULE — CRITICAL]: If a character holds/uses a device with a screen (phone, tablet, handheld console, laptop), the screen MUST face TOWARD the character — the BACK of the device faces the camera/viewer. NEVER show the screen facing the camera while the person is looking at the camera or talking — that is physically impossible and looks uncanny. A person cannot watch their own screen AND face the camera at the same time. Choose ONE: either (a) she looks DOWN at the screen while playing (screen tilted toward her face, back visible to camera), OR (b) she looks at the camera and talks with the device held at chest level, screen facing her, back toward camera. Screen may face the camera ONLY in a dedicated product-showcase shot where NO one is looking at the camera. [DIALOGUE EYE-CONTACT RULE — IMPORTANT]: When a scene has spoken dialogue (the character is talking to the audience/viewer), the character SHOULD make direct eye contact with the camera — this is how creators address viewers and it feels natural and engaging. In the visual, action, and image_prompt for any scene that has non-empty dialogue, explicitly state that the character looks directly at the camera / makes eye contact with the viewer while speaking (unless the scene is deliberately a B-roll cutaway with a voiceover, in which case no face is needed). Avoid the uncanny look of a person speaking while staring off to the side for no reason. Silent/visual-only scenes (empty dialogue) do NOT need camera eye contact — they can look at the product, environment, or action naturally. [ENERGY LEVEL FIELD — REQUIRED]: Each scene MUST include energy_level field: HIGH (fast, exciting, punchy), MED (steady, building, conversational), LOW (intimate, slow, emotional), or PEAK (climax, payoff, best moment — use ONCE, usually last scene). Follow the energy curve for the duration: for 10s videos use [HIGH, HIGH, HIGH, HIGH, PEAK]; for 30s videos use [HIGH, MED, MED, HIGH, MED, PEAK]. [BRIDGE FIELD — REQUIRED]: Each scene MUST include bridge_to_next field — a single short physical action or movement (max 10 words) that the character or camera performs at the END of this scene to naturally lead into the next scene. Example: "creator lifts product toward camera", "camera zooms into product label", "creator turns to look at shelf". Last scene bridge_to_next = "" (empty string).`;
+const SCENE_JSON_CONTRACT = `Each scene MUST include: scene_num, timecode, visual (EN — must describe LOCATION + lighting + background props), camera, action, emotion, dialogue (BM or ""), image_prompt (EN still — must include full environment, NOT white background), i2v_prompt (EN motion), negative (must ban plain white background), angle_used (ONLY if product reference sheet is provided — write the exact panel label e.g. "FRONT", "BACK", "IN_HAND", "LEFT_SIDE" that you are copying the product from for this scene; omit if no product sheet), b_roll (optional: 1 short B-roll shot suggestion for editor e.g. "close-up hands unboxing", "macro product texture", "reaction shot face"), sound_note (optional: audio cue for editor e.g. "bass drop", "whoosh", "silence", "snap cut"). [ANGLE CONSISTENCY RULE]: Within the same 10s segment, keep the same product angle — do NOT switch between FRONT/BACK/SIDE within one segment. Only change angle at segment boundaries. Keep camera distance consistent within a segment (don't mix wide and macro in the same segment). [SCREEN ORIENTATION RULE — CRITICAL]: If a character holds/uses a device with a screen (phone, tablet, handheld console, laptop), the screen MUST face TOWARD the character — the BACK of the device faces the camera/viewer. NEVER show the screen facing the camera while the person is looking at the camera or talking — that is physically impossible and looks uncanny. A person cannot watch their own screen AND face the camera at the same time. Choose ONE: either (a) she looks DOWN at the screen while playing (screen tilted toward her face, back visible to camera), OR (b) she looks at the camera and talks with the device held at chest level, screen facing her, back toward camera. Screen may face the camera ONLY in a dedicated product-showcase shot where NO one is looking at the camera. [DIALOGUE EYE-CONTACT RULE — IMPORTANT]: When a scene has spoken dialogue (the character is talking to the audience/viewer), the character SHOULD make direct eye contact with the camera — this is how creators address viewers and it feels natural and engaging. In the visual, action, and image_prompt for any scene that has non-empty dialogue, explicitly state that the character looks directly at the camera / makes eye contact with the viewer while speaking (unless the scene is deliberately a B-roll cutaway with a voiceover, in which case no face is needed). Avoid the uncanny look of a person speaking while staring off to the side for no reason. Silent/visual-only scenes (empty dialogue) do NOT need camera eye contact — they can look at the product, environment, or action naturally. [ENERGY LEVEL FIELD — REQUIRED]: Each scene MUST include energy_level field: HIGH (fast, exciting, punchy), MED (steady, building, conversational), LOW (intimate, slow, emotional), or PEAK (climax, payoff, best moment — use ONCE, usually last scene). Follow this energy SHAPE across however many scenes this storyboard has (do NOT copy a fixed-length list — map the shape onto your actual scene count): scene 1 = HIGH (hook must grab instantly), the middle scenes alternate MED and HIGH so the video never flatlines (never place two LOW scenes back to back), and the FINAL scene = PEAK. For very short videos (3-4 scenes) stay HIGH throughout and end on PEAK. For longer videos (8+ scenes) you may use one LOW scene for an intimate/emotional beat, but only in the middle third, never in the first or last two scenes. [PACE-ENERGY CONSISTENCY]: If the scene JSON also has a pace field, it MUST agree with energy_level — HIGH or PEAK -> pace "FAST", MED -> pace "MEDIUM", LOW -> pace "SLOW". Never output a contradicting pair like pace SLOW with energy HIGH. [UNIVERSAL STORY FLOW RULES — APPLY TO EVERY SCENE]:
+1. Every scene advances the story — zero filler, zero repetition. Scene N must naturally motivate Scene N+1.
+2. NEVER repeat the same camera angle in consecutive scenes.
+3. Dialogue across all scenes = ONE continuous conversation, not disconnected slogans. Read scene 1 to the last scene out loud — it must sound like one person talking without restarting.
+4. At least 1 scene (or 1-2 in videos of 6+ scenes) MUST be VISUAL-ONLY (dialogue: "") for breathing room. Do NOT fill every scene with talking.
+5. STORY LOGIC: follow a logical cause-effect chain (problem -> solution -> proof -> CTA). Never jump to the CTA before showing proof.
+6. CALLBACK ENDING: the scene 1 visual concept MUST be echoed or visually rhymed in the FINAL scene (same framing/location/subject, but transformed by what happened). This creates closure.
+7. DIALOGUE <-> VISUAL MATCH — CRITICAL: what the character SAYS must be EXACTLY what the scene SHOWS.
+   - dialogue "tengok ni packaging dia" -> visual MUST show hands holding/showing the packaging
+   - dialogue "battery dia tahan 7 hari" -> visual MUST show the screen/battery indicator being checked
+   - dialogue "kulit aku jadi glowing" -> visual MUST show close-up of the skin, NOT the product bottle
+   - dialogue "harga dia murah je" -> visual MUST show a price tag / phone screen with price / reaction to price
+   - dialogue "boleh tengok kat bio" -> visual MUST show the character pointing down toward the camera or the phone
+   - empty dialogue ("") -> visual is free: B-roll, product macro, reaction shot
+   - NEVER pair dialogue about X with a visual showing unrelated Y.
+   - The viewer should be able to close their eyes, hear the dialogue, open them, and instantly understand the visual.
+   - WRITE the dialogue FIRST, then write visual/action/image_prompt to SERVE that dialogue — never the reverse.
+8. PACING: fast for hook and CTA, medium for demo/explanation, slow only for emotional reveals.
+[BRIDGE FIELD — REQUIRED]: Each scene MUST include bridge_to_next field — a single short physical action or movement (max 10 words) that the character or camera performs at the END of this scene to naturally lead into the next scene. Example: "creator lifts product toward camera", "camera zooms into product label", "creator turns to look at shelf". Last scene bridge_to_next = "" (empty string).`;
 
 const enrichSceneImagePrompt = (scene, opts = {}) => {
   const {
@@ -694,39 +712,32 @@ const buildIdentityBible = ({
   return parts.join('\n');
 };
 
-const expectedSceneCountForDuration = (duration, mode = 'default') => {
-  const sec = parseInt(duration) || 30;
-  if (mode === 'microimpact') return 3;
-  if (mode === 'narrativearc') return 6;
-  if (mode === 'stopmotion') return 10;
-  if (mode === 'grafix') {
-    if (sec <= 10) return 3;
-    if (sec <= 20) return 4;
-    if (sec <= 30) return 6;
-    if (sec <= 45) return 9;
-    return 12;
+// ponytail: sceneLadder is THE single source of truth for scene counts.
+// Prompt builders AND the validator both call this — a ladder can no longer drift
+// between "what the prompt structures" and "what fetchStoryboardJson demands".
+// Change scene counts HERE and nowhere else.
+const sceneLadder = (mode, duration, opts = {}) => {
+  const s = parseInt(duration) || 30;
+  switch (mode) {
+    case 'microimpact':  return opts.punchCut ? 5 : 3;                     // 5×2s punch-cut | 3×3.3s
+    case 'narrativearc': return 9;                                          // fixed 9×3.3s (i2v sweet spot)
+    case 'stopmotion':   return Math.max(1, s);                             // 1 frame per second
+    case 'grafix':       return s <= 10 ? 3 : s <= 15 ? 4 : s <= 20 ? 6 : s <= 30 ? 8 : s <= 45 ? 12 : 15;
+    case 'talkinghead':  return s <= 10 ? 3 : s <= 15 ? 4 : s <= 20 ? 5 : s <= 30 ? 8 : s <= 45 ? 11 : 15;
+    case 'ootd':         return s <= 10 ? 3 : s <= 20 ? 4 : s <= 30 ? 6 : 8;
+    case 'product':      return s <= 10 ? 2 : s <= 20 ? 4 : s <= 30 ? 6 : 8;
+    case 'cinematic':
+    case 'cinematic_pro':
+      // 30s = 9 scenes × 3.3s — the documented i2v sweet spot (5s/clip drifts in Flow AI).
+      return s <= 10 ? 3 : s <= 15 ? 4 : s <= 20 ? 6 : s <= 30 ? 9 : s <= 45 ? 9 : 12;
+    case 'ugc':
+    default:             return s <= 10 ? 3 : s <= 15 ? 4 : s <= 20 ? 5 : s <= 30 ? 6 : s <= 45 ? 9 : 12;
   }
-  if (mode === 'talkinghead') {
-    if (sec <= 10) return 2;
-    if (sec <= 20) return 4;
-    if (sec <= 30) return 6;
-    if (sec <= 45) return 9;
-    return 12;
-  }
-  if (mode === 'ugc') {
-    if (sec <= 10) return 3;
-    if (sec <= 20) return 4;
-    return 6;
-  }
-  // ponytail: default branch = cinematic_pro — MUST match getCinematicStoryboardPrompt ladder
-  // (3/4/5/6/9/12), otherwise fetchStoryboardJson demands EXACTLY N while prompt structures M
-  if (sec <= 10) return 3;
-  if (sec <= 15) return 4;
-  if (sec <= 20) return 5;
-  if (sec <= 30) return 6;
-  if (sec <= 45) return 9;
-  return 12;
 };
+
+// Backward-compatible name used by the generate path + UI badges.
+const expectedSceneCountForDuration = (duration, mode = 'default', opts = {}) =>
+  sceneLadder(mode, duration, opts);
 
 const buildGrafixStyleBible = (topic, style, aspect, assetAnalysis = '') => {
   const cleanTopic = String(topic || '').trim();
@@ -908,7 +919,7 @@ const StepBadge = ({ number }) => (
 
 const getOotdStoryboardPrompt = (product, duration, style, location, gender, hijabMode, mirrorMode, narration, refCount, identityBible = '', assetAnalysis = '') => {
   const sec = parseInt(duration) || 10;
-  const sceneCount = sec <= 10 ? 3 : sec <= 20 ? 4 : sec <= 30 ? 6 : 8;
+  const sceneCount = sceneLadder('ootd', sec); // ponytail: single-source ladder
   const perScene = (sec / sceneCount).toFixed(1);
   const hasVO = narration === 'With Voice-Over';
   const modelDesc = `young Asian ${gender}${(gender === 'Wanita' || gender === 'Female') && hijabMode === 'Hijab' ? ' wearing a stylish matching hijab coordinated with the outfit' : ''}`;
@@ -956,7 +967,9 @@ CAMERA MOVEMENT (vary per scene):
 ${stylingTips}
 
 RULES:
-- Dialogue in natural conversational Malay. Word limit: ~2.5 words per second of scene duration. Hook: 8-12 words. Detail/styling: 5-8 words. CTA: 10-15 words. Leave 1-2 scenes visual-only. ${!hasVO ? 'VO mode OFF — visual only, dialogue = "".' : ''}
+- Dialogue in natural conversational Malay. Word limit: ~2.5 words per second of scene duration. Hook: 8-12 words. Detail/styling: 5-8 words. CTA: 10-15 words. Leave 1-2 scenes visual-only.
+
+${SCENE_JSON_CONTRACT} ${!hasVO ? 'VO mode OFF — visual only, dialogue = "".' : ''}
 - Every scene SAME outfit, SAME model, SAME location — no changes between scenes.
 - image_prompt must include: outfit description, location, lighting, camera angle. NO plain white background.
 - i2v_prompt time-coded: "0s–Xs: [motion]. Xs–Ys: [motion]. Outfit and model locked."
@@ -973,7 +986,7 @@ Return ONLY valid JSON:
 
 const getProductPOVPrompt = (product, duration, category, background, gender, hijabMode, narration, mode, refCount, identityBible = '', assetAnalysis = '') => {
   const sec = parseInt(duration) || 10;
-  const sceneCount = sec <= 10 ? 2 : sec <= 20 ? 4 : sec <= 30 ? 6 : 8;
+  const sceneCount = sceneLadder('product', sec); // ponytail: single-source ladder
   const perScene = (sec / sceneCount).toFixed(1);
   const cat = (category || '').toLowerCase();
   const hasModel = mode === 'With Model';
@@ -1025,7 +1038,7 @@ RULES:
 - i2v_prompt must be time-coded: "0s–Xs: [motion]. Xs–Ys: [motion]. Keep product, lighting, background locked."
 - Scene 1 = HOOK (stop-scroll energy). Last scene = CTA or hero beauty shot.
 ${DIALOGUE_AUTHENTICITY_RULES}
-${identityBible ? SCENE_JSON_CONTRACT : SCENE_JSON_CONTRACT}
+${SCENE_JSON_CONTRACT}
 
 Return ONLY valid JSON:
 {
@@ -1082,7 +1095,7 @@ const getUgcStoryboardPrompt = (product, duration, category, environment, gender
   // the Omni Flash / i2v sweet spot. The old ladder (3/4/6) capped at 6 scenes, so a
   // 45s video became 7.5s per scene (motion drift) and could never fit the 7-part
   // demo structure below.
-  const sceneCount = sec <= 10 ? 3 : sec <= 15 ? 4 : sec <= 20 ? 5 : sec <= 30 ? 6 : sec <= 45 ? 9 : 12;
+  const sceneCount = sceneLadder('ugc', sec); // ponytail: single-source ladder
   const perScene = (sec / sceneCount).toFixed(1);
   const modelRef = `${gender === 'Wanita' || gender === 'Female' ? 'young Asian female' : 'young Asian male'} influencer${(gender === 'Wanita' || gender === 'Female') && hijabMode === 'Hijab' ? ' wearing an aesthetic modern hijab' : ''}`;
 
@@ -1156,7 +1169,7 @@ Return ONLY valid JSON:
 
 const getCinematicStoryboardPrompt = (topic, duration, style, aspect, audience, refCount, identityBible = '', assetAnalysis = '', platform = 'TikTok') => {
   const sec = parseInt(duration) || 30;
-  const sceneCount = sec <= 10 ? 3 : sec <= 15 ? 4 : sec <= 20 ? 5 : sec <= 30 ? 6 : sec <= 45 ? 9 : 12;
+  const sceneCount = sceneLadder('cinematic_pro', sec); // ponytail: single-source ladder — 30s = 9×3.3s
   const perScene = (sec / sceneCount).toFixed(1);
   // Adaptive word limit: 2.5 words/sec for natural BM pace (slightly slower for clarity)
   // Hook scenes get more words (fast burst), demo scenes get fewer (let visual breathe)
@@ -1383,7 +1396,7 @@ const getTalkingHeadPrompt = (topic, duration, tone, aspect, audience, refCount,
   // Dialogue-heavy tab: each scene still needs room for a full spoken line, but the old
   // ladder pinned every duration >=20s at 5s per scene, which drifts in i2v generation.
   // Target ~3.3-4.1s: long enough to speak a line, short enough to stay stable.
-  const sceneCount = sec <= 10 ? 3 : sec <= 15 ? 4 : sec <= 20 ? 5 : sec <= 30 ? 8 : sec <= 45 ? 11 : 15;
+  const sceneCount = sceneLadder('talkinghead', sec); // ponytail: single-source ladder
   const perScene = (sec / sceneCount).toFixed(1);
   return `You are a TALKING HEAD storyboard generator. Create ${sec}s influencer storyboard: ${topic}. Tone: ${tone}. Aspect: ${aspect}.
 Exactly ${sceneCount} scenes, ~${perScene}s each.
@@ -1449,7 +1462,7 @@ const getStopMotionPrompt = (product, duration, style, aspect, audience, refCoun
   // so picking 5s or 15s silently did nothing. Keep the 1-second-per-frame rhythm that
   // makes stop motion read correctly, and scale the frame count to the chosen duration.
   const sec = parseInt(duration) || 10;
-  const sceneCount = sec; // 1 frame per second
+  const sceneCount = sceneLadder('stopmotion', sec); // ponytail: single-source ladder (1 frame/sec)
   return `You are a specialized Stop Motion Storyboard Generator. Transform "${product}" into a ${sec}-second stop-motion video storyboard.
 
 RULES:
@@ -1524,7 +1537,7 @@ const getGrafixPrompt = (topic, duration, aspect, style, audience, refCount, ide
   const sec = parseInt(duration) || 30;
   // Motion graphics: no speech pacing to respect, so keep scenes tight (~3.3-4s) —
   // the old ladder pinned everything >=20s at 5s per scene, too long for clean i2v motion.
-  const sceneCount = sec <= 10 ? 3 : sec <= 15 ? 4 : sec <= 20 ? 6 : sec <= 30 ? 8 : sec <= 45 ? 12 : 15;
+  const sceneCount = sceneLadder('grafix', sec); // ponytail: single-source ladder
   const perScene = (sec / sceneCount).toFixed(1);
   const styleLine = !style || style === 'auto'
     ? 'Choose the best motion-graphics style that fits the topic (infographic / kinetic type / dashboard / organic shapes).'
@@ -4301,7 +4314,8 @@ Keep the subject person, face reference, background layout, and clothes identica
 
       let expectedCount = expectedSceneCountForDuration(
         durationByMode[mode],
-        mode === 'cinematic_pro' ? 'default' : mode
+        mode,
+        { punchCut: microPunchCut }
       );
       setExpectedTotalScenes(expectedCount);
       setProgressStage(0);
@@ -5699,8 +5713,9 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                           {/* Scene count badge */}
                           {(() => {
                             const dur = tab.id === 'cinematic_pro' ? cinematicDuration : tab.id === 'talkinghead' ? thDuration : tab.id === 'grafix' ? gfDuration : tab.id === 'stopmotion' ? smDuration : tab.id === 'microimpact' ? '10' : tab.id === 'narrativearc' ? '30' : duration;
-                            const n = expectedSceneCountForDuration(dur, tab.id);
-                            return n ? <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-full shrink-0 ${activeTab === tab.id ? 'bg-white/20 text-white' : t('bg-gray-700 text-gray-400','bg-gray-200 text-gray-500')}`}>{n}s</span> : null;
+                            const n = expectedSceneCountForDuration(dur, tab.id, { punchCut: microPunchCut });
+                            // ponytail: n is a SCENE COUNT, not seconds — old label said "6s" for 6 scenes
+                            return n ? <span title={`${n} scenes`} className={`text-[8px] font-black px-1.5 py-0.5 rounded-full shrink-0 ${activeTab === tab.id ? 'bg-white/20 text-white' : t('bg-gray-700 text-gray-400','bg-gray-200 text-gray-500')}`}>{n}</span> : null;
                           })()}
                         </span>
                         {tab.desc && <span className={`text-[10px] font-normal leading-snug mt-0.5 ${activeTab === tab.id ? 'text-white/80' : 'opacity-50'}`}>{tab.desc}</span>}
