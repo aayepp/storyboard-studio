@@ -729,5 +729,144 @@ src/App.jsx
 **Files changed:** src/App.jsx
 
 ---
+
+## Session Changes — 2026-07-25 (Part 3)
+
+### 10. Storyboard Sheet Grid View
+
+**Sheet View feature:**
+- Toggle button dalam output section — "Sheet View" / "List View"
+- Auto aspect ratio (9:16, 16:9, 1:1) per panel
+- Grid layout: 3 or 4 columns based on scene count
+- Pace color coding: FAST=amber, MEDIUM=cyan, SLOW=purple
+- Each panel: scene number badge, timecode, image, camera, visual, dialogue, purpose
+- Hover tooltip: full details (lens, lighting, composition, emotion, ambient sound, transition)
+- Transition indicators between panels
+- Marketing meta header: marketing_objective, emotional_driver, platform
+- Audio direction bar: BGM mood per segment
+- Legend at bottom: FAST/MEDIUM/SLOW color guide
+
+**Export/Print:**
+- Canvas-based 2K PNG export — combine real `imageUrls[]` into 1 sheet
+- Print mode — white background for print/share to client
+- No AI token cost for export (browser canvas only)
+
+**"Generate All Images" button:**
+- Detects missing images in sheet view
+- Generates all missing scene images sequentially
+- `handleGenerateAllSheetImages` handler
+
+**Per-panel regenerate:**
+- Hover panel → refresh icon bottom-right
+- Click → `regenerateSingleVisual(i)` for that scene only
+
+### 11. Per-Segment Image Sheets (Flow AI Workflow)
+
+**Added to each Flow AI segment card:**
+- 2×2 image grid (4 scenes per segment)
+- Pace color border per panel
+- Scene number, timecode, camera, visual, dialogue per panel
+
+**3 Action buttons per segment:**
+- 📥 **PNG** — canvas export 2K sheet (photorealistic, no AI call)
+- 📊 **CSV** — export scene data (scene_num, timecode, visual, camera, action, emotion, dialogue, i2v_prompt, pace)
+- 📋 **Prompt** — copy Flow AI prompt for segment
+
+**Auto-collapse after generate:**
+- All Flow AI segments auto-collapse when generate completes
+- User can expand which segment they want to edit
+
+### 12. Auto-Generate Images Per Scene (No Timeline Toggle)
+
+**Removed:**
+- Timeline toggle UI
+- Keyframe toggle UI
+- Storyboard Timeline section (5150 chars removed)
+
+**Changed behavior:**
+- `timelineMode` force `'on'` — always generate 1 image per scene
+- `keyframeMode` force `'off'` — no longer overrides timeline
+
+**Result:**
+- Press Generate → auto generate 1 image per scene (e.g., 6 scenes = 6 images)
+- No toggle needed
+- Each Flow AI segment gets 4 unique images in 2×2 grid
+
+### 13. Smart Keyframe Re-enabled (Anchor Badge)
+
+**`pickBestKeyframe` active again:**
+- Scores each scene: camera, visual, action, emotion, dialogue, eye contact
+- Picks best scene as identity anchor
+- Returns `{ index, confidence, reason }`
+
+**Anchor badge display:**
+- Yellow "KEYFRAME" badge on best scene
+- Confidence % tag (green ≥75%, yellow 55-74%, red <55%)
+- Reason text (e.g., "clear face shot + has dialogue")
+
+**Updated conditions:**
+- Badge now shows when `keyframeInfo[index]` exists — regardless of timeline mode
+- Previously hidden when `timelineMode === 'on'`
+
+**Flow:**
+1. Timeline ON → all scenes get images
+2. Smart Keyframe picks best scene → sets `keyframeInfo`
+3. Badge displays on best scene
+4. All scenes still get images (badge is display only)
+
+---
+
+### 14. Bug Fixes (Part 3)
+
+**React error #310:**
+- Root cause: `useState` called inside IIFE (`(() => { })()`) in Sheet View
+- Fix: Move states to component level (`sheetPrintMode`, `sheetHoveredScene`, `sheetGeneratingAll`)
+
+**Sheet View blank page:**
+- Root cause: `handleGenerateAllSheetImages` async loop inside IIFE
+- Fix: Extract to proper handler function
+
+**Sheet image mapping (panels showing same image):**
+- Root cause: `imageUrls[i]` direct index — when keyframe mode, only 1-3 images for 8 scenes
+- Fix: Distribute keyframes across all scenes (`getImg` function with proportional mapping)
+
+**Dialogue word limit:**
+- Changed from fixed `3 words/sec` to adaptive `2.5 words/sec`
+- Scene-type specific: Hook 8-12, Demo 5-8, CTA 10-15, Visual-only empty
+
+---
+
+## Commits (2026-07-25 Part 3)
+| Commit | Description |
+|--------|-------------|
+| `af29f36` | feat: storyboard sheet grid view — pace color, export PNG, scene info |
+| `6d6c8eb` | feat: auto-include Flow AI director brief in JSON segment copy |
+| `dc53957` | fix: storyboard sheet image mapping — distribute keyframes |
+| `f06e263` | feat: storyboard sheet v2 — hover tooltip, transition badges, generate all |
+| `3664be4` | fix: move sheet view useState to component level |
+| `4405baf` | fix: React error #310 — move generateAllSheetImages to handler |
+| `085d459` | feat: generate 2K composite storyboard sheet image (1 API call) |
+| `e323eb8` | fix: 2K sheet image photorealistic style |
+| `54ffbe6` | feat: canvas-based 2K sheet export — combine real images |
+| `7acdddb` | feat: per-segment 2×2 image grid + PNG/CSV/Prompt buttons |
+| `43293bc` | feat: remove timeline/keyframe toggles — auto generate per scene |
+| `7994d0a` | feat: remove Storyboard Timeline section |
+| `f9436bb` | feat: re-enable smart keyframe as anchor badge |
+| `d7a2764` | fix: adaptive dialogue word limit — 2.5 words/sec |
+| `b9d2018` | feat: auto-collapse flow AI segments after generate |
+
+---
+
+## Current File State (2026-07-25 Part 3)
+- **Lines:** ~7650
+- **Build:** ✅ esbuild zero errors
+- **Latest commit:** `f9436bb`
+- **Auto-generate:** ✅ 1 image per scene (no toggle)
+- **Smart Keyframe:** ✅ Active as anchor badge
+- **Sheet View:** ✅ Grid + canvas export + per-panel regen
+- **Per-Segment Sheets:** ✅ 2×2 grid + PNG/CSV/Prompt
+- **Storyboard Timeline:** ❌ Removed
+
+---
 ### Auto-log: 2026-07-26 13:15 (branch: main)
 **Files changed:** src/App.jsx
