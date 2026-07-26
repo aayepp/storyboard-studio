@@ -117,6 +117,10 @@ const detectBgTheme = (topic = '') => {
   return 'auto';
 };
 
+// ponytail: shared rule — appended to every [OUTFIT LOCK] injection so hijab
+// coordinates with the chosen outfit instead of copying the reference hijab color
+const OUTFIT_HIJAB_RULE = `\n[HIJAB COORDINATION]: IF the subject wears a hijab, restyle the hijab to MATCH this outfit — pick a hijab color from the outfit's own palette (tonal or complementary, never clashing) and a wrap style that suits the outfit vibe (e.g. sporty snug wrap for athletic, neat pinned style for office/formal, soft casual drape for everyday). Do NOT keep the hijab color/style from the reference image if it clashes with this outfit. Face stays IDENTICAL — only the hijab fabric, color, and wrap style adapt.`;
+
 const OUTFIT_THEMES = [
   { v: 'auto', l: '✨ Auto (AI Decides)', desc: '' },
   { v: 'casual_chic', l: '👟 Casual Chic', desc: 'Casual chic everyday outfit — clean fitted tee or oversized top, slim jeans or trousers, clean white sneakers or loafers. Relaxed yet put-together.' },
@@ -2969,7 +2973,7 @@ Return plain text bullets only (no JSON), 5-10 short concrete bullets covering:
 - dominant colors and materials — EXACT colors only, no approximations
 - packaging shape / logo colors if product — describe ONLY what is visible
 ${_outfitLocked ? '- clothing: SKIP ENTIRELY — do NOT describe, mention, or reference any clothing/outfit/attire of the person. The outfit is locked separately and MUST NOT appear in your analysis.' : '- clothing style if person — describe ONLY what is visible in the image'}
-- face traits if face present (age vibe, hair/hijab, expression baseline)
+${_outfitLocked ? '- face traits if face present (age vibe, expression baseline). Hijab: state ONLY whether the person wears a hijab (yes/no) — do NOT describe the hijab color, fabric, or wrap style. Hijab styling is locked separately to the outfit.' : '- face traits if face present (age vibe, hair/hijab, expression baseline)'}
 - exact environment/background details to lock (if background references are provided)
 CRITICAL: Only describe what is ACTUALLY VISIBLE in the reference. Do NOT infer, assume, or add details not shown. If you cannot see it clearly, say "not visible". Be visual and specific. English only.`
     }];
@@ -3205,7 +3209,7 @@ return parsed;
       if (!motionGraphicsMode && activeUploadData.useCustomFace && activeUploadData.uploadedFaceBase64) {
         parts[0].text += "\n\n[MANDATORY BIOMETRIC FACE LOCK — SUBJECT ONLY]: Extract ONLY the person/subject from the attached FACE REFERENCE IMAGE. Copy: face structure, skin tone, hair, body proportions EXACTLY.\n[OUTFIT OVERRIDE — CRITICAL]: DO NOT copy the outfit/clothing from the reference image. The outfit is defined by the [OUTFIT LOCK] instruction above — use THAT outfit instead.\n[BACKGROUND IGNORE RULE — CRITICAL]: The background in the reference image is IRRELEVANT. DO NOT use, copy, or reference the background from this image. The background will be set by the scene description and environment instructions ONLY. Render the subject against the scene's stated environment, NOT the reference image's background.";
         parts.push({ text: _outfitActive
-          ? "=== FACE REFERENCE IMAGE (HEAD-AND-SHOULDERS CROP — FACE/HAIR/SKIN ONLY) ===\n[STRICT]: Copy ONLY face structure, skin tone, and hair from this image. Any clothing visible in this crop is FORBIDDEN — the subject wears the [OUTFIT LOCK] outfit stated at the top of the prompt instead. Ignore this image's background too."
+          ? "=== FACE REFERENCE IMAGE (HEAD-AND-SHOULDERS CROP — FACE/SKIN ONLY) ===\n[STRICT]: Copy ONLY face structure and skin tone from this image. Any clothing visible in this crop is FORBIDDEN — the subject wears the [OUTFIT LOCK] outfit stated at the top of the prompt instead.\n[HIJAB NOT LOCKED]: If this image shows a hijab, its color and wrap style are NOT locked — this image only confirms the subject WEARS a hijab. Restyle the hijab color and wrap to MATCH the [OUTFIT LOCK] palette per the [HIJAB COORDINATION] rule. If no hijab, copy the hair exactly. Ignore this image's background too."
           : "=== FACE REFERENCE IMAGE (SUBJECT ONLY — IGNORE BACKGROUND) ===" });
         // ponytail: outfit lock active → send head+shoulders crop only, model cannot copy unseen outfit
         const _faceRef = _outfitActive
@@ -4291,7 +4295,7 @@ Keep the subject person, face reference, background layout, and clothes identica
       const _outfitData = outfitStyle !== 'auto' ? OUTFIT_THEMES.find(o => o.v === outfitStyle) : null;
       const _visualLock = [
         _bgThemeData ? `[BACKGROUND THEME LOCK]\nBackground environment for ALL scenes: ${_bgThemeData.desc}\nDo NOT use any other background type. Every scene must be set in this environment.` : '',
-        _outfitData ? `[OUTFIT LOCK]\nThe model/presenter MUST wear this outfit in ALL scenes: ${_outfitData.desc}\nKeep outfit IDENTICAL across every scene — no wardrobe changes unless scene specifically requires it.` : '',
+        _outfitData ? `[OUTFIT LOCK]\nThe model/presenter MUST wear this outfit in ALL scenes: ${_outfitData.desc}\nKeep outfit IDENTICAL across every scene — no wardrobe changes unless scene specifically requires it.${OUTFIT_HIJAB_RULE}` : '',
       ].filter(Boolean).join('\n\n');
       const finalIdentityBible = _visualLock ? identityBible + '\n\n' + _visualLock : identityBible;
 
@@ -4550,7 +4554,7 @@ Keep the subject person, face reference, background layout, and clothes identica
         identityBible += `\n\n[BACKGROUND THEME LOCK]\nBackground environment for ALL scenes: ${_bgThemeDataAll.desc}\nDo NOT use any other background type. Every scene must be set in this environment.`;
       }
       if (_outfitDataAll) {
-        identityBible += `\n\n[OUTFIT LOCK]\nThe model/presenter MUST wear this outfit in ALL scenes: ${_outfitDataAll.desc}\nKeep outfit IDENTICAL across every scene — no wardrobe changes unless scene specifically requires it.`;
+        identityBible += `\n\n[OUTFIT LOCK]\nThe model/presenter MUST wear this outfit in ALL scenes: ${_outfitDataAll.desc}\nKeep outfit IDENTICAL across every scene — no wardrobe changes unless scene specifically requires it.${OUTFIT_HIJAB_RULE}`;
       }
       result.identityBible = identityBible;
       result.assetAnalysis = assetAnalysis;
@@ -4602,7 +4606,7 @@ CAMERA SYSTEM: Ultra-stable static tripod shot.`;
         const _productOutfitData = outfitStyle !== 'auto' ? OUTFIT_THEMES.find(o => o.v === outfitStyle) : null;
         const finalBible = _productBible
           + (_productBgData ? `\n\n[BACKGROUND THEME LOCK]\nBackground environment for ALL scenes: ${_productBgData.desc}\nDo NOT use any other background type.` : '')
-          + (_productOutfitData ? `\n\n[OUTFIT LOCK]\nThe model/presenter MUST wear this outfit in ALL scenes: ${_productOutfitData.desc}` : '');
+          + (_productOutfitData ? `\n\n[OUTFIT LOCK]\nThe model/presenter MUST wear this outfit in ALL scenes: ${_productOutfitData.desc}${OUTFIT_HIJAB_RULE}` : '');
         const negatives = locked.map(s => withEnvNegative(s.negative || DEFAULT_NEGATIVE, false));
         await generateVisual(promptInputForAI, false, aspectRatio, locked.length, {
           identityBible: finalBible, useContinuity: true, concurrency: 2, negatives,
@@ -4636,7 +4640,7 @@ CAMERA SYSTEM: Ultra-stable static tripod shot.`;
         const _ootdOutfitData = outfitStyle !== 'auto' ? OUTFIT_THEMES.find(o => o.v === outfitStyle) : null;
         const finalBible = _ootdBible
           + (_ootdBgData ? `\n\n[BACKGROUND THEME LOCK]\nBackground environment for ALL scenes: ${_ootdBgData.desc}\nDo NOT use any other background type.` : '')
-          + (_ootdOutfitData ? `\n\n[OUTFIT LOCK]\nThe model/presenter MUST wear this outfit in ALL scenes: ${_ootdOutfitData.desc}` : '');
+          + (_ootdOutfitData ? `\n\n[OUTFIT LOCK]\nThe model/presenter MUST wear this outfit in ALL scenes: ${_ootdOutfitData.desc}${OUTFIT_HIJAB_RULE}` : '');
         const negatives = locked.map(s => withEnvNegative(s.negative || DEFAULT_NEGATIVE, false));
         await generateVisual(promptInputForAI, false, aspectRatio, locked.length, {
           identityBible: finalBible, useContinuity: true, concurrency: 2, negatives,
