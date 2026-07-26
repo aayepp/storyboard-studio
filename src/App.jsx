@@ -75,6 +75,47 @@ const ASPECT_RATIOS = [
 // Added backgrounds array to store multiple environment images
 const EMPTY_UPLOAD = { products: [{ name: '', base64: null, mimeType: null }], backgrounds: [], faceFileName: '', uploadedFaceBase64: null, uploadedFaceMimeType: null, useCustomFace: true };
 const TAB_UPLOAD_KEYS = ['cinematic_pro', 'microimpact', 'narrativearc', 'talkinghead', 'product', 'ootd', 'ugc', 'stopmotion', 'grafix', 'character', 'fake_influencer'];
+
+const BACKGROUND_THEMES = [
+  { v: 'auto', l: '✨ Auto (AI Decides)', desc: '' },
+  { v: 'clean_studio', l: '🎨 Clean Studio / White', desc: 'Clean minimalist studio background — white or soft grey, professional lighting, no clutter.' },
+  { v: 'outdoor_nature', l: '🌿 Outdoor / Nature', desc: 'Lush outdoor natural environment — park, garden, greenery, natural daylight.' },
+  { v: 'urban_street', l: '🏙️ Urban Street / City', desc: 'Urban city street environment — buildings, sidewalk, city lights, metropolitan vibe.' },
+  { v: 'cafe', l: '☕ Cafe / Coffee Shop', desc: 'Cozy cafe interior — warm lighting, wooden tables, coffee cups, relaxed atmosphere.' },
+  { v: 'home_living', l: '🏠 Home / Living Room', desc: 'Comfortable home interior — living room, sofa, warm home lighting, cozy domestic setting.' },
+  { v: 'kitchen', l: '🍳 Kitchen / Cooking Space', desc: 'Modern kitchen environment — countertops, cooking utensils, food prep area, bright lighting.' },
+  { v: 'office', l: '💼 Office / Workspace', desc: 'Professional office environment — desk, laptop, clean workspace, corporate or startup vibe.' },
+  { v: 'gym_fitness', l: '💪 Gym / Fitness Center', desc: 'Gym or fitness studio environment — equipment, mirrors, motivational energy, athletic setting.' },
+  { v: 'shopping_mall', l: '🛍️ Shopping Mall / Retail', desc: 'Bright retail or shopping mall environment — display shelves, brand signage, commercial setting.' },
+  { v: 'beach_coastal', l: '🌊 Beach / Coastal', desc: 'Outdoor beach or coastal setting — sand, ocean, natural light, breezy relaxed atmosphere.' },
+  { v: 'night_event', l: '🌃 Night / Event / Club', desc: 'Nighttime or event setting — ambient lighting, city glow, neon, vibrant night atmosphere.' },
+  { v: 'luxury_hotel', l: '💎 Luxury Hotel / Premium', desc: 'Upscale luxury environment — hotel lobby, elegant decor, marble, premium warm lighting.' },
+  { v: 'rooftop', l: '🌆 Rooftop / Skyline', desc: 'Rooftop setting with city skyline — open air, urban backdrop, golden hour or twilight.' },
+  { v: 'dark_studio', l: '🎬 Dark Cinematic Studio', desc: 'Dark dramatic studio — moody lighting, deep shadows, cinematic atmosphere, black background with spot lighting.' },
+  { v: 'school_campus', l: '🎓 School / Campus', desc: 'School or university campus setting — classrooms, corridors, outdoor campus grounds, youthful energy.' },
+  { v: 'hospital_clinic', l: '🏥 Hospital / Clinic', desc: 'Medical or clinical setting — clean white environment, medical equipment, professional healthcare vibe.' },
+];
+
+const detectBgTheme = (topic = '') => {
+  const t = topic.toLowerCase();
+  if (/gym|fitness|workout|exercise|latihan|senaman|sukan|sport/.test(t)) return 'gym_fitness';
+  if (/cafe|kopi|coffee|kedai minum|restaurant|restoran|makan|minum/.test(t)) return 'cafe';
+  if (/kitchen|dapur|masak|cooking|recipe|resepi|baking|air fryer|blender/.test(t)) return 'kitchen';
+  if (/home|rumah|living room|ruang tamu|sofa|bedroom|bilik|tidur/.test(t)) return 'home_living';
+  if (/office|pejabat|workplace|kerja|laptop|meeting|startup|corporate|business/.test(t)) return 'office';
+  if (/mall|shopping|kedai|retail|store|butik|boutique|pasar/.test(t)) return 'shopping_mall';
+  if (/beach|pantai|laut|ocean|sea|coastal|resort/.test(t)) return 'beach_coastal';
+  if (/night|malam|club|event|concert|party|pesta|festival/.test(t)) return 'night_event';
+  if (/luxury|hotel|premium|exclusive|mewah|spa|resort|5 star/.test(t)) return 'luxury_hotel';
+  if (/rooftop|bumbung|skyline|city view|atas bangunan/.test(t)) return 'rooftop';
+  if (/street|urban|bandar|city|alley|lorong|jalan/.test(t)) return 'urban_street';
+  if (/school|sekolah|university|universiti|campus|class|kelas|student|pelajar/.test(t)) return 'school_campus';
+  if (/clinic|hospital|klinik|doctor|doktor|medical|perubatan|ubat|health/.test(t)) return 'hospital_clinic';
+  if (/studio|white|minimalist|clean|product shot|packshot/.test(t)) return 'clean_studio';
+  if (/outdoor|nature|taman|park|forest|hutan|garden|kebun|hiking/.test(t)) return 'outdoor_nature';
+  if (/cinematic|dark|moody|dramatic|noir|thriller/.test(t)) return 'dark_studio';
+  return 'auto';
+};
 const makeEmptyTabUploads = () => Object.fromEntries(TAB_UPLOAD_KEYS.map((k) => [k, { ...EMPTY_UPLOAD, products: [{ name: '', base64: null, mimeType: null }], backgrounds: [] }]));
 
 const _baseCard = 'border rounded-[32px] p-6 sm:p-10 shadow-sm relative overflow-hidden transition-colors duration-300 card-hover scroll-reveal backdrop-blur-xl';
@@ -2555,6 +2596,20 @@ I2V: ${s.i2v_prompt || ''}`
   const [gfStyle, setGfStyle] = useState('auto');
   const [gfAudience, setGfAudience] = useState('');
   const [cinematicPlatform, setCinematicPlatform] = useState('TikTok');
+  const [bgTheme, setBgTheme] = useState('auto');
+
+  // Auto-detect background theme when tab changes
+  useEffect(() => {
+    const topicMap = {
+      cinematic_pro: cinematicTopic, microimpact: microImpactTopic,
+      narrativearc: narrativeArcTopic, talkinghead: thTopic,
+      stopmotion: smProduct, grafix: gfTopic,
+      ugc: productName, product: productName,
+      ootd: productName, character: productName, fake_influencer: productName,
+    };
+    const detected = detectBgTheme(topicMap[activeTab] || '');
+    setBgTheme(detected);
+  }, [activeTab]); // ponytail: tab change only — user can still override manually
 
   const [apiKey, setApiKey] = useState(getStoredApiKey);
   const [genfityKey, setGenfityKey] = useState(getStoredGenfityKey);
@@ -4041,6 +4096,11 @@ Keep the subject person, face reference, background layout, and clothes identica
             assetAnalysis,
             extra: parsedIdentityNote(mode)
           });
+      // Inject background theme if user selected one
+      const _bgThemeData = bgTheme !== 'auto' ? BACKGROUND_THEMES.find(o => o.v === bgTheme) : null;
+      const finalIdentityBible = _bgThemeData
+        ? identityBible + `\n\n[BACKGROUND THEME LOCK]\nBackground environment for ALL scenes: ${_bgThemeData.desc}\nDo NOT use any other background type. Every scene must be set in this environment.`
+        : identityBible;
 
       let expectedCount = expectedSceneCountForDuration(
         durationByMode[mode],
@@ -4049,13 +4109,13 @@ Keep the subject person, face reference, background layout, and clothes identica
       setExpectedTotalScenes(expectedCount);
       setProgressStage(0);
       let promptText = '';
-      if (mode === 'cinematic_pro') promptText = getCinematicStoryboardPrompt(cinematicTopic, cinematicDuration, cinematicStyle, aspectRatio, cinematicAudience, refCount, identityBible, assetAnalysis, cinematicPlatform);
-      else if (mode === 'microimpact') promptText = getMicroImpactPrompt(microImpactTopic, aspectRatio, microImpactAudience, refCount, identityBible, assetAnalysis, microPunchCut);
-      else if (mode === 'narrativearc') promptText = getNarrativeArcPrompt(narrativeArcTopic, aspectRatio, narrativeArcAudience, refCount, identityBible, assetAnalysis, narrativeGenre);
-      else if (mode === 'talkinghead') promptText = getTalkingHeadPrompt(thTopic, thDuration, thTone, aspectRatio, thAudience, refCount, identityBible, assetAnalysis, thTeleprompter, thSubtitleFormat);
-      else if (mode === 'stopmotion') promptText = getStopMotionPrompt(smProduct, smDuration, smStyle, aspectRatio, smAudience, refCount, identityBible, assetAnalysis, smEasingMode);
-      else if (mode === 'grafix') promptText = getGrafixPrompt(topicText, gfDuration, aspectRatio, gfStyle, gfAudience, refCount, identityBible, assetAnalysis, gfBrandColor, gfDataInput);
-      else if (mode === 'ugc') promptText = getUgcStoryboardPrompt(productName.trim(), duration, category, ugcEnvironment, gender, hijabMode, ugcAngle, refCount, identityBible, assetAnalysis, ugcPrice);
+      if (mode === 'cinematic_pro') promptText = getCinematicStoryboardPrompt(cinematicTopic, cinematicDuration, cinematicStyle, aspectRatio, cinematicAudience, refCount, finalIdentityBible, assetAnalysis, cinematicPlatform);
+      else if (mode === 'microimpact') promptText = getMicroImpactPrompt(microImpactTopic, aspectRatio, microImpactAudience, refCount, finalIdentityBible, assetAnalysis, microPunchCut);
+      else if (mode === 'narrativearc') promptText = getNarrativeArcPrompt(narrativeArcTopic, aspectRatio, narrativeArcAudience, refCount, finalIdentityBible, assetAnalysis, narrativeGenre);
+      else if (mode === 'talkinghead') promptText = getTalkingHeadPrompt(thTopic, thDuration, thTone, aspectRatio, thAudience, refCount, finalIdentityBible, assetAnalysis, thTeleprompter, thSubtitleFormat);
+      else if (mode === 'stopmotion') promptText = getStopMotionPrompt(smProduct, smDuration, smStyle, aspectRatio, smAudience, refCount, finalIdentityBible, assetAnalysis, smEasingMode);
+      else if (mode === 'grafix') promptText = getGrafixPrompt(topicText, gfDuration, aspectRatio, gfStyle, gfAudience, refCount, finalIdentityBible, assetAnalysis, gfBrandColor, gfDataInput);
+      else if (mode === 'ugc') promptText = getUgcStoryboardPrompt(productName.trim(), duration, category, ugcEnvironment, gender, hijabMode, ugcAngle, refCount, finalIdentityBible, assetAnalysis, ugcPrice);
 
       setLoadingText(isGrafix ? 'Generating Grafix framework series...' : 'Building JSON sequence array...');
       setGenerationStep(2);
@@ -4287,6 +4347,11 @@ Keep the subject person, face reference, background layout, and clothes identica
       if (productAngles && productAngles.is_sheet && productAngles.available_angles?.length) {
         const angleList = productAngles.available_angles.join(', ');
         identityBible += `\n\n[PRODUCT REFERENCE SHEET — AVAILABLE ANGLES]\nThis reference sheet contains these labelled panels: ${angleList}.\nFor EACH scene, pick the ONE angle that matches the scene's camera/action, declare it as "angle_used" in the JSON, and copy the product ONLY from that panel.\nAngles: ${productAngles.angle_notes || ''}`;
+      }
+      // Inject background theme lock
+      const _bgThemeDataAll = bgTheme !== 'auto' ? BACKGROUND_THEMES.find(o => o.v === bgTheme) : null;
+      if (_bgThemeDataAll) {
+        identityBible += `\n\n[BACKGROUND THEME LOCK]\nBackground environment for ALL scenes: ${_bgThemeDataAll.desc}\nDo NOT use any other background type. Every scene must be set in this environment.`;
       }
       result.identityBible = identityBible;
       result.assetAnalysis = assetAnalysis;
@@ -5012,8 +5077,38 @@ Pick the ONE that best fits. No explanation, just the tag.`;
     return (
       <div className="mt-4">
         <label className={C.label}>Environment / Background / Environment Reference (Optional)</label>
+
+        {/* Background Theme Dropdown */}
+        <div className="mb-3">
+          <div className="flex items-center gap-2 mb-1.5">
+            <label className={`text-[11px] font-bold uppercase tracking-wide ${t('text-gray-300','text-gray-500')}`}>Background Theme</label>
+            {bgTheme !== 'auto' && (
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-400 border border-sky-500/30">
+                ✨ Auto-detected
+              </span>
+            )}
+          </div>
+          <div className="relative">
+            <select
+              value={bgTheme}
+              onChange={(e) => setBgTheme(e.target.value)}
+              className={`${C.select(isDarkMode)} pr-8 text-sm`}
+            >
+              {BACKGROUND_THEMES.map(opt => (
+                <option key={opt.v} value={opt.v}>{opt.l}</option>
+              ))}
+            </select>
+            <ChevronDown className={U.c1} size={14} />
+          </div>
+          {bgTheme !== 'auto' && BACKGROUND_THEMES.find(o => o.v === bgTheme)?.desc && (
+            <p className={`text-[10px] mt-1 ${t('text-gray-500','text-gray-400')}`}>
+              {BACKGROUND_THEMES.find(o => o.v === bgTheme).desc}
+            </p>
+          )}
+        </div>
+
+        {/* Upload zone */}
         <div className={`w-full border border-dashed rounded-3xl p-6 transition-all duration-300 ${backgrounds.length > 0 ? t('border-sky-500/50 bg-sky-900/10', 'border-sky-300 bg-sky-50') : t('border-gray-700 bg-gray-800/30', 'border-gray-300 bg-gray-50')}`}>
-          
           {backgrounds.length > 0 && (
             <div className="flex flex-wrap gap-4 mb-4 justify-center">
               {backgrounds.map((bg, index) => (
