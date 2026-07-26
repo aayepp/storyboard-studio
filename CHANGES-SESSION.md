@@ -1000,3 +1000,73 @@ src/App.jsx
 1. Multi-angle product reference upload (cropped images, auto-select per scene)
 2. Stale confidence tag selepas regenerate keyframe (#6)
 3. Narrative logic rules to remaining 6 tabs
+
+---
+
+## Session Changes — 2026-07-27 (Part 2)
+
+### 1. Scene Count Ladder Sync — FIXED ✅
+- **Problem:** Console warning "Expected 8 scenes, but AI generated 6" — `expectedSceneCountForDuration` default branch (30s→8) tak sync dengan cinematic prompt ladder (30s→6, reduced session 2026-07-24)
+- **Effect:** `fetchStoryboardJson` demand "EXACTLY 8" sambil prompt structure 6 — conflicting instructions ke AI
+- **Fix:** Default branch sync ke 3/4/5/6/9/12 — match `getCinematicStoryboardPrompt` ladder exactly
+- **Rule:** Default branch = cinematic_pro. Kalau ubah cinematic prompt ladder, WAJIB update expected ladder sekali.
+
+### 2. Missing Favicon — FIXED ✅
+- `index.html` refer `/favicon.svg`, file tak wujud → 404 setiap load
+- **Fix:** Created `public/favicon.svg` — clapperboard icon, sky-cyan gradient match app theme
+
+### 3. Keyframe Regenerate System — FIXED ✅ (termasuk pending #6)
+
+**Bug A — Regen guna scene SALAH (critical):**
+- Per-segment keyframe mode: imageUrls slot 0/1/2 = anchor scenes (e.g. scene 2, 4, 6)
+- `regenerateSingleVisual(index)` guna `scenes[index]` = scene 1, 2, 3 — SCENE SALAH, takde slot→scene mapping
+- Sebab tu regen keluar gambar sama/tak match cerita
+- **Fix:** New state `keyframeSceneMap` — mapping disimpan masa generate ('on' + 'segment' modes), regen guna scene sebenar. Timeline/all-scenes mode = map null (slot == scene).
+
+**Bug B — Regen takde story context:**
+- Prompt regen takde dialogue/action/emotion → generic standing pose
+- **Fix:** `[STORY BEAT]` (dialogue BM + expression match), `[ACTION]`, `[EMOTION]` dari scene data inject ke regen prompt
+
+**Bug C — Regen keluar gambar hampir sama:**
+- **Fix:** `[NEW TAKE — MUST DIFFER]` — regen WAJIB pose/gesture/framing berbeza, same person/outfit/location
+
+**Bug D — keyframeInfo confidence window mismatch:**
+- Badge confidence dikira dengan window approximation berbeza dari picker sebenar
+- **Fix:** `pickKeyframesPerSegmentInfo` — picker return sceneIdx + confidence + segment SEKALI (single source of truth). `pickKeyframeIndicesPerSegment` kekal sebagai wrapper (backward compat).
+
+**Pending #6 SETTLE — Stale confidence tag:**
+- Badge tag `· regenerated ×N` lepas setiap regen — counter increment, tak stale lagi
+
+### 4. Outfit + Background Fixes — Global Coverage Audit ✅
+- Audit confirmed: semua fix duduk kat SHARED layer (`fetchSingleImage`, `analyzeReferenceAssets`, `generateVisual`, global state)
+- Lock injection verified semua paths: generateNewMode (7 tabs), generateAllContent common, product, ootd, regen (inherit dari generatedOutput.identityBible)
+- **Pengecualian sengaja:** fake_influencer (ada sistem fiOutfit + fiBackground sendiri), character sheet (locks apply, jadi feature — outfit dropdown boleh style character sheet)
+
+### 5. Hijab Coordination — NEW FEATURE ✅
+- **Request:** Hijab style + color sesuaikan dengan outfit yang dipilih
+- **Implementation (3 layers, same pattern macam outfit fix):**
+  1. `OUTFIT_HIJAB_RULE` const — appended ke SEMUA 4 [OUTFIT LOCK] injection sites: hijab color dari palette outfit (tonal/complementary), wrap style ikut vibe (sporty snug/neat pinned/soft drape), muka KEKAL identical
+  2. Face reference label — hijab dalam reference = confirm "pakai hijab" sahaja, BUKAN lock color. Non-hijab model: copy rambut exactly
+  3. Analyzer — bila outfit locked, describe hijab yes/no SAHAJA (no color/fabric) — hijab color reference tak leak masuk storyboard text
+- Outfit "Auto" → hijab ikut reference macam biasa (zero regression)
+
+### Commits (2026-07-27 Part 2)
+| Commit | Description |
+|--------|-------------|
+| — | fix: scene count ladder sync (30s=6) + add missing favicon |
+| — | fix: keyframe regen slot-scene mapping + story context + forced variation + stale badge (#6) |
+| — | feat: hijab coordination — hijab color+style matches outfit lock palette, all tabs |
+
+## Current File State (2026-07-27 Part 2)
+- **Lines:** ~8640
+- **Build:** ✅ esbuild zero errors
+- **Keyframe regen:** ✅ Correct anchor scene + story context + forced variation
+- **Smart keyframe badge:** ✅ Single source of truth + regenerated ×N tag (#6 SETTLED)
+- **Hijab coordination:** ✅ Matches outfit palette, all tabs
+- **Scene ladder:** ✅ Synced (30s=6)
+- **Favicon:** ✅ Added
+
+## Pending Work (updated)
+1. Multi-angle product reference upload (cropped images, auto-select per scene)
+2. ~~Stale confidence tag selepas regenerate keyframe (#6)~~ — SETTLED 2026-07-27
+3. Narrative logic rules to remaining 6 tabs
