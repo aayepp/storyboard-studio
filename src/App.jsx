@@ -3098,7 +3098,22 @@ return parsed;
         ? `\n[BACKGROUND OVERRIDE — CRITICAL]: A BACKGROUND REFERENCE IMAGE is attached. You MUST use ONLY that location — ignore any environment description in the prompt that contradicts the reference image. The reference image defines the ONLY allowed space. Do NOT invent cafes, new rooms, outdoor areas, or any location not visible in the reference image.`
         : `\n[BACKGROUND LOCK]: Render the exact environment described in the prompt. Fill the frame with location, lighting, and props. Never collapse to pure white.`;
       const negBlock = `\nNEGATIVE: ${withEnvNegative(negative, allowWhiteStudio)}${motionGraphicsMode ? ', live-action influencer selfie, random human portrait, fashion photoshoot, hijab model stock photo, plain white canvas' : ''}`;
-      let fullPromptWithClean = `${customPrompt}${topicBlock}${bibleBlock}${envLock} ${handAnatomyLock} ${cleanImageInstruction}${negBlock}`;
+
+      // Strip outfit descriptions from scene image_prompt when outfit lock is active
+      const _outfitActive = !motionGraphicsMode && bibleBlock.includes('[OUTFIT LOCK]');
+      const _cleanedPrompt = _outfitActive
+        ? customPrompt
+            .replace(/wearing\s+[^,.]+[,.]?/gi, '')
+            .replace(/dressed\s+in\s+[^,.]+[,.]?/gi, '')
+            .replace(/(green|white|black|blue|red|pink|yellow|cream|beige|grey|gray|purple|brown|orange)\s+(top|shirt|blouse|dress|skirt|pants|jeans|tee|hoodie|jacket|blazer|cardigan|baju|kemeja|tudung|hijab|outfit|clothes|clothing)[^,.]*[,.]?/gi, '')
+            .replace(/\s{2,}/g, ' ').trim()
+        : customPrompt;
+
+      const _outfitOverride = _outfitActive
+        ? `\n[OUTFIT OVERRIDE — HIGHEST PRIORITY — MANDATORY]: IGNORE any clothing or outfit description in the scene prompt above. The outfit is LOCKED and MUST be exactly as defined in [OUTFIT LOCK] below. Do NOT use outfit from the reference image. Do NOT use outfit from the scene description. ONLY use the [OUTFIT LOCK] outfit.`
+        : '';
+
+      let fullPromptWithClean = `${_cleanedPrompt}${_outfitOverride}${topicBlock}${bibleBlock}${envLock} ${handAnatomyLock} ${cleanImageInstruction}${negBlock}`;
 
       let parts = [{ text: `${ratioDirective}\n\nPROMPT: ${fullPromptWithClean}` }];
 
