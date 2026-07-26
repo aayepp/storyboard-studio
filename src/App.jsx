@@ -2951,24 +2951,32 @@ const CHANGELOG = [
     const hasFace = !!(activeUploadData.useCustomFace && activeUploadData.uploadedFaceBase64);
     if (!activeProducts.length && !hasFace && !activeBackgrounds.length) return '';
 
+    // ponytail: outfit dropdown picked → analyzer must NOT see or describe reference outfit,
+    // otherwise outfit leaks into identityBible as TEXT and every scene prompt inherits it
+    const _outfitLocked = outfitStyle !== 'auto';
+
     const parts = [{
       text: `You are a production continuity supervisor. Analyze the attached reference image(s) for multi-scene storyboard consistency.
 Return plain text bullets only (no JSON), 5-10 short concrete bullets covering:
 - subject type (person / product / outfit)
 - dominant colors and materials — EXACT colors only, no approximations
 - packaging shape / logo colors if product — describe ONLY what is visible
-- clothing style if person — describe ONLY what is visible in the image
+${_outfitLocked ? '- clothing: SKIP ENTIRELY — do NOT describe, mention, or reference any clothing/outfit/attire of the person. The outfit is locked separately and MUST NOT appear in your analysis.' : '- clothing style if person — describe ONLY what is visible in the image'}
 - face traits if face present (age vibe, hair/hijab, expression baseline)
 - exact environment/background details to lock (if background references are provided)
 CRITICAL: Only describe what is ACTUALLY VISIBLE in the reference. Do NOT infer, assume, or add details not shown. If you cannot see it clearly, say "not visible". Be visual and specific. English only.`
     }];
 
     if (hasFace) {
-      parts.push({ text: '=== FACE REFERENCE ===' });
+      // ponytail: reuse cropFaceTop — analyzer only sees head+shoulders when outfit locked
+      const _faceRef = _outfitLocked
+        ? await cropFaceTop(activeUploadData.uploadedFaceBase64, activeUploadData.uploadedFaceMimeType)
+        : { data: activeUploadData.uploadedFaceBase64, mime: activeUploadData.uploadedFaceMimeType || 'image/jpeg' };
+      parts.push({ text: _outfitLocked ? '=== FACE REFERENCE (HEAD+SHOULDERS — face/hair traits only) ===' : '=== FACE REFERENCE ===' });
       parts.push({
         inlineData: {
-          mimeType: activeUploadData.uploadedFaceMimeType || 'image/jpeg',
-          data: activeUploadData.uploadedFaceBase64
+          mimeType: _faceRef.mime,
+          data: _faceRef.data
         }
       });
     }
