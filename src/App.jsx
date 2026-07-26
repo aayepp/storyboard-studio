@@ -4200,8 +4200,8 @@ Keep the subject person, face reference, background layout, and clothes identica
       }
 
       const finalBible = parsed.identity_bible
-        ? `${identityBible}\nModel lock: ${parsed.identity_bible}`
-        : identityBible;
+        ? `${finalIdentityBible}\nModel lock: ${parsed.identity_bible}`
+        : finalIdentityBible;
 
       const gfNeg = withEnvNegative(`${DEFAULT_NEGATIVE}, live-action influencer, random portrait, fashion model, unrelated stock photo`, false);
       parsed.scenes = (parsed.scenes || []).map((s, idx) => normalizeScene(s, idx, aspectRatio, {
@@ -4451,7 +4451,12 @@ CAMERA SYSTEM: Ultra-stable static tripod shot.`;
         result.duration = `${productTotalSec}s`;
         result.selectedDurationSec = productTotalSec;
         promptInputForAI = locked.map(s => s.image_prompt || s.visual || '');
-        const finalBible = buildIdentityBible({ mode: 'product', productName: safeProductName, category: effectiveCategory, gender, hijabMode, environment: productBackground, style: energyLevel, assetAnalysis });
+        const _productBible = buildIdentityBible({ mode: 'product', productName: safeProductName, category: effectiveCategory, gender, hijabMode, environment: productBackground, style: energyLevel, assetAnalysis });
+        const _productBgData = bgTheme !== 'auto' ? BACKGROUND_THEMES.find(o => o.v === bgTheme) : null;
+        const _productOutfitData = outfitStyle !== 'auto' ? OUTFIT_THEMES.find(o => o.v === outfitStyle) : null;
+        const finalBible = _productBible
+          + (_productBgData ? `\n\n[BACKGROUND THEME LOCK]\nBackground environment for ALL scenes: ${_productBgData.desc}\nDo NOT use any other background type.` : '')
+          + (_productOutfitData ? `\n\n[OUTFIT LOCK]\nThe model/presenter MUST wear this outfit in ALL scenes: ${_productOutfitData.desc}` : '');
         const negatives = locked.map(s => withEnvNegative(s.negative || DEFAULT_NEGATIVE, false));
         await generateVisual(promptInputForAI, false, aspectRatio, locked.length, {
           identityBible: finalBible, useContinuity: true, concurrency: 2, negatives,
@@ -4480,7 +4485,12 @@ CAMERA SYSTEM: Ultra-stable static tripod shot.`;
         result.duration = `${ootdTotalSec}s`;
         result.selectedDurationSec = ootdTotalSec;
         promptInputForAI = locked.map(s => s.image_prompt || s.visual || '');
-        const finalBible = buildIdentityBible({ mode: 'ootd', productName: safeProductName, category: effectiveCategory, gender, hijabMode, environment: location, style, assetAnalysis });
+        const _ootdBible = buildIdentityBible({ mode: 'ootd', productName: safeProductName, category: effectiveCategory, gender, hijabMode, environment: location, style, assetAnalysis });
+        const _ootdBgData = bgTheme !== 'auto' ? BACKGROUND_THEMES.find(o => o.v === bgTheme) : null;
+        const _ootdOutfitData = outfitStyle !== 'auto' ? OUTFIT_THEMES.find(o => o.v === outfitStyle) : null;
+        const finalBible = _ootdBible
+          + (_ootdBgData ? `\n\n[BACKGROUND THEME LOCK]\nBackground environment for ALL scenes: ${_ootdBgData.desc}\nDo NOT use any other background type.` : '')
+          + (_ootdOutfitData ? `\n\n[OUTFIT LOCK]\nThe model/presenter MUST wear this outfit in ALL scenes: ${_ootdOutfitData.desc}` : '');
         const negatives = locked.map(s => withEnvNegative(s.negative || DEFAULT_NEGATIVE, false));
         await generateVisual(promptInputForAI, false, aspectRatio, locked.length, {
           identityBible: finalBible, useContinuity: true, concurrency: 2, negatives,
