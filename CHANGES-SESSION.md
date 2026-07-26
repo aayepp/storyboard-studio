@@ -935,3 +935,68 @@ src/App.jsx
 
 ### Auto-log: 2026-07-26 13:15 (branch: main)
 **Files changed:** src/App.jsx
+
+---
+
+## Session Changes — 2026-07-27
+
+### 1. Outfit + Background Dropdown Fix (4-Layer Leak) — FIXED ✅
+
+**Problem:** User pilih outfit/background dari dropdown, tapi AI generate ikut outfit dalam gambar face reference model. Background pun kadang tak apply.
+
+**Root causes (4 leaks, fixed dalam order penemuan):**
+
+**Leak 1 — Auto-detect overwrite manual selection (MASTER BUG):**
+- useEffect auto-detect fire setiap kali user type dalam topic field
+- `setBgTheme(detectBgTheme(topic))` overwrite pilihan dropdown user secara senyap
+- Locks tak pernah masuk identityBible sebab value dah reset sebelum generate
+- **Fix:** `bgThemeManualRef` + `outfitManualRef` — user pilih dari dropdown = auto-detect DILARANG overwrite. Pilih balik "Auto" = auto-detect on semula.
+
+**Leak 2 — Background theme takde override kat image level:**
+- Outfit ada `[OUTFIT OVERRIDE]` dalam fetchSingleImage, background theme takde langsung
+- **Fix:** `_bgThemeActive` check + `[BACKGROUND THEME OVERRIDE — HIGHEST PRIORITY]` + prepend theme lock kat top prompt (sama pattern macam outfit)
+
+**Leak 3 — Image pixels kalahkan text instruction:**
+- Face reference ada full outfit dalam pixels — model copy baju walaupun text kata ignore
+- **Fix:** `cropFaceTop()` helper (browser canvas, zero API cost) — outfit lock active → crop reference kepada kepala+bahu je sebelum hantar. Model tak boleh copy apa yang dia tak nampak.
+- Portrait detection: h < w×1.25 = headshot, passthrough. Crop fail = fallback original.
+
+**Leak 4 — Outfit bocor jadi TEXT melalui analyzer (PALING LICIK):**
+- `analyzeReferenceAssets` hantar gambar FULL + suruh describe "clothing style if person"
+- Outfit description masuk `assetAnalysis` → inject ke SEMUA storyboard prompts (8+ tempat)
+- Storyboard AI tulis image_prompt setiap scene dengan outfit baked in as text
+- Crop kat image-gen level useless sebab outfit dah jadi ayat dalam prompt
+- **Fix:** Bila outfit lock active — analyzer terima gambar cropped (reuse cropFaceTop) + instruction tukar "clothing: SKIP ENTIRELY — do NOT describe any clothing"
+
+**Complete protection chain (4 layers):**
+1. Dropdown value protected (manual ref) ✅
+2. Analyzer tak nampak/describe outfit ✅
+3. Image-gen terima cropped face ✅
+4. Text overrides + regex strip as safety net ✅
+
+**Other fixes dalam session sama:**
+- Face ref label — outfit exclusion sebelah image (instruction beside image = more reliable)
+- `[CONTINUITY ANCHOR]` — WARDROBE EXCEPTION bila outfit lock active ([OUTFIT LOCK] wins over continuity frame clothing)
+
+**Lesson learned:** Image model tak boleh dilawan dengan text je — kena buang source dari PIXELS + dari TEXT.
+
+**Verified:** Tested dengan real user reference image (2160×3840 portrait) — crop preserve muka+hijab, buang baju+skirt. User confirmed fixed dalam production.
+
+### Commits (2026-07-27)
+| Commit | Description |
+|--------|-------------|
+| — | fix: dropdown manual pick never overwritten by auto-detect + bg theme override in image gen |
+| — | fix: crop face reference to head+shoulders when outfit lock active |
+| — | fix: outfit leak via assetAnalysis text — analyzer gets cropped face + skip clothing when outfit locked |
+
+## Current File State (2026-07-27)
+- **Lines:** ~8570
+- **Build:** ✅ esbuild zero errors
+- **Outfit dropdown:** ✅ 100% overrides face reference outfit
+- **Background dropdown:** ✅ Overrides scene descriptions + reference backgrounds
+- **Manual dropdown picks:** ✅ Protected from auto-detect overwrite
+
+## Pending Work (carried forward)
+1. Multi-angle product reference upload (cropped images, auto-select per scene)
+2. Stale confidence tag selepas regenerate keyframe (#6)
+3. Narrative logic rules to remaining 6 tabs
