@@ -2115,9 +2115,9 @@ const getStoredGenerateMode = () => {
 
 const getStoredKeyframeMode = () => {
   try {
-    const v = localStorage.getItem('keyframe_mode') || 'on';
+    const v = localStorage.getItem('keyframe_mode') || 'segment';
     // Valid modes: 'off' (0 img), 'on' (1 smart keyframe), 'segment' (1 per Flow segment)
-    return ['off', 'on', 'segment'].includes(v) ? v : 'on';
+    return ['off', 'on', 'segment'].includes(v) ? v : 'segment';
   } catch { return 'on'; }
 };
 const getStoredTimelineMode = () => {
@@ -2630,7 +2630,7 @@ I2V: ${s.i2v_prompt || ''}`
   const [bgTheme, setBgTheme] = useState('auto');
   const [outfitStyle, setOutfitStyle] = useState('auto');
 
-  // Auto-detect background theme + outfit when tab changes
+  // Auto-detect background theme + outfit when tab OR topic changes
   useEffect(() => {
     const topicMap = {
       cinematic_pro: cinematicTopic, microimpact: microImpactTopic,
@@ -2640,16 +2640,21 @@ I2V: ${s.i2v_prompt || ''}`
       ootd: productName, character: productName, fake_influencer: productName,
     };
     const topic = topicMap[activeTab] || '';
-    setBgTheme(detectBgTheme(topic));
-    setOutfitStyle(detectOutfitStyle(topic));
-  }, [activeTab]); // ponytail: tab change only — user can still override manually
+    if (topic.trim().length > 3) {
+      setBgTheme(detectBgTheme(topic));
+      setOutfitStyle(detectOutfitStyle(topic));
+    }
+  }, [activeTab, cinematicTopic, microImpactTopic, narrativeArcTopic, thTopic, smProduct, gfTopic, productName]);
 
   const [apiKey, setApiKey] = useState(getStoredApiKey);
   const [genfityKey, setGenfityKey] = useState(getStoredGenfityKey);
   const [textProvider, setTextProvider] = useState(getStoredTextProvider);
   const [generateMode, setGenerateMode] = useState(getStoredGenerateMode);
-  const [keyframeMode, setKeyframeMode] = useState('off'); // Off — timeline auto-generates all scenes
-  const [timelineMode, setTimelineMode] = useState('on'); // Force ON — auto generate 1 image per scene
+  const [keyframeMode, setKeyframeMode] = useState(getStoredKeyframeMode); // Default: segment
+  const [timelineMode, setTimelineMode] = useState(() => {
+    const km = getStoredKeyframeMode();
+    return km === 'off' ? 'on' : 'off';
+  });
   const [genfityModel, setGenfityModel] = useState(getStoredGenfityModel);
   const [showApiKeyInput, setShowApiKeyInput] = useState(!getStoredApiKey());
   const [showProviderPanel, setShowProviderPanel] = useState(false);
