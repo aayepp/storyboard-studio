@@ -508,14 +508,14 @@ const normalizeStoryboardPayload = (parsed) => {
   // Handle array at root
   if (Array.isArray(data)) {
     data = { title: '🎬 Papan Cerita Storyboard', duration: 'Kustom', style: 'Auto', scenes: data };
-  } else if (data && !data.scenes) {
-    // Try to find scenes under any array key
+  } else if (data && (!data.scenes || (Array.isArray(data.scenes) && data.scenes.length === 0))) {
+    // Try to find scenes under any array key with scene_num field
     const arrayKey = Object.keys(data).find((k) => Array.isArray(data[k]) && data[k].length > 0 && data[k][0]?.scene_num !== undefined);
     if (arrayKey) {
       data = { ...data, scenes: data[arrayKey] };
     } else {
-      // Try any array key as fallback
-      const anyArrayKey = Object.keys(data).find((k) => Array.isArray(data[k]));
+      // Try any non-empty array key as fallback
+      const anyArrayKey = Object.keys(data).find((k) => Array.isArray(data[k]) && data[k].length > 0);
       if (anyArrayKey) data = { ...data, scenes: data[anyArrayKey] };
     }
   }
@@ -3000,7 +3000,10 @@ return parsed;
     } catch (err) {
       if (err.name === 'AbortError') throw err;
       setLoadingText('Repairing storyboard JSON structure...');
-      return await runOnce(err.message || 'Invalid storyboard JSON');
+      const repairMsg = err.message?.includes('Missing scenes array')
+        ? `Your previous response was missing the "scenes" array. You MUST return a valid JSON object with a "scenes" array containing exactly ${expectedCount} scene objects. Each scene MUST have: scene_num, visual, camera, action, emotion, dialogue, i2v_prompt, image_prompt, negative, timecode. Return ONLY the raw JSON object, no markdown, no explanation.`
+        : (err.message || 'Invalid storyboard JSON');
+      return await runOnce(repairMsg);
     }
   };
 
