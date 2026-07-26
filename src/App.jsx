@@ -3645,6 +3645,16 @@ return parsed;
         motionGraphicsMode,
         topicLock
       });
+
+      // Smart Keyframe: pick best scene as identity anchor (badge display only — all scenes still get images)
+      if (timelineMode === 'on' && !isRegenerate && keyframeScenes?.length > 0) {
+        try {
+          const pick = pickBestKeyframe(keyframeScenes);
+          const safeIdx = Math.min(pick.index, promptsToRun.length - 1);
+          setKeyframeInfo([{ scene: safeIdx + 1, confidence: pick.confidence, reason: pick.reason, isAnchor: true }]);
+          console.log(`Smart Keyframe anchor: Scene ${safeIdx + 1} (${pick.confidence}% — ${pick.reason})`);
+        } catch {}
+      }
       if (useContinuity && runLimit >= 3 && Array.isArray(promptInput)) {
         setLoadingText(isRegenerate ? 'Generating Hero Frame (Scene 1)...' : 'Generating Continuity Hero Frame...');
         try {
@@ -6782,12 +6792,12 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                              0{index + 1}
                            </div>
                            <div className="flex items-center gap-2 flex-wrap">
-                             {timelineMode !== 'on' && keyframeMode !== 'off' && (
+                             {keyframeInfo[index] && (
                                <span className="px-2 py-0.5 rounded-md bg-amber-500 text-white text-[9px] font-black uppercase tracking-widest shadow-sm flex items-center gap-1">
                                  <I name="Zap" size={10} /> Keyframe
                                </span>
                              )}
-                             {timelineMode !== 'on' && keyframeMode !== 'off' && keyframeInfo[index] && (
+                             {keyframeInfo[index] && (
                                <span className={`px-2 py-0.5 rounded-md text-[9px] font-bold ${keyframeInfo[index].confidence >= 75 ? 'bg-green-500/20 text-green-400' : keyframeInfo[index].confidence >= 55 ? 'bg-amber-500/20 text-amber-400' : 'bg-red-500/20 text-red-400'}`}>
                                  Scene {keyframeInfo[index].scene} · {keyframeInfo[index].confidence}% · {keyframeInfo[index].reason}
                                </span>
