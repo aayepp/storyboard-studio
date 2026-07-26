@@ -3151,7 +3151,9 @@ return parsed;
       
       if (!motionGraphicsMode && activeUploadData.useCustomFace && activeUploadData.uploadedFaceBase64) {
         parts[0].text += "\n\n[MANDATORY BIOMETRIC FACE LOCK — SUBJECT ONLY]: Extract ONLY the person/subject from the attached FACE REFERENCE IMAGE. Copy: face structure, skin tone, hair, body proportions EXACTLY.\n[OUTFIT OVERRIDE — CRITICAL]: DO NOT copy the outfit/clothing from the reference image. The outfit is defined by the [OUTFIT LOCK] instruction above — use THAT outfit instead.\n[BACKGROUND IGNORE RULE — CRITICAL]: The background in the reference image is IRRELEVANT. DO NOT use, copy, or reference the background from this image. The background will be set by the scene description and environment instructions ONLY. Render the subject against the scene's stated environment, NOT the reference image's background.";
-        parts.push({ text: "=== FACE REFERENCE IMAGE (SUBJECT ONLY — IGNORE BACKGROUND) ===" });
+        parts.push({ text: _outfitActive
+          ? "=== FACE REFERENCE IMAGE (FACE/HAIR/SKIN ONLY — IGNORE OUTFIT AND BACKGROUND) ===\n[STRICT]: Copy ONLY face structure, skin tone, and hair from this image. The clothing/outfit in this image is FORBIDDEN — the subject wears the [OUTFIT LOCK] outfit stated at the top of the prompt instead. Ignore this image's background too."
+          : "=== FACE REFERENCE IMAGE (SUBJECT ONLY — IGNORE BACKGROUND) ===" });
         parts.push({ inlineData: { mimeType: activeUploadData.uploadedFaceMimeType || "image/jpeg", data: activeUploadData.uploadedFaceBase64 } });
       }
 
@@ -3186,6 +3188,8 @@ return parsed;
         const base64Data = continuityDataUrl.split(',')[1];
         parts[0].text += motionGraphicsMode
           ? "\n\n[CONTINUITY ANCHOR — GRAFIX]: Match the SAME motion-graphics style, color palette, type treatment, and topic branding as the CONTINUITY FRAME. New scene layout/animation pose is OK; do not switch to unrelated live-action people."
+          : _outfitActive
+          ? "\n\n[CONTINUITY ANCHOR]: Match the SAME person, face, product, color grade, AND background environment/location as the CONTINUITY FRAME. Keep the same room, lighting, props, and setting. Only change camera angle/pose/action as requested. WARDROBE EXCEPTION: the outfit follows the [OUTFIT LOCK] instruction, NOT the continuity frame's clothing — if they differ, [OUTFIT LOCK] wins."
           : "\n\n[CONTINUITY ANCHOR]: Match the SAME person, face, wardrobe, product, color grade, AND background environment/location as the CONTINUITY FRAME. Keep the same room, lighting, props, and setting. Only change camera angle/pose/action as requested.";
         parts.push({ text: motionGraphicsMode ? "=== CONTINUITY FRAME (STYLE LOCK) ===" : "=== CONTINUITY FRAME (HERO LOCK) ===" });
         parts.push({ inlineData: { mimeType: mimeType || 'image/jpeg', data: base64Data } });
