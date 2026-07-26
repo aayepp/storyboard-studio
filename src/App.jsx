@@ -2115,10 +2115,14 @@ const getStoredGenerateMode = () => {
 
 const getStoredKeyframeMode = () => {
   try {
-    const v = localStorage.getItem('keyframe_mode') || 'segment';
-    // Valid modes: 'off' (0 img), 'on' (1 smart keyframe), 'segment' (1 per Flow segment)
+    const v = localStorage.getItem('keyframe_mode');
+    // Migration: old default was 'off', force 'segment' for new default
+    if (!v || v === 'off') {
+      localStorage.setItem('keyframe_mode', 'segment');
+      return 'segment';
+    }
     return ['off', 'on', 'segment'].includes(v) ? v : 'segment';
-  } catch { return 'on'; }
+  } catch { return 'segment'; }
 };
 const getStoredTimelineMode = () => {
   try { return localStorage.getItem('timeline_mode') || 'off'; } catch { return 'off'; }
@@ -3085,7 +3089,7 @@ return parsed;
         : " [MANDATORY PHYSICS: Flawless hand anatomy. ORIENTATION LOCK: All held objects, products, devices, screens, and text MUST be in correct upright orientation — NEVER mirrored, flipped, or upside down. Buttons, logos, and screens must face the viewer correctly. CONTROL LAYOUT LOCK: For any device with controls (gaming console, handheld, remote, controller), the button/joystick/D-pad layout MUST stay physically consistent and correct — LEFT-side controls stay on the LEFT, RIGHT-side controls stay on the RIGHT, never swapped or mirrored. The brand logo must read correctly (not reversed). When held by a person, the device is oriented the natural way a real user would hold it — not rotated 180 degrees, not upside down. Fingers grip the ergonomic grips naturally, thumbs rest on the correct top-facing controls.]";
       const bibleBlock = identityBible ? `\n${identityBible}\n` : '';
       const topicBlock = topicLock
-        ? `\n[TOPIC LOCK — MANDATORY]: This image MUST visually represent: "${topicLock}". Do not replace with unrelated people or scenes.\n`
+        ? `\n[TOPIC LOCK — MANDATORY]: This image MUST visually represent: "${topicLock}". Do not replace with unrelated people or scenes.\n[DEMO INSTRUCTION]: Show the subject ACTIVELY DOING or DEMONSTRATING something related to "${topicLock}" — e.g. using a product, performing an action, showing a result. Prioritise action/demo over plain portrait. Face-only close-up is ONLY allowed if the scene specifically calls for it.\n`
         : '';
       const hasBackgroundRef = activeBackgrounds.length > 0;
       const envLock = allowWhiteStudio
