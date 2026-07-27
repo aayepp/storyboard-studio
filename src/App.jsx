@@ -3811,6 +3811,17 @@ return parsed;
     updateTabUpload('faces', []);
   };
 
+  // ponytail: edit one scene's dialogue in place — generatedOutput is the single source
+  // of truth, so segment prompts + JSON + copy all rebuild automatically on next render
+  const handleSceneDialogueEdit = (sceneNum, newDialogue) => {
+    setGeneratedOutput(prev => {
+      if (!prev) return prev;
+      const key = prev.scenes ? 'scenes' : prev.productScenes ? 'productScenes' : prev.ootdScenes ? 'ootdScenes' : null;
+      if (!key) return prev;
+      return { ...prev, [key]: prev[key].map(sc => sc.scene_num === sceneNum ? { ...sc, dialogue: newDialogue } : sc) };
+    });
+  };
+
   const toggleImageZoom = (index) => {
     setZoomedImages(prev => ({ ...prev, [index]: !prev[index] }));
   };
@@ -7979,8 +7990,50 @@ RULES:
                                         className="w-full rounded-lg px-3 py-2 text-[11px] font-mono resize-none focus:outline-none focus:ring-1 focus:ring-sky-400 border bg-sky-950/20 border-pink-900/30 text-pink-200"
                                       />
                                     ) : (
-                                      <div className="whitespace-pre-wrap text-[11px] font-medium leading-relaxed italic text-sky-300 bg-sky-950/20 border border-pink-900/30 rounded-lg p-3">
-                                        {currentDialogueVal || '(No dialogue for this segment)'}
+                                      <div className="space-y-0 bg-sky-950/20 border border-pink-900/30 rounded-lg p-3">
+                                        {segScenes.length ? segScenes.map((sc, sIdx) => {
+                                          const eng = String(sc.energy_level || '').toUpperCase();
+                                          const engColor = eng === 'PEAK' ? 'bg-pink-500' : eng === 'HIGH' ? 'bg-amber-400' : eng === 'LOW' ? 'bg-purple-400' : 'bg-sky-400';
+                                          const dlgKey = `scene_dlg_edit_${sc.scene_num}`;
+                                          const isDlgEdit = editModes[dlgKey];
+                                          return (
+                                            <div key={sc.scene_num}>
+                                              <div className="flex items-start gap-2.5 py-1.5">
+                                                <div className="flex flex-col items-center shrink-0 pt-0.5">
+                                                  <span className="w-6 h-6 rounded-full bg-sky-500/20 border border-sky-500/40 text-sky-300 text-[10px] font-black flex items-center justify-center">{sc.scene_num}</span>
+                                                  {sIdx < segScenes.length - 1 && <span className="w-px flex-1 min-h-[14px] bg-sky-800/60 mt-1"></span>}
+                                                </div>
+                                                <div className="min-w-0 flex-1">
+                                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                                    <span className="text-[9px] font-black text-sky-500">{sc.timecode}</span>
+                                                    {sc.camera && <span className="text-[8px] px-1.5 py-0.5 rounded bg-sky-900/50 text-sky-400 font-bold uppercase">{sc.camera}</span>}
+                                                    {eng && <span className={`w-1.5 h-1.5 rounded-full ${engColor}`} title={`Energy: ${eng}`}></span>}
+                                                    <button onClick={() => toggleEditBoxMode(dlgKey)} className="text-[8px] px-1 rounded text-sky-600 hover:text-sky-300" title="Edit dialog scene ini">✏️</button>
+                                                  </div>
+                                                  {isDlgEdit ? (
+                                                    <input
+                                                      autoFocus
+                                                      defaultValue={sc.dialogue || ''}
+                                                      onBlur={(e) => { handleSceneDialogueEdit(sc.scene_num, e.target.value); toggleEditBoxMode(dlgKey); }}
+                                                      onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
+                                                      className="w-full mt-0.5 rounded px-2 py-1 text-[11px] font-mono bg-sky-950/40 border border-sky-700/50 text-pink-200 focus:outline-none focus:ring-1 focus:ring-sky-400"
+                                                      placeholder="(kosong = visual only)"
+                                                    />
+                                                  ) : sc.dialogue ? (
+                                                    <p className="text-[11px] italic font-medium text-pink-200 leading-snug mt-0.5">“{sc.dialogue}”</p>
+                                                  ) : (
+                                                    <p className="text-[10px] text-sky-700 mt-0.5">— visual only —</p>
+                                                  )}
+                                                  {sc.bridge_to_next && sIdx < segScenes.length - 1 && (
+                                                    <p className="text-[8px] text-sky-600 mt-0.5">↳ {sc.bridge_to_next}</p>
+                                                  )}
+                                                </div>
+                                              </div>
+                                            </div>
+                                          );
+                                        }) : (
+                                          <p className="text-[11px] italic text-sky-300">(No dialogue for this segment)</p>
+                                        )}
                                       </div>
                                     )}
                                   </div>
