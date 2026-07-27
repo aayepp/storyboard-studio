@@ -316,6 +316,54 @@ const verifyDialogueContinuity = (scenes) => {
   return { ok: issues.length === 0, issues };
 };
 
+// ponytail: post-gen story validator — scan scenes for common bugs (word cap, energy curve, repeats, continuity)
+const runStoryValidator = (scenes, totalSec) => {
+  if (!Array.isArray(scenes) || !scenes.length) return [];
+  const issues = [];
+  const secPerScene = totalSec / scenes.length;
+
+  // Check 1: Word cap exceeded per scene
+  scenes.forEach((scene, i) => {
+    const dialogue = String(scene.dialogue || '').trim();
+    if (!dialogue) return;
+    const words = dialogue.split(/\s+/).length;
+    const tcMatch = String(scene.timecode || '').match(/(\d+\.?\d*)s[\s\u2013-]+(\d+\.?\d*)s/);
+    const sceneSec = tcMatch ? parseFloat(tcMatch[2]) - parseFloat(tcMatch[1]) : secPerScene;
+    const maxWords = Math.floor(sceneSec * 2.5);
+    if (maxWords > 0 && words > maxWords) {
+      issues.push({ scene: scene.scene_num || (i + 1), type: 'word_cap', msg: `Scene ${scene.scene_num || (i + 1)}: ${words} kata tapi max ${maxWords} (${sceneSec.toFixed(1)}s × 2.5 w/s) — dialogue terlalu panjang` });
+    }
+  });
+
+  // Check 2: PEAK energy must only be on last scene
+  const hasEnergyFields = scenes.some(s => s.energy_level);
+  if (hasEnergyFields) {
+    scenes.forEach((scene, i) => {
+      const energy = String(scene.energy_level || '').toUpperCase();
+      if (energy === 'PEAK' && i < scenes.length - 1) {
+        issues.push({ scene: scene.scene_num || (i + 1), type: 'energy', msg: `Scene ${scene.scene_num || (i + 1)}: PEAK energy bukan di scene terakhir — climax bocor awal` });
+      }
+    });
+  }
+
+  // Check 3: Exact duplicate dialogue across scenes
+  const seenDlg = new Set();
+  scenes.forEach((scene, i) => {
+    const d = String(scene.dialogue || '').trim().toLowerCase().replace(/[^\w\s]/g, '').trim();
+    if (d.length < 8) return;
+    if (seenDlg.has(d)) {
+      issues.push({ scene: scene.scene_num || (i + 1), type: 'repeat', msg: `Scene ${scene.scene_num || (i + 1)}: dialog berulang exact dari scene sebelum` });
+    }
+    seenDlg.add(d);
+  });
+
+  // Check 4: Dialogue continuity (reuse existing checker — dangling questions, fillers, semantic jump)
+  const continuity = verifyDialogueContinuity(scenes);
+  continuity.issues.forEach(msg => issues.push({ scene: null, type: 'continuity', msg }));
+
+  return issues;
+};
+
 const HOOK_ANGLES = [
   'QUESTION HOOK: Open with a bold provocative question that makes the viewer unable to scroll away.',
   'CONTROVERSY HOOK: Start with a contrarian opinion or unexpected take that challenges common belief.',
@@ -2719,7 +2767,15 @@ I2V: ${s.i2v_prompt || ''}`
 
 const CHANGELOG = [
   {
-    version: 'v2.8', date: '26 Jul 2026', isNew: true,
+    version: 'v2.9', date: '27 Jul 2026', isNew: true,
+    changes: [
+      'feat: post-gen story validator — auto-scan scenes after generate',
+      'feat: validator checks word cap, PEAK energy, duplicate dialogue, continuity',
+      'feat: validator panel with dismiss, colour-coded badges per issue type',
+    ]
+  },
+  {
+    version: 'v2.8', date: '26 Jul 2026', isNew: false,
     changes: [
       'feat: background theme dropdown — 16 options, auto-detect from topic',
       'feat: outfit style dropdown — 11 options, auto-detect from topic',
@@ -2917,6 +2973,8 @@ const CHANGELOG = [
 
   // Skeleton loading slots
   const [skeletonCount, setSkeletonCount] = useState(0);
+  const [storyIssues, setStoryIssues] = useState([]);
+  const [storyIssuesDismissed, setStoryIssuesDismissed] = useState(false);
 
   const handleSaveApiKey = (key) => {
     setApiKey(key);
@@ -3382,6 +3440,16 @@ return parsed;
     }
     handleTabsScroll();
   }, [activeTab]);
+
+  // ponytail: auto-run story validator whenever generatedOutput changes
+  useEffect(() => {
+    if (!generatedOutput) { setStoryIssues([]); return; }
+    const scenes = generatedOutput.scenes || generatedOutput.productScenes || generatedOutput.ootdScenes || [];
+    const totalSec = parseDurationToSeconds(generatedOutput.duration) || 30;
+    const issues = runStoryValidator(scenes, totalSec);
+    setStoryIssues(issues);
+    setStoryIssuesDismissed(false);
+  }, [generatedOutput]);
 
   const handleTabsScroll = () => {
     if (tabsContainerRef.current) {
@@ -8047,6 +8115,39 @@ RULES:
                   </div>
                 );
               })()}
+
+              {/* === STORY VALIDATOR PANEL === */}
+              {generatedOutput && storyIssues.length > 0 && !storyIssuesDismissed && (
+                <div className={`rounded-2xl border px-5 py-4 mb-2 animate-fade-in ${t('bg-amber-950/30 border-amber-500/30', 'bg-amber-50 border-amber-200')}`}>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className={`text-[11px] font-black uppercase tracking-widest flex items-center gap-1.5 ${t('text-amber-400', 'text-amber-600')}`}>
+                      ⚠️ Story Validator — {storyIssues.length} isu dijumpai
+                    </span>
+                    <button
+                      onClick={() => setStoryIssuesDismissed(true)}
+                      className={`text-[10px] px-2 py-1 rounded font-bold transition-colors ${t('text-gray-500 hover:text-gray-300', 'text-gray-400 hover:text-gray-600')}`}
+                    >✕ Dismiss</button>
+                  </div>
+                  <div className="space-y-1.5">
+                    {storyIssues.map((issue, idx) => {
+                      const typeColor = issue.type === 'word_cap' ? t('text-red-400', 'text-red-600')
+                        : issue.type === 'energy' ? t('text-purple-400', 'text-purple-600')
+                        : issue.type === 'repeat' ? t('text-orange-400', 'text-orange-600')
+                        : t('text-yellow-400', 'text-yellow-600');
+                      const typeBadge = issue.type === 'word_cap' ? '📏 Word Cap'
+                        : issue.type === 'energy' ? '⚡ Energy'
+                        : issue.type === 'repeat' ? '🔁 Repeat'
+                        : '🔗 Continuity';
+                      return (
+                        <div key={idx} className={`flex items-start gap-2 text-[11px] ${t('text-gray-300', 'text-gray-700')}`}>
+                          <span className={`shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded mt-0.5 ${t('bg-gray-800', 'bg-gray-100')} ${typeColor}`}>{typeBadge}</span>
+                          <span className="leading-snug">{issue.msg}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {generatedOutput && (
                 <div className={`rounded-3xl p-8 sm:p-12 relative overflow-hidden shadow-xl border transition-all duration-300 ${t('bg-[#11131a] border-gray-800', 'bg-white border-pink-50')}`}>

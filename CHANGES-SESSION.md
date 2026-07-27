@@ -1190,3 +1190,32 @@ src/App.jsx
 2. Optional: 45s/60s → 3.3s clips (one line in sceneLadder)
 3. Optional: post-gen story validator + auto-repair
 4. Optional: auto-select product angle per scene (only if manual labelling proves insufficient)
+
+---
+
+## Session Changes — 2026-07-27 (Part 6)
+
+### 1. Post-Gen Story Validator — NEW FEATURE ✅
+- **`runStoryValidator(scenes, totalSec)`** — pure function, runs 4 checks:
+  1. **📏 Word Cap** — per-scene word count vs 2.5 w/s × scene duration from timecode
+  2. **⚡ Energy** — PEAK energy_level must only be on last scene
+  3. **🔁 Repeat** — exact duplicate dialogue across scenes
+  4. **🔗 Continuity** — reuses existing `verifyDialogueContinuity` (dangling questions, filler overuse, semantic jump)
+- **`storyIssues` state + useEffect** — auto-runs validator every time `generatedOutput` changes, resets dismissed state
+- **Validator panel UI** — amber panel above output section, colour-coded badges per issue type, dismiss button
+- Zero extra API calls — pure client-side scan
+
+### Commits (2026-07-27 Part 6)
+| Commit | Description |
+|--------|-------------|
+| — | feat: post-gen story validator — word cap, energy, repeat, continuity checks |
+
+## Current File State (2026-07-27 Part 6)
+- **Lines:** ~8920
+- **Build:** ✅ esbuild zero errors
+- **Story Validator:** ✅ Auto-runs post-generate, 4 check types, dismissible panel
+
+## Pending Work (updated)
+1. TEST PHASE: generate full videos with multi-angle ROG Ally + gaming room theme
+2. Optional: 45s/60s → 3.3s clips
+3. Optional: auto-select product angle per scene
