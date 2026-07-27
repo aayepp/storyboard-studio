@@ -2776,6 +2776,7 @@ const CHANGELOG = [
       'feat: scene drag/drop reorder in Script Timeline — timecodes auto-recalculate',
       'fix: dialogue Re-Gen syncs per-scene back to generatedOutput.scenes',
       'fix: gender default auto-select Female (Wanita)',
+      'fix: Re-Gen dialogue syncs immediately to Script Timeline (no stale closure)',
     ]
   },
   {

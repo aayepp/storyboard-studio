@@ -1268,3 +1268,12 @@ src/App.jsx
 | Commit | Description |
 |--------|-------------|
 | a392a4e | fix: gender default auto-select Female (Wanita) |
+
+### 6. Re-Gen Dialogue Immediate Sync Fix ✅
+- **Root cause:** `saveBoxValue` reads `editedValues` (React async state) — by the time `setTimeout(50ms)` fires, state update not yet visible in closure → `handleSceneDialogueEdit` gets stale value
+- **Fix:** Call `handleSceneDialogueEdit` directly in Re-Gen callback — `newDialogue` + `segScenes` already in scope, no async dependency
+- Script Timeline now updates immediately when Re-Gen completes
+
+| Commit | Description |
+|--------|-------------|
+| 659c3a9 | fix: Re-Gen dialogue syncs immediately to Script Timeline (no stale closure) |
