@@ -1140,3 +1140,53 @@ src/App.jsx
 5. Optional: 45s/60s → 3.3s clips (one line in sceneLadder)
 6. Optional: post-gen story validator + auto-repair
 7. Optional: auto-select product angle per scene (only if manual labelling proves insufficient)
+
+---
+
+## Session Changes — 2026-07-27 (Part 5)
+
+### 1. Device Orientation Flip Mid-Motion — FIXED ✅
+- **Problem:** POV mode fix (Part 4) only covered the KEYFRAME (still image). The `i2v_prompt` (motion instruction sent to Flow AI) locked face/wardrobe/product/lighting/background but NOT orientation — Flow was free to rotate the device during animation, so a console shown from the back would flip to show the screen mid-clip.
+- **Fix (2 layers):**
+  - `[DEVICE ORIENTATION LOCK]` appended to both i2v builders (initial generation + segment-window rebuild): orientation shown in the keyframe stays LOCKED for the entire clip — back visible stays visible, screen visible stays visible. Never rotate/flip mid-motion.
+  - Segment prompt also gets `DEVICE ORIENTATION LOCK` — orientation may only change at a SCENE BOUNDARY, and only if that scene's action explicitly calls for it (e.g. "she flips it to show the screen").
+
+### 2. Repeated Dialogue Across Scenes — FIXED ✅
+- **Problem:** e.g. Scene 1 "memang game changer" then Scene 2 repeats the same line. Segment prompt's dialogue block had no time boundaries — Flow AI smeared a line across the scene boundary instead of stopping it.
+- **Root cause:** Dialogue list was `[Scene 1] "line"` with no timecode — Flow had no signal for where one line's speaking window ends.
+- **Fix (3 layers):**
+  - Dialogue lines now time-anchored: `[Scene 1 · 0s–3.3s] "line"` — Flow AI can see exactly which window each line belongs to
+  - New `DIALOGUE TIMING LOCK` in segment prompt: each line spoken EXACTLY ONCE inside its window; scenes 2+ must NOT repeat scene 1's line; full segment must read as continuous speech with zero repeats
+  - `SCENE_JSON_CONTRACT` story rule #3 upgraded: every dialogue line MUST be unique across the whole storyboard — if a scene has nothing new to say, give it empty dialogue instead of repeating
+- **Note:** Fixes apply to NEWLY generated storyboards. Already-generated boards keep their old i2v_prompt/dialogue — regenerate to get the locks.
+
+### 3. Script Timeline View — NEW FEATURE ✅
+- **Request:** Make each dialogue line visibly tied to its scene, story flow easy to read at a glance.
+- **Before:** DIALOG/VO box was one flat text blob — all lines mashed together, no way to tell which line belongs to which scene, silent scenes just... missing (looked like a bug).
+- **After — per-scene timeline card:**
+  - Scene number in a circle + connecting line between scenes (visual flow)
+  - Timecode + camera chip + energy-level color dot (🟡 HIGH / 🔵 MED / 🟣 LOW / 🌸 PEAK) — scan the dots to see the story's energy rhythm without reading every line
+  - Dialogue in quotes, or "— visual only —" for intentionally silent scenes (no longer looks like missing data)
+  - `↳ bridge_to_next` shown under each scene — see how the story physically connects scene to scene
+  - ✏️ inline edit per scene: click, type, blur/Enter to save
+- **Key architecture win:** `handleSceneDialogueEdit` writes directly into `generatedOutput` (single source of truth) instead of a separate blob-edit buffer. Editing one scene's dialogue automatically updates the Segment Prompt, JSON export, and Copy button on next render — no more "edited the blob but the real prompt didn't change" gap that existed with the old textarea Edit mode.
+- Old buttons kept: Re-Gen, Edit (full blob, for power users), Copy.
+
+### Commits (2026-07-27 Part 5)
+| Commit | Description |
+|--------|-------------|
+| 0ce51c4 | fix: device orientation lock in i2v motion + dialogue once rule with timecode anchors |
+| feb41c9 | feat: script timeline view - per-scene dialog with timecode, camera, energy, bridge + inline edit |
+
+## Current File State (2026-07-27 Part 5)
+- **Lines:** ~8830
+- **Build:** ✅ esbuild zero errors
+- **Device orientation:** ✅ Locked through motion (i2v + segment), boundary exception only if scene action calls for it
+- **Dialogue repeats:** ✅ Time-anchored + explicit once-rule + contract-level uniqueness requirement
+- **Segment dialogue UI:** ✅ Script Timeline (per-scene card, energy dots, bridge, inline edit synced to source of truth)
+
+## Pending Work (updated)
+1. TEST PHASE (carried over): generate full videos with multi-angle ROG Ally + gaming room theme + verify device orientation now holds through Flow AI motion, dialogue repeats gone, timeline UI reads clearly
+2. Optional: 45s/60s → 3.3s clips (one line in sceneLadder)
+3. Optional: post-gen story validator + auto-repair
+4. Optional: auto-select product angle per scene (only if manual labelling proves insufficient)
