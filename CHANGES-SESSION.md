@@ -1260,3 +1260,11 @@ src/App.jsx
 1. TEST PHASE: generate full videos with multi-angle ROG Ally + gaming room theme
 2. Optional: 45s/60s → 3.3s clips
 3. Optional: auto-select product angle per scene
+
+### 5. Gender Default Fix ✅
+- `gender` state default tukar dari `'Female'` → `'Wanita'`
+- Female button highlight betul bila app load (button check `gender === 'Wanita'`)
+
+| Commit | Description |
+|--------|-------------|
+| a392a4e | fix: gender default auto-select Female (Wanita) |

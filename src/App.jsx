@@ -2775,6 +2775,7 @@ const CHANGELOG = [
       'feat: energy curve visualizer — SVG line chart above output, colour-coded dots',
       'feat: scene drag/drop reorder in Script Timeline — timecodes auto-recalculate',
       'fix: dialogue Re-Gen syncs per-scene back to generatedOutput.scenes',
+      'fix: gender default auto-select Female (Wanita)',
     ]
   },
   {
