@@ -1070,3 +1070,73 @@ src/App.jsx
 1. Multi-angle product reference upload (cropped images, auto-select per scene)
 2. ~~Stale confidence tag selepas regenerate keyframe (#6)~~ — SETTLED 2026-07-27
 3. Narrative logic rules to remaining 6 tabs
+
+---
+
+## Session Changes — 2026-07-27 (Part 4)
+
+### 1. Word Cap Conflict — FIXED ✅
+- **Problem:** Rule said max 2.5 words/sec (3.3s scene = 8 words) but hook rule said "8-12 words" and CTA "10-15 words". CTA worst: 15 words in 3.3s = 4.5 w/s = rushed/unspeakable.
+- **Fix (3 sites — cinematic contract, ootd, ugc):** Word cap now ABSOLUTE ("3.3s = 8 words MAX") + "a line that cannot be spoken calmly in the scene's duration is WRONG". Hook: punchy up to cap. CTA: split across final TWO scenes if it needs more room instead of overrunning.
+
+### 2. Multi-Image Upload — Product (6 angles) + Face (4 angles) — NEW FEATURE ✅
+- **Problem:** Product = 1 hardcoded slot, Face = 1 slot. Single reference angle → AI invents unseen angles (ROG Ally held upside-down, logo mirrored).
+- **Product fix:**
+  - Multi-file upload (max 6), grid of thumbnails, each with angle dropdown (front/back/side/in-hand/controls/detail)
+  - `guessAngle()` auto-detects angle from filename (front.png→front, belakang.jpg→back, in-hand-scale.png→in-hand, right-controls.png→controls). Unclear names → blank, user picks.
+  - Each image sent to gen with label: "THIS IMAGE SHOWS THE {ANGLE} ANGLE — use when scene calls for {angle} view. Do NOT blend — pick ONE reference per scene."
+  - State: `products[]` already array; added `angle` field per entry + `handleProductAngleChange`
+- **Face fix:**
+  - Multi-file (max 4). Slot 0 = primary (all existing code paths use it — zero regression). Slots 1-3 = additional angles.
+  - Extra faces sent as "ADDITIONAL FACE ANGLE (same person — identity only, not outfit/background)"
+  - Outfit crop (`cropFaceTop`) applies to all face images — outfit lock intact
+  - New `faces[]` array in EMPTY_UPLOAD + thumbnails in UI + "+N angle" badge
+- **Background:** already multi since earlier — no change needed
+
+### 3. Device POV Mode Logic — FIXED ✅
+- **Problem:** Even with front+back refs uploaded + angle labels set, model held device wrong. Generated images showed person LOOKING at device but screen facing CAMERA — physically impossible (can't play while looking at the back).
+- **Root cause:** Rules existed but no DECISION logic — AI didn't know WHEN to use front vs back ref. Defaulted to pretty front view (glowing screen) regardless of pose.
+- **Fix — force a mode decision before drawing:**
+  - `[DEVICE POV LOGIC]` — pick EXACTLY ONE:
+    - **MODE A (using/playing/looking):** eyes on screen → screen faces PERSON → camera sees BACK → use BACK reference. Screen NOT visible to camera.
+    - **MODE B (presenting/showing):** eyes on CAMERA → device held up → screen faces camera → use FRONT reference.
+    - **Physics test:** "if her eyes are on the device, camera CANNOT see the screen. If camera sees screen, eyes MUST be on camera."
+  - Mode mapping per angle label: FRONT ref = MODE B ONLY (never while playing), BACK ref = MODE A (correct when using device)
+  - Negatives added: no screen visible while looking at device, no glowing hologram aura, no screen glow bleeding onto face/clothing, no neon halo (fixes blue glow bleed onto hijab)
+
+### 4. Gaming Background Themes — NEW ✅
+- Added to Background Theme dropdown:
+  - 🎮 **Gaming Room / Setup** — RGB LED, gaming desk + monitors, PC setup, posters, collectibles, ambient glow
+  - 🖥️ **Gaming / Esports Studio** — multiple monitors, broadcast lighting, branded backdrop, acoustic panels, RGB accent
+- Auto-detect keywords added (before generic 'studio' so gaming wins): esports/streaming/twitch/tournament → gaming_studio; gaming/console/handheld/rog ally/steam deck/ps5/xbox/switch/setup → gaming_room
+
+### 5. Repo Hygiene — .gitignore Added ✅
+- Repo had accumulated scratchpad junk (patch*.py, *.bak, tmp/, backups/, _bisect.jsx)
+- Added `.gitignore` blocking: node_modules, dist, .vercel, patch*.py, *.bak, tmp/, backups/, src/App.jsx.bak*, _*.jsx, .env, OS/editor junk
+- Junk stays on disk locally but git ignores it
+
+### Commits (2026-07-27 Part 4)
+| Commit | Description |
+|--------|-------------|
+| 43a8a42 | fix: word cap conflict - hook/CTA ranges exceeded 2.5 w/s limit |
+| — | feat: multi-image upload for product (6 angles + labels) and face (4 angles) |
+| 1e9a293 | fix: device POV mode logic - back ref when playing, front ref when presenting + glow negatives |
+| 869913a | feat: gaming background themes |
+
+## Current File State (2026-07-27 Part 4)
+- **Lines:** ~8770
+- **Build:** ✅ esbuild zero errors
+- **Word cap:** ✅ Absolute, CTA splits across scenes
+- **Multi-upload:** ✅ Product 6 angles (labelled) + Face 4 angles
+- **Device POV:** ✅ Mode A/B logic — back ref when using, front when presenting
+- **Gaming themes:** ✅ Room + Esports Studio, auto-detect
+- **Repo:** ✅ .gitignore added, scratchpad no longer tracked
+
+## Pending Work (updated)
+1. ~~Multi-angle product reference upload~~ — SHIPPED 2026-07-27 (manual crop workflow; auto-select per scene deferred until proven needed)
+2. ~~Stale confidence tag (#6)~~ — SETTLED 2026-07-27
+3. ~~Narrative logic rules to remaining 6 tabs~~ — SETTLED 2026-07-27
+4. TEST PHASE: generate full videos with multi-angle ROG Ally + gaming room theme — verify POV logic works (back ref when playing, front when presenting) before more coding
+5. Optional: 45s/60s → 3.3s clips (one line in sceneLadder)
+6. Optional: post-gen story validator + auto-repair
+7. Optional: auto-select product angle per scene (only if manual labelling proves insufficient)
