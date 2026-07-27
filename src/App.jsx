@@ -394,7 +394,7 @@ DIALOGUE RULES (MANDATORY):
 - Avoid: formal Malay, corporate Malay, textbook Malay, robotic phrasing, advertising-copy dialogue.
 - Preferred length: 10 to 20 words per dialogue line.
 - Maximum: 2.5 words per second of scene duration (e.g., 3.3s scene = max 8 words, 5s scene = max 12 words).
-- Hook scenes: punchy 8-12 words. Demo/action scenes: 5-8 words or empty. CTA scenes: 10-15 words.
+- WORD CAP IS ABSOLUTE: never exceed ~2.5 words per second of that scene's duration (3.3s = 8 words MAX, 5s = 12 words MAX). Hook scenes: punchy, up to the cap. Demo/action scenes: 5-8 words or empty. CTA scenes: up to the cap — if the CTA needs more words than one scene allows, split it across the final two scenes instead of overrunning.
 - Leave 1-2 scenes VISUAL-ONLY (dialogue: "") for breathing room — let visuals tell the story.
 - Dialogue must fit scene duration at natural BM speech pace.
 - If dialogue is unnecessary for a scene: Dialogue: "—"
@@ -979,7 +979,7 @@ CAMERA MOVEMENT (vary per scene):
 ${stylingTips}
 
 RULES:
-- Dialogue in natural conversational Malay. Word limit: ~2.5 words per second of scene duration. Hook: 8-12 words. Detail/styling: 5-8 words. CTA: 10-15 words. Leave 1-2 scenes visual-only.
+- Dialogue in natural conversational Malay. WORD CAP IS ABSOLUTE: ~2.5 words per second of scene duration (3.3s = 8 words MAX, 5s = 12 words MAX) — a line that cannot be spoken calmly in the scene's duration is WRONG. Hook: punchy, up to the cap. Detail/styling: 5-8 words. CTA: up to the cap; split across the final two scenes if it needs more room. Leave 1-2 scenes visual-only.
 
 ${SCENE_JSON_CONTRACT} ${!hasVO ? 'VO mode OFF — visual only, dialogue = "".' : ''}
 - Every scene SAME outfit, SAME model, SAME location — no changes between scenes.
@@ -1020,7 +1020,7 @@ const getProductPOVPrompt = (product, duration, category, background, gender, hi
     : 'Product only (no model)';
 
   const dialogueRule = hasVO
-    ? 'Each scene with dialogue: write 1 natural conversational Malay line. Word limit: ~2.5 words per second of scene duration (3.3s = 8 words, 5s = 12 words). Hook scene: 8-12 words punchy. Demo scenes: 5-8 words or empty. CTA: 10-15 words. Leave 1-2 scenes visual-only.'
+    ? 'Each scene with dialogue: write 1 natural conversational Malay line. WORD CAP IS ABSOLUTE: ~2.5 words per second of scene duration (3.3s = 8 words MAX, 5s = 12 words MAX) — a line that cannot be spoken calmly within the scene duration is WRONG. Hook scene: punchy, up to the cap. Demo scenes: 5-8 words or empty. CTA: up to the cap; split across the final two scenes if it needs more room. Leave 1-2 scenes visual-only.'
     : 'No spoken dialogue. Visual storytelling only. Dialogue field = "".';
 
   return `You are a professional product videographer and creative director. Generate a ${sec}s product showcase storyboard for: "${product}" (Category: ${category}).
