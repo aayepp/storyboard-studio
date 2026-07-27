@@ -1277,3 +1277,25 @@ src/App.jsx
 | Commit | Description |
 |--------|-------------|
 | 659c3a9 | fix: Re-Gen dialogue syncs immediately to Script Timeline (no stale closure) |
+
+---
+
+## Current File State (2026-07-27 Final)
+- **Lines:** ~9090
+- **Build:** ✅ esbuild zero errors
+- **Latest commit:** cdd3446
+
+## All Commits This Session (2026-07-27)
+| Commit | Description |
+|--------|-------------|
+| 374798e | feat: post-gen story validator — word cap, energy, repeat, continuity |
+| f2f816c | fix: dialogue Re-Gen syncs per-scene to generatedOutput.scenes |
+| 926429d | feat: auto-fix validator, energy curve, scene drag/drop reorder |
+| a392a4e | fix: gender default auto-select Female (Wanita) |
+| 659c3a9 | fix: Re-Gen dialogue syncs immediately (no stale closure) |
+| cdd3446 | docs: session 2026-07-27 part 7 changelog |
+
+## Pending Work
+1. TEST PHASE: ROG Ally multi-angle + gaming room — verify POV logic + dialogue fix
+2. Optional: 45s/60s → 3.3s clips (one line in sceneLadder)
+3. Optional: auto-select product angle per scene
