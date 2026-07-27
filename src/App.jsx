@@ -8121,6 +8121,15 @@ RULES:
                                                 handleBoxValueChange(segKey, newDialogue);
                                                 // Auto-sync to segment prompt after regen
                                                 setTimeout(() => saveBoxValue(segKey), 50);
+                                                // ponytail: sync per-scene immediately — don't wait for saveBoxValue
+                                                // (saveBoxValue reads editedValues which is async, so dialogue in
+                                                // Script Timeline wouldn't update until next render cycle)
+                                                const dlgLines = newDialogue.split(/\r?\n/).filter(Boolean);
+                                                segScenes.forEach((sc, li) => {
+                                                  if (li < dlgLines.length && sc.scene_num) {
+                                                    handleSceneDialogueEdit(sc.scene_num, dlgLines[li].trim());
+                                                  }
+                                                });
                                               }
                                             } catch (err) {
                                               console.warn('Dialogue regen failed:', err);
