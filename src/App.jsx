@@ -5251,9 +5251,9 @@ ${aspectStr}`;
       setBoxEdits(prev => {
         const currentPrompt = prev[promptKey] || originalPrompt;
         // Use flexible line ending match (handles both \n and \r\n)
-        const dlgRegex = new RegExp('[\r\n]+DIALOGUE \\(BM\\):[\\s\\S]*?(?=[\r\n]+CONTINUITY:|[\r\n]+INSTRUCTIONS:|$)');
+        const dlgRegex = new RegExp('[\\r\\n]+DIALOGUE \\(BM\\):[\\s\\S]*?(?=[\\r\\n]+CONTINUITY:|[\\r\\n]+INSTRUCTIONS:|$)');
         // Remove old TONE tag if exists
-        const toneRegex = new RegExp('\[TONE:[^\]]*\][\r\n]*', 'g');
+        const toneRegex = new RegExp('\\[TONE:[^\\]]*\\][\\r\\n]*', 'g');
         const cleanedPrompt = currentPrompt.replace(toneRegex, '');
         const updated = cleanedPrompt.includes('DIALOGUE (BM):')
           ? cleanedPrompt.replace(dlgRegex, `
@@ -5264,6 +5264,14 @@ ${newDialogue}
 DIALOGUE (BM):
 ${newDialogue}`;
         return { ...prev, [promptKey]: updated };
+      });
+
+      // ponytail: sync per-scene dialogue back to generatedOutput.scenes so Script Timeline updates
+      const dialogueLines = newDialogue.split(/\r?\n/).filter(Boolean);
+      segScenes.forEach((sc, lineIdx) => {
+        if (lineIdx < dialogueLines.length && sc.scene_num) {
+          handleSceneDialogueEdit(sc.scene_num, dialogueLines[lineIdx].trim());
+        }
       });
 
       // Auto-detect tone via AI based on scene context + new dialogue
