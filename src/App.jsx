@@ -92,6 +92,8 @@ const BACKGROUND_THEMES = [
   { v: 'luxury_hotel', l: '💎 Luxury Hotel / Premium', desc: 'Upscale luxury environment — hotel lobby, elegant decor, marble, premium warm lighting.' },
   { v: 'rooftop', l: '🌆 Rooftop / Skyline', desc: 'Rooftop setting with city skyline — open air, urban backdrop, golden hour or twilight.' },
   { v: 'dark_studio', l: '🎬 Dark Cinematic Studio', desc: 'Dark dramatic studio — moody lighting, deep shadows, cinematic atmosphere, black background with spot lighting.' },
+  { v: 'gaming_room', l: '\ud83c\udfae Gaming Room / Setup', desc: 'Cozy personal gaming room — RGB LED strip lighting, gaming desk with monitors, PC setup, wall posters, shelves with collectibles, immersive colourful ambient glow.' },
+  { v: 'gaming_studio', l: '\ud83d\udda5\ufe0f Gaming / Esports Studio', desc: 'Professional esports / streaming studio — multiple monitors, broadcast lighting, branded backdrop, acoustic panels, dramatic RGB accent lighting, high-tech competitive gaming environment.' },
   { v: 'school_campus', l: '🎓 School / Campus', desc: 'School or university campus setting — classrooms, corridors, outdoor campus grounds, youthful energy.' },
   { v: 'hospital_clinic', l: '🏥 Hospital / Clinic', desc: 'Medical or clinical setting — clean white environment, medical equipment, professional healthcare vibe.' },
 ];
@@ -111,6 +113,8 @@ const detectBgTheme = (topic = '') => {
   if (/street|urban|bandar|city|alley|lorong|jalan/.test(t)) return 'urban_street';
   if (/school|sekolah|university|universiti|campus|class|kelas|student|pelajar/.test(t)) return 'school_campus';
   if (/clinic|hospital|klinik|doctor|doktor|medical|perubatan|ubat|health/.test(t)) return 'hospital_clinic';
+  if (/esports|e-sport|streaming|streamer|twitch|broadcast studio|tournament|competitive gaming/.test(t)) return 'gaming_studio';
+  if (/gaming|game|gamer|konsol|console|handheld|rog ally|steam deck|ps5|xbox|nintendo|switch|pc gaming|setup/.test(t)) return 'gaming_room';
   if (/studio|white|minimalist|clean|product shot|packshot/.test(t)) return 'clean_studio';
   if (/outdoor|nature|taman|park|forest|hutan|garden|kebun|hiking/.test(t)) return 'outdoor_nature';
   if (/cinematic|dark|moody|dramatic|noir|thriller/.test(t)) return 'dark_studio';
