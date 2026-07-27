@@ -2656,7 +2656,7 @@ I2V: ${s.i2v_prompt || ''}`
   const [productNarration, setProductNarration] = useState('With Voice-Over');
   const [productVoiceTone, setProductVoiceTone] = useState('Friendly & Enthusiastic');
 
-  const [gender, setGender] = useState('Female');
+  const [gender, setGender] = useState('Wanita');
   const [hijabMode, setHijabMode] = useState('Hijab');
   const [mirrorMode, setMirrorMode] = useState(true);
   const [style, setStyle] = useState('Korean Minimalist');
