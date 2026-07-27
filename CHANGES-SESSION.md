@@ -1219,3 +1219,44 @@ src/App.jsx
 1. TEST PHASE: generate full videos with multi-angle ROG Ally + gaming room theme
 2. Optional: 45s/60s → 3.3s clips
 3. Optional: auto-select product angle per scene
+
+---
+
+## Session Changes — 2026-07-27 (Part 7)
+
+### 1. Auto-Fix Validator — NEW ✅
+- Button dalam validator panel — 1 click → AI rewrite semua flagged dialogue
+- Send scenes + issue list ke AI, return fixed JSON array
+- `handleAutoFixDialogue` → `handleSceneDialogueEdit` per scene
+- Zero manual edit needed
+
+### 2. Energy Curve Visualizer — NEW ✅
+- SVG line chart atas output section — dots connected, colour-coded
+- 🌸 PEAK (pink) / 🟡 HIGH (amber) / 🔵 MED (sky) / 🟣 LOW (purple)
+- Auto-hide kalau takde `energy_level` fields dalam scenes
+
+### 3. Scene Drag/Drop Reorder — NEW ✅
+- Script Timeline cards — draggable, drop to reorder
+- `handleSceneReorder` → reorder `generatedOutput.scenes` + `imageUrls` + recalc timecodes
+- `dragSceneRef` (useRef) track source index
+
+### 4. Dialogue Re-Gen Sync Fix ✅
+- `saveBoxValue(flow_seg_dialogue_*)` kini sync per-scene balik ke `generatedOutput.scenes`
+- Script Timeline cards update lepas Re-Gen
+
+### Commits (2026-07-27 Part 7)
+| Commit | Description |
+|--------|-------------|
+| 926429d | feat: auto-fix validator, energy curve visualizer, scene drag/drop reorder |
+
+## Current File State (2026-07-27 Part 7)
+- **Lines:** ~9076
+- **Build:** ✅ esbuild zero errors
+- **Auto-Fix:** ✅ 1-click AI dialogue repair
+- **Energy Curve:** ✅ SVG chart, colour-coded
+- **Drag/Drop:** ✅ Script Timeline reorder + timecode recalc
+
+## Pending Work (updated)
+1. TEST PHASE: generate full videos with multi-angle ROG Ally + gaming room theme
+2. Optional: 45s/60s → 3.3s clips
+3. Optional: auto-select product angle per scene

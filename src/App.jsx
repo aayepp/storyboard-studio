@@ -2771,7 +2771,10 @@ const CHANGELOG = [
     changes: [
       'feat: post-gen story validator — auto-scan scenes after generate',
       'feat: validator checks word cap, PEAK energy, duplicate dialogue, continuity',
-      'feat: validator panel with dismiss, colour-coded badges per issue type',
+      'feat: validator Auto-Fix button — AI rewrites all flagged dialogue in 1 click',
+      'feat: energy curve visualizer — SVG line chart above output, colour-coded dots',
+      'feat: scene drag/drop reorder in Script Timeline — timecodes auto-recalculate',
+      'fix: dialogue Re-Gen syncs per-scene back to generatedOutput.scenes',
     ]
   },
   {
