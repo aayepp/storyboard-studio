@@ -73,7 +73,7 @@ const ASPECT_RATIOS = [
 ];
 
 // Added backgrounds array to store multiple environment images
-const EMPTY_UPLOAD = { products: [{ name: '', base64: null, mimeType: null }], backgrounds: [], faceFileName: '', uploadedFaceBase64: null, uploadedFaceMimeType: null, useCustomFace: true };
+const EMPTY_UPLOAD = { products: [{ name: '', base64: null, mimeType: null }], backgrounds: [], faces: [], faceFileName: '', uploadedFaceBase64: null, uploadedFaceMimeType: null, useCustomFace: true };
 const TAB_UPLOAD_KEYS = ['cinematic_pro', 'microimpact', 'narrativearc', 'talkinghead', 'product', 'ootd', 'ugc', 'stopmotion', 'grafix', 'character', 'fake_influencer'];
 
 const BACKGROUND_THEMES = [
@@ -159,7 +159,7 @@ const detectOutfitStyle = (topic = '') => {
   if (/cafe|kopi|coffee|brunch|hangout|dating|jalan|mall|shopping/.test(t)) return 'casual_chic';
   return 'auto';
 };
-const makeEmptyTabUploads = () => Object.fromEntries(TAB_UPLOAD_KEYS.map((k) => [k, { ...EMPTY_UPLOAD, products: [{ name: '', base64: null, mimeType: null }], backgrounds: [] }]));
+const makeEmptyTabUploads = () => Object.fromEntries(TAB_UPLOAD_KEYS.map((k) => [k, { ...EMPTY_UPLOAD, products: [{ name: '', base64: null, mimeType: null }], backgrounds: [], faces: [] }]));
 
 const _baseCard = 'border rounded-[32px] p-6 sm:p-10 shadow-sm relative overflow-hidden transition-colors duration-300 card-hover scroll-reveal backdrop-blur-xl';
 const _baseIn = 'w-full rounded-2xl px-5 py-4 text-sm focus:outline-none focus:ring-1 focus:ring-sky-300 border';
@@ -2582,7 +2582,7 @@ I2V: ${s.i2v_prompt || ''}`
 
   const [tabUploads, setTabUploads] = useState(makeEmptyTabUploads);
 
-  const getActiveUploadData = () => tabUploads[activeTab] || { ...EMPTY_UPLOAD, products: [{ name: '', base64: null, mimeType: null }], backgrounds: [] };
+  const getActiveUploadData = () => tabUploads[activeTab] || { ...EMPTY_UPLOAD, products: [{ name: '', base64: null, mimeType: null }], backgrounds: [], faces: [] };
 
   const updateTabUpload = (key, value) => {
     setTabUploads((prev) => ({ ...prev, [activeTab]: { ...prev[activeTab], [key]: value } }));
@@ -3242,6 +3242,13 @@ return parsed;
           ? await cropFaceTop(activeUploadData.uploadedFaceBase64, activeUploadData.uploadedFaceMimeType)
           : { data: activeUploadData.uploadedFaceBase64, mime: activeUploadData.uploadedFaceMimeType || "image/jpeg" };
         parts.push({ inlineData: { mimeType: _faceRef.mime, data: _faceRef.data } });
+        // ponytail: extra face angles improve identity lock on profile/3-4 shots
+        const _extraFaces = (activeUploadData.faces || []).filter(f => f.base64).slice(0, 3);
+        for (const ef of _extraFaces) {
+          const r = _outfitActive ? await cropFaceTop(ef.base64, ef.mimeType) : { data: ef.base64, mime: ef.mimeType || 'image/jpeg' };
+          parts.push({ text: "=== ADDITIONAL FACE ANGLE (same person — use for identity only, not for outfit or background) ===" });
+          parts.push({ inlineData: { mimeType: r.mime, data: r.data } });
+        }
       }
 
       if (activeProducts.length > 0) {
@@ -3253,7 +3260,7 @@ return parsed;
           parts[0].text += "\n\n[PRODUCT]: The human must hold/wear ONLY the product from the attached REFERENCE IMAGE (full rules are stated with the image itself).";
         }
         activeProducts.forEach((p, indexSlot) => {
-          parts.push({ text: `=== PRODUCT REFERENCE IMAGE ${indexSlot + 1} — STRICT COPY RULES ===\n STEP 1: Identify which angle this scene needs (front/back/side/in-hand) from the scene description.\nSTEP 2: Find the MATCHING labelled panel in this reference sheet.\nSTEP 3: Copy the product from THAT panel ONLY — zero mixing between panels.\nHARD RULES:\n- FRONT panel = screen + front buttons visible. ZERO rear vents, ZERO rear logo.\n- BACK panel = rear casing + vents + rear logo ONLY. ZERO screen, ZERO thumbsticks, ZERO face buttons.\n- LEFT CONTROLS = left-side buttons only. RIGHT CONTROLS = right-side only. Never swap left/right.\n- Button/stick positions must match reference EXACTLY — never mirror or rearrange.\n- Screen faces the PERSON holding it. Back faces the camera. NEVER show screen facing camera while person uses device.\n- Real-world scale: device proportional to hands/body. Never oversized.\n- No extras: zero props not in reference image.\nREMEMBER: A real photograph can only show ONE side at a time.\\n\\n[NO-INVENTION LOCK — CRITICAL]:\\n- ONLY render features, colors, logos, buttons, ports, text that are VISIBLE in the reference image.\\n- If you cannot see it in the reference image, it does NOT exist on this product. Do NOT add it.\\n- No extra ports, no extra buttons, no extra logos, no extra text, no extra decals, no extra colors.\\n- Product color MUST match reference EXACTLY — no color shifts, no material changes.\\n- If model is present, their face/skin MUST match reference EXACTLY — no redesign of facial features.\\\n- Model outfit follows the [OUTFIT LOCK] instruction, NOT the reference image clothing.\\n- Zero creative liberties. Zero assumptions. Copy ONLY what is visible.` });
+          parts.push({ text: `=== PRODUCT REFERENCE IMAGE ${indexSlot + 1}${p.angle ? ` — ANGLE: ${String(p.angle).toUpperCase()}` : ''} — STRICT COPY RULES ===${p.angle ? `\n[THIS IMAGE SHOWS THE ${String(p.angle).toUpperCase()} ANGLE]: Use this image when the scene calls for the ${p.angle} view. Do NOT blend it with the other reference angles — pick ONE reference per scene.` : ''}\n STEP 1: Identify which angle this scene needs (front/back/side/in-hand) from the scene description.\nSTEP 2: Find the MATCHING labelled panel in this reference sheet.\nSTEP 3: Copy the product from THAT panel ONLY — zero mixing between panels.\nHARD RULES:\n- FRONT panel = screen + front buttons visible. ZERO rear vents, ZERO rear logo.\n- BACK panel = rear casing + vents + rear logo ONLY. ZERO screen, ZERO thumbsticks, ZERO face buttons.\n- LEFT CONTROLS = left-side buttons only. RIGHT CONTROLS = right-side only. Never swap left/right.\n- Button/stick positions must match reference EXACTLY — never mirror or rearrange.\n- Screen faces the PERSON holding it. Back faces the camera. NEVER show screen facing camera while person uses device.\n- Real-world scale: device proportional to hands/body. Never oversized.\n- No extras: zero props not in reference image.\nREMEMBER: A real photograph can only show ONE side at a time.\\n\\n[NO-INVENTION LOCK — CRITICAL]:\\n- ONLY render features, colors, logos, buttons, ports, text that are VISIBLE in the reference image.\\n- If you cannot see it in the reference image, it does NOT exist on this product. Do NOT add it.\\n- No extra ports, no extra buttons, no extra logos, no extra text, no extra decals, no extra colors.\\n- Product color MUST match reference EXACTLY — no color shifts, no material changes.\\n- If model is present, their face/skin MUST match reference EXACTLY — no redesign of facial features.\\\n- Model outfit follows the [OUTFIT LOCK] instruction, NOT the reference image clothing.\\n- Zero creative liberties. Zero assumptions. Copy ONLY what is visible.` });
           parts.push({ inlineData: { mimeType: p.mimeType || "image/jpeg", data: p.base64 } });
         });
       }
@@ -3673,21 +3680,52 @@ return parsed;
     setAspectRatio(newRatio);
   };
 
-  const handleProductUpload = async (e, index) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
+  // ponytail: multi-file — one <input multiple> fills consecutive slots.
+  // Angle label auto-guessed from filename (front.png -> "front"), user can override.
+  const MAX_PRODUCT_REFS = 6;
+  const guessAngle = (filename = '') => {
+    const f = filename.toLowerCase();
+    if (/back|rear|belakang/.test(f)) return 'back';
+    if (/hand|grip|hold|pegang/.test(f)) return 'in-hand';
+    if (/control|button|stick|trigger/.test(f)) return 'controls';
+    if (/side|left|right|sisi/.test(f)) return 'side';
+    if (/detail|macro|closeup|close-up/.test(f)) return 'detail';
+    if (/front|depan|hero/.test(f)) return 'front';
+    return '';
+  };
+
+  const handleProductUpload = async (e, index = 0) => {
+    const files = e.target.files;
+    if (!files || !files.length) return;
+    const activeUploadData = getActiveUploadData();
+    const newProducts = [...(activeUploadData.products || [])];
+    let slot = index;
+    for (let i = 0; i < files.length && slot < MAX_PRODUCT_REFS; i++) {
+      const file = files[i];
       const base64Compressed = await compressImage(file);
-      const activeUploadData = getActiveUploadData();
-      const newProducts = [...activeUploadData.products];
-      newProducts[index] = { name: file.name, mimeType: file.type, data: base64Compressed, base64: base64Compressed };
-      updateTabUpload('products', newProducts);
+      newProducts[slot] = {
+        name: file.name, mimeType: file.type,
+        data: base64Compressed, base64: base64Compressed,
+        angle: guessAngle(file.name)
+      };
+      slot++;
     }
+    updateTabUpload('products', newProducts);
+    e.target.value = '';
+  };
+
+  const handleProductAngleChange = (index, angle) => {
+    const activeUploadData = getActiveUploadData();
+    const newProducts = [...(activeUploadData.products || [])];
+    if (newProducts[index]) newProducts[index] = { ...newProducts[index], angle };
+    updateTabUpload('products', newProducts);
   };
 
   const handleRemoveProduct = (index) => {
     const activeUploadData = getActiveUploadData();
-    const newProducts = [...activeUploadData.products];
-    newProducts[index] = { name: '', base64: null, mimeType: null };
+    const newProducts = [...(activeUploadData.products || [])];
+    newProducts.splice(index, 1);
+    if (!newProducts.length) newProducts.push({ name: '', base64: null, mimeType: null });
     updateTabUpload('products', newProducts);
   };
 
@@ -3716,6 +3754,7 @@ return parsed;
     updateTabUpload('backgrounds', newBackgrounds);
   };
 
+  const MAX_FACE_REFS = 4;
   const handleFaceUpload = async (e) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
@@ -3723,6 +3762,14 @@ return parsed;
       updateTabUpload('faceFileName', file.name);
       updateTabUpload('uploadedFaceMimeType', file.type);
       updateTabUpload('uploadedFaceBase64', base64Compressed);
+      // ponytail: extra files become secondary angles. Slot 0 stays the primary
+      // face used by every existing code path — no downstream changes needed.
+      const extras = [];
+      for (let i = 1; i < e.target.files.length && i < MAX_FACE_REFS; i++) {
+        const f = e.target.files[i];
+        extras.push({ name: f.name, mimeType: f.type, base64: await compressImage(f) });
+      }
+      updateTabUpload('faces', extras);
 
       if (activeTab === 'character' && charSubjectType === 'AUTO_DETECT') {
           setLoadingText('Analyzing Character Reference...');
@@ -3751,6 +3798,7 @@ return parsed;
     updateTabUpload('faceFileName', '');
     updateTabUpload('uploadedFaceBase64', null);
     updateTabUpload('uploadedFaceMimeType', null);
+    updateTabUpload('faces', []);
   };
 
   const toggleImageZoom = (index) => {
@@ -5282,48 +5330,62 @@ Pick the ONE that best fits. No explanation, just the tag.`;
     </div>
   );
 
+  const PRODUCT_ANGLES = ['', 'front', 'back', 'side', 'in-hand', 'controls', 'detail'];
+
   const renderProductUploadBox = () => {
     const activeUploadData = getActiveUploadData();
-    const activeProduct = activeUploadData.products[0] || { name: '', base64: null, mimeType: null };
+    const products = (activeUploadData.products || []).filter(p => p.base64);
+    const canAddMore = products.length < MAX_PRODUCT_REFS;
 
     return (
-      <div className="relative group mt-4">
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => handleProductUpload(e, 0)}
-          className={U.c11}
-        />
-        <div className={`w-full border border-dashed rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-center transition-all duration-300 relative ${
-          activeProduct.name
-          ? (t('border-sky-500/50 bg-sky-900/10', 'border-sky-300 bg-sky-50'))
-          : (t('border-gray-700 hover:border-sky-500/50 bg-gray-800/30', 'border-gray-300 hover:border-sky-300 bg-gray-50'))
-        }`}>
-          <div className="flex flex-col items-center justify-center text-center w-full gap-3">
-            <div className={`w-16 h-16 rounded-full flex items-center justify-center shrink-0 border shadow-sm ${activeProduct.base64 ? 'border-sky-500/50' : 'border-gray-700'}`}>
-              {activeProduct.base64 ? (
-                <img src={`data:${activeProduct.mimeType};base64,${activeProduct.base64}`} alt="preview" className="w-full h-full object-cover rounded-full p-1" />
-              ) : (
-                <I name="Upload" size={24} className="text-sky-400" />
-              )}
-            </div>
-            <div className="flex flex-col items-center text-center min-w-0">
-              <span className={`text-sm font-black ${activeProduct.name ? 'text-gray-200' : t('text-sky-400','text-sky-700')}`}>
-                {activeProduct.name ? activeProduct.name : '📦 Upload Product Reference'}
+      <div className="mt-4 space-y-3">
+        {products.length > 0 && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {products.map((prod, idx) => (
+              <div key={idx} className={`relative rounded-2xl border p-2 ${t('border-sky-500/40 bg-sky-900/10','border-sky-200 bg-sky-50')}`}>
+                <img src={`data:${prod.mimeType};base64,${prod.base64}`} alt={prod.name} className="w-full h-20 object-cover rounded-xl mb-2" />
+                <select
+                  value={prod.angle || ''}
+                  onChange={(e) => handleProductAngleChange(idx, e.target.value)}
+                  className={`w-full text-[10px] font-bold rounded-lg px-2 py-1 border ${t('bg-gray-800 border-gray-700 text-gray-200','bg-white border-gray-300 text-gray-700')}`}
+                >
+                  {PRODUCT_ANGLES.map(a => <option key={a} value={a}>{a ? a.toUpperCase() : '— pilih angle —'}</option>)}
+                </select>
+                <p className={`text-[8px] mt-1 truncate ${t('text-gray-500','text-gray-400')}`} title={prod.name}>{prod.name}</p>
+                <button
+                  onClick={(e) => { e.preventDefault(); handleRemoveProduct(idx); }}
+                  className={`absolute top-1 right-1 p-1 rounded-lg z-20 shadow-sm border ${t('bg-red-900/40 text-red-400 border-red-900/50','bg-white text-red-500 border-red-100')}`}
+                  title="Remove"
+                >
+                  <I name="X" size={12} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {canAddMore && (
+          <div className="relative group">
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={(e) => handleProductUpload(e, products.length)}
+              className={U.c11}
+            />
+            <div className={`w-full border border-dashed rounded-3xl p-5 flex flex-col items-center justify-center text-center gap-2 transition-all ${t('border-gray-700 hover:border-sky-500/50 bg-gray-800/30','border-gray-300 hover:border-sky-300 bg-gray-50')}`}>
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center border ${t('border-gray-700','border-gray-300')}`}>
+                <I name="Upload" size={20} className="text-sky-400" />
+              </div>
+              <span className={`text-sm font-black ${t('text-sky-400','text-sky-700')}`}>
+                {products.length ? `\u2795 Tambah Angle (${products.length}/${MAX_PRODUCT_REFS})` : '\ud83d\udce6 Upload Product Reference'}
               </span>
-              {!activeProduct.name && <p className={`text-[10px] mt-0.5 ${t('text-sky-500/80','text-sky-600')}`}>Upload gambar produk — AI lock visual consistency merentas semua scene</p>}
+              <p className={`text-[10px] ${t('text-sky-500/80','text-sky-600')}`}>
+                Boleh pilih banyak gambar sekali \u2014 crop ikut angle (front, back, in-hand). Label auto-detect dari nama file.
+              </p>
             </div>
           </div>
-
-          {activeProduct.name && (
-            <button
-              onClick={(e) => { e.preventDefault(); handleRemoveProduct(0); }}
-              className={`absolute right-4 top-4 sm:top-1/2 sm:-translate-y-1/2 p-2 rounded-full transition-colors z-20 shadow-sm border ${t('bg-red-900/30 text-red-400 border-red-900/50', 'bg-white text-red-500 border-red-105')}`}
-            >
-              <I name="X" size={16} className="text-red-400" />
-            </button>
-          )}
-        </div>
+        )}
       </div>
     );
   };
@@ -5457,6 +5519,7 @@ Pick the ONE that best fits. No explanation, just the tag.`;
             <input
               type="file"
               accept="image/*"
+              multiple
               onChange={handleFaceUpload}
               className={U.c11}
             />
@@ -5479,6 +5542,19 @@ Pick the ONE that best fits. No explanation, just the tag.`;
               <span className={`text-xs font-bold px-6 ${activeUploadData.faceFileName ? (t('text-gray-200', 'text-gray-800')) : (U.c17)}`}>
                 {activeUploadData.faceFileName ? activeUploadData.faceFileName : 'Upload Face Reference Image'}
               </span>
+              {!activeUploadData.faceFileName && (
+                <span className={`text-[9px] mt-1 px-6 ${t('text-gray-500','text-gray-400')}`}>Boleh pilih beberapa gambar sekali \u2014 angle tambahan kuatkan face lock</span>
+              )}
+              {(activeUploadData.faces || []).length > 0 && (
+                <div className="flex gap-1.5 mt-2 flex-wrap justify-center">
+                  {activeUploadData.faces.map((f, i) => (
+                    <img key={i} src={`data:${f.mimeType};base64,${f.base64}`} alt={f.name}
+                         title={f.name}
+                         className="w-8 h-8 object-cover rounded-lg border border-sky-400/50" />
+                  ))}
+                  <span className={`text-[9px] self-center ml-1 ${t('text-sky-400','text-sky-600')}`}>+{activeUploadData.faces.length} angle</span>
+                </div>
+              )}
             </div>
             {activeUploadData.faceFileName && (
               <button
