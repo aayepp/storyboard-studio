@@ -2975,6 +2975,8 @@ const CHANGELOG = [
   const [skeletonCount, setSkeletonCount] = useState(0);
   const [storyIssues, setStoryIssues] = useState([]);
   const [storyIssuesDismissed, setStoryIssuesDismissed] = useState(false);
+  const [isAutoFixing, setIsAutoFixing] = useState(false);
+  const dragSceneRef = useRef(null);
 
   const handleSaveApiKey = (key) => {
     setApiKey(key);
@@ -3887,6 +3889,85 @@ return parsed;
       const key = prev.scenes ? 'scenes' : prev.productScenes ? 'productScenes' : prev.ootdScenes ? 'ootdScenes' : null;
       if (!key) return prev;
       return { ...prev, [key]: prev[key].map(sc => sc.scene_num === sceneNum ? { ...sc, dialogue: newDialogue } : sc) };
+    });
+  };
+
+  // ponytail: auto-fix validator issues — send all scenes + issues to AI, get fixed dialogues back
+  const handleAutoFixDialogue = async () => {
+    if (!generatedOutput || isAutoFixing) return;
+    const scenes = generatedOutput.scenes || generatedOutput.productScenes || generatedOutput.ootdScenes || [];
+    if (!scenes.length) return;
+    setIsAutoFixing(true);
+    addToast('Auto-fixing dialogue issues...', 'info', 5000);
+    try {
+      const issueList = storyIssues.map(iss => `- [${iss.type}] ${iss.msg}`).join('\n');
+      const sceneList = scenes.map(s => `Scene ${s.scene_num} (${s.timecode || ''}): "${s.dialogue || ''}"`).join('\n');
+      const totalSec = parseDurationToSeconds(generatedOutput.duration) || 30;
+      const secPerScene = (totalSec / scenes.length).toFixed(1);
+      const prompt = `You are a Malaysian TikTok/Reels scriptwriter. Fix the dialogue issues below.
+
+CURRENT DIALOGUE (one scene per line):
+${sceneList}
+
+ISSUES TO FIX:
+${issueList}
+
+RULES:
+- Each scene: max ${Math.floor(parseFloat(secPerScene) * 2.5)} words (${secPerScene}s × 2.5 w/s)
+- No duplicate lines across scenes
+- All lines read as ONE continuous monologue
+- Natural BM (eh, kan, tau tak, sumpah, weh)
+- Empty dialogue = "" (leave as empty string, do not force words)
+- PEAK energy scene (last scene) = strong CTA/payoff
+
+Return ONLY a JSON array of objects: [{"scene_num": 1, "dialogue": "fixed line"}, ...]
+No explanation, no markdown, just the JSON array.`;
+
+      const data = await callTextApi(prompt, null, { temperature: 0.7 });
+      const text = extractGeminiText(data).trim();
+      const fixed = parseModelJson(text);
+      if (Array.isArray(fixed)) {
+        fixed.forEach(({ scene_num, dialogue }) => {
+          if (scene_num) handleSceneDialogueEdit(scene_num, dialogue || '');
+        });
+        addToast(`✅ ${fixed.length} scenes fixed!`, 'success', 3000);
+        playSound('success');
+      } else {
+        addToast('Auto-fix failed — Cuba manual edit', 'error', 3000);
+      }
+    } catch (err) {
+      addToast('Auto-fix error: ' + String(err.message || ''), 'error', 3000);
+    } finally {
+      setIsAutoFixing(false);
+    }
+  };
+
+  // ponytail: reorder scenes + sync imageUrls + recalc timecodes
+  const handleSceneReorder = (fromIdx, toIdx) => {
+    if (fromIdx === toIdx) return;
+    setGeneratedOutput(prev => {
+      if (!prev) return prev;
+      const key = prev.scenes ? 'scenes' : prev.productScenes ? 'productScenes' : prev.ootdScenes ? 'ootdScenes' : null;
+      if (!key) return prev;
+      const arr = [...prev[key]];
+      const [moved] = arr.splice(fromIdx, 1);
+      arr.splice(toIdx, 0, moved);
+      // Recalc timecodes + scene_num
+      const totalSec = parseDurationToSeconds(prev.duration) || 30;
+      const secPer = totalSec / arr.length;
+      const reindexed = arr.map((sc, i) => ({
+        ...sc,
+        scene_num: i + 1,
+        timecode: `${(i * secPer).toFixed(1)}s–${((i + 1) * secPer).toFixed(1)}s`
+      }));
+      return { ...prev, [key]: reindexed };
+    });
+    // Sync imageUrls order
+    setImageUrls(prev => {
+      const arr = [...prev];
+      const [moved] = arr.splice(fromIdx, 1);
+      arr.splice(toIdx, 0, moved);
+      return arr;
     });
   };
 
@@ -8073,7 +8154,14 @@ RULES:
                                           const dlgKey = `scene_dlg_edit_${sc.scene_num}`;
                                           const isDlgEdit = editModes[dlgKey];
                                           return (
-                                            <div key={sc.scene_num}>
+                                            <div
+                                              key={sc.scene_num}
+                                              draggable
+                                              onDragStart={() => { dragSceneRef.current = sc.scene_num - 1; }}
+                                              onDragOver={(e) => e.preventDefault()}
+                                              onDrop={(e) => { e.preventDefault(); const to = sc.scene_num - 1; if (dragSceneRef.current !== null && dragSceneRef.current !== to) { handleSceneReorder(dragSceneRef.current, to); dragSceneRef.current = null; } }}
+                                              className="cursor-grab active:cursor-grabbing"
+                                            >
                                               <div className="flex items-start gap-2.5 py-1.5">
                                                 <div className="flex flex-col items-center shrink-0 pt-0.5">
                                                   <span className="w-6 h-6 rounded-full bg-sky-500/20 border border-sky-500/40 text-sky-300 text-[10px] font-black flex items-center justify-center">{sc.scene_num}</span>
@@ -8131,10 +8219,20 @@ RULES:
                     <span className={`text-[11px] font-black uppercase tracking-widest flex items-center gap-1.5 ${t('text-amber-400', 'text-amber-600')}`}>
                       ⚠️ Story Validator — {storyIssues.length} isu dijumpai
                     </span>
-                    <button
-                      onClick={() => setStoryIssuesDismissed(true)}
-                      className={`text-[10px] px-2 py-1 rounded font-bold transition-colors ${t('text-gray-500 hover:text-gray-300', 'text-gray-400 hover:text-gray-600')}`}
-                    >✕ Dismiss</button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleAutoFixDialogue}
+                        disabled={isAutoFixing}
+                        className={`text-[10px] px-3 py-1 rounded-lg font-bold flex items-center gap-1 transition-colors disabled:opacity-50 ${t('bg-amber-500/20 text-amber-300 hover:bg-amber-500/40', 'bg-amber-100 text-amber-700 hover:bg-amber-200')}`}
+                      >
+                        <I name={isAutoFixing ? 'RefreshCw' : 'Wand2'} size={10} className={isAutoFixing ? 'animate-spin' : ''} />
+                        {isAutoFixing ? 'Fixing...' : 'Auto-Fix'}
+                      </button>
+                      <button
+                        onClick={() => setStoryIssuesDismissed(true)}
+                        className={`text-[10px] px-2 py-1 rounded font-bold transition-colors ${t('text-gray-500 hover:text-gray-300', 'text-gray-400 hover:text-gray-600')}`}
+                      >✕ Dismiss</button>
+                    </div>
                   </div>
                   <div className="space-y-1.5">
                     {storyIssues.map((issue, idx) => {
@@ -8156,6 +8254,55 @@ RULES:
                   </div>
                 </div>
               )}
+
+              {generatedOutput && (() => {
+                const _scenes = generatedOutput.scenes || generatedOutput.productScenes || generatedOutput.ootdScenes || [];
+                const hasEnergy = _scenes.some(s => s.energy_level);
+                if (!hasEnergy || _scenes.length < 2) return null;
+                const energyVal = (e) => e === 'PEAK' ? 4 : e === 'HIGH' ? 3 : e === 'MED' ? 2 : 1;
+                const energyColor = (e) => e === 'PEAK' ? '#ec4899' : e === 'HIGH' ? '#f59e0b' : e === 'MED' ? '#38bdf8' : '#a78bfa';
+                const energyLabel = (e) => e === 'PEAK' ? '🌸' : e === 'HIGH' ? '🟡' : e === 'MED' ? '🔵' : '🟣';
+                const pts = _scenes.map((s, i) => ({ i, e: String(s.energy_level || 'MED').toUpperCase(), sc: s.scene_num || (i+1) }));
+                const W = 100, H = 40, pad = 6;
+                const xOf = (i) => pad + (i / (pts.length - 1)) * (W - pad * 2);
+                const yOf = (e) => H - pad - ((energyVal(e) - 1) / 3) * (H - pad * 2);
+                const pathD = pts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${xOf(i).toFixed(1)} ${yOf(p.e).toFixed(1)}`).join(' ');
+                return (
+                  <div className={`rounded-2xl border px-5 py-3 mb-2 ${t('bg-[#0d1117] border-gray-800', 'bg-gray-50 border-gray-200')}`}>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className={`text-[10px] font-black uppercase tracking-widest ${t('text-gray-500', 'text-gray-400')}`}>⚡ Energy Curve</span>
+                      <div className="flex items-center gap-2 text-[9px] font-bold">
+                        {[['🌸','PEAK','#ec4899'],['🟡','HIGH','#f59e0b'],['🔵','MED','#38bdf8'],['🟣','LOW','#a78bfa']].map(([em,lab,col]) => (
+                          <span key={lab} style={{ color: col }}>{em} {lab}</span>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex items-end gap-1.5">
+                      <svg viewBox={`0 0 ${W} ${H}`} className="flex-1 h-10" preserveAspectRatio="none">
+                        <path d={pathD} fill="none" stroke="#334155" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d={pathD} fill="none" stroke="url(#energyGrad)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" opacity="0.9" />
+                        <defs>
+                          <linearGradient id="energyGrad" x1="0" y1="0" x2="1" y2="0">
+                            <stop offset="0%" stopColor="#38bdf8" />
+                            <stop offset="100%" stopColor="#ec4899" />
+                          </linearGradient>
+                        </defs>
+                        {pts.map((p, i) => (
+                          <circle key={i} cx={xOf(i).toFixed(1)} cy={yOf(p.e).toFixed(1)} r="2.5" fill={energyColor(p.e)} />
+                        ))}
+                      </svg>
+                      <div className="flex gap-1 shrink-0">
+                        {pts.map((p, i) => (
+                          <div key={i} className="flex flex-col items-center gap-0.5">
+                            <span className="text-[8px]">{energyLabel(p.e)}</span>
+                            <span className={`text-[7px] font-bold ${t('text-gray-600','text-gray-400')}`}>{p.sc}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
 
               {generatedOutput && (
                 <div className={`rounded-3xl p-8 sm:p-12 relative overflow-hidden shadow-xl border transition-all duration-300 ${t('bg-[#11131a] border-gray-800', 'bg-white border-pink-50')}`}>
