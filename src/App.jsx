@@ -1953,7 +1953,8 @@ const generateFlowSegments = (scenes, durationStr, options = {}) => {
     aspectRatio = '9:16',
     segSize = 10,
     title = '',
-    // When the storyboard stills exist we send them to Flow as Start/End frames.
+    // When the storyboard stills exist we send the segment's first still to Flow as its
+    // START frame (Omni Flash takes a start frame only — it rejects an end frame).
     // Pixels beat prose: the frames carry identity/wardrobe/room/orientation, so the
     // long text bible becomes redundant bloat and is dropped from the paste.
     hasFrames = false
@@ -2101,10 +2102,13 @@ const generateFlowSegments = (scenes, durationStr, options = {}) => {
     // explicitly so the model treats them as the source of truth.
     const firstScene = segScenes[0] || null;
     const lastScene = segScenes.length ? segScenes[segScenes.length - 1] : null;
+    // ponytail: Omni Flash accepts a START frame only ("This model does not support an
+    // end frame"), so we never promise Flow an end frame. The clip is anchored at its
+    // first frame and everything after it is driven by the shot list below.
     const framesNote = hasFrames && firstScene
-      ? `\nFRAMES: Start frame = storyboard scene ${firstScene.scene_num}. End frame = storyboard scene ${lastScene.scene_num}.`
-        + ` Both stills are supplied as images — they are the SOURCE OF TRUTH for the person's face, hair, hijab, outfit, the product's design and orientation, the room, and the lighting.`
-        + ` Do not restyle, recolour, or redesign anything visible in them. Begin exactly on the Start frame and land exactly on the End frame.`
+      ? `\nSTART FRAME: storyboard scene ${firstScene.scene_num} (supplied as an image).`
+        + ` That still is the SOURCE OF TRUTH for the person's face, hair, hijab, outfit, the product's design and orientation, the room, the furniture and the lighting.`
+        + ` Do not restyle, recolour, or redesign anything visible in it. Open exactly on that frame, then move only as the shot list below describes.`
       : '';
 
     const prompt = [
@@ -2123,7 +2127,7 @@ const generateFlowSegments = (scenes, durationStr, options = {}) => {
       // appeared up to 4x in a single paste, which dilutes rather than reinforces.
       `\nCONTINUITY: Everything not explicitly moving stays locked for the whole clip —`
         + ` same person (face, hair, hijab), same outfit, same product, same room, same furniture placement, same lighting direction, same time of day.`
-        + ` Do NOT invent new rooms, windows, doorways, props or people. Any re-framing must stay inside the SAME physical space shown in the frames.`
+        + ` Do NOT invent new rooms, windows, doorways, props or people. Any re-framing must stay inside the SAME physical space${hasFrames ? ' shown in the start frame' : ' described above'}.`
         + ` Keep the product at its real-world size relative to hands and body — never enlarge or shrink it.`
         + ` Keep the product/device in the orientation shown in the Start frame: if its back faces camera, the back STAYS facing camera — never rotate or flip it mid-shot to reveal the other side.`
         + (segScenes.length > 1 ? ` Orientation may only change at a cut, and only if that shot's motion explicitly calls for it.` : ''),
@@ -8035,13 +8039,12 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                         const currentPromptVal = editedValues[segPromptKey] !== undefined ? editedValues[segPromptKey] : seg.prompt;
                         const currentDialogueVal = editedValues[segDialogueKey] !== undefined ? editedValues[segDialogueKey] : segDialogue;
 
-                        // ponytail: Frames mode needs a Start + End still per clip. Both come
-                        // from the already-generated scene images, so identity/background/outfit
-                        // are consistent by construction — no drift between segments.
+                        // ponytail: Omni Flash supports a START frame only — it rejects an end
+                        // frame outright ("This model does not support an end frame"), so we show
+                        // one slot. Consistency between segments still holds because every start
+                        // frame comes from the same locked set of generated stills.
                         const startSceneIdx = normScenes.findIndex((sc) => sc.scene_num === seg.startSceneNum);
-                        const endSceneIdx = normScenes.findIndex((sc) => sc.scene_num === seg.endSceneNum);
                         const startFrameUrl = sceneImageUrl(startSceneIdx);
-                        const endFrameUrl = endSceneIdx !== startSceneIdx ? sceneImageUrl(endSceneIdx) : null;
 
                         return (
                           <div key={`${seg.label}_${i}`} className={`rounded-xl border overflow-hidden transition-all ${isSegExpanded ? 'bg-[#0c1e27] border-[#1e4d5f]' : 'bg-[#0c1e27] border-[#143e4f]'}`}>
@@ -8129,53 +8132,36 @@ ABSOLUTE RULES:
 
                             {isSegExpanded && (
                               <div className="px-4 pb-4 space-y-3 border-t border-[#143e4f] pt-3 animate-fade-in">
-                                {/* Frames mode: Start + End stills for this clip */}
-                                {(startFrameUrl || endFrameUrl) && (
+                                {/* Frames mode: START frame only — Omni Flash rejects an end frame */}
+                                {startFrameUrl && (
                                   <div className="bg-sky-950/20 border border-sky-500/20 rounded-xl p-3">
                                     <div className="flex items-center justify-between mb-2">
-                                      <span className="text-[9px] font-bold uppercase tracking-widest text-sky-300 flex items-center gap-1">🎞️ Frames — Flow AI</span>
+                                      <span className="text-[9px] font-bold uppercase tracking-widest text-sky-300 flex items-center gap-1">🎞️ Start Frame — Flow AI</span>
                                       <span className="text-[9px] text-gray-500">Klip {seg.clipLen}s</span>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-2">
-                                      {[
-                                        { slot: 'Start', url: startFrameUrl, sceneNum: seg.startSceneNum, idx: startSceneIdx },
-                                        { slot: 'End', url: endFrameUrl, sceneNum: seg.endSceneNum, idx: endSceneIdx }
-                                      ].map(({ slot, url, sceneNum, idx }) => (
-                                        <div key={slot} className="rounded-lg border border-[#1e4d5f] bg-[#09151c] p-2">
-                                          <div className="flex items-center justify-between mb-1.5">
-                                            <span className="text-[9px] font-black uppercase tracking-widest text-sky-400">{slot}</span>
-                                            {sceneNum ? <span className="text-[9px] text-gray-500">Scene {sceneNum}</span> : null}
-                                          </div>
-                                          {url ? (
-                                            <>
-                                              <img
-                                                src={url}
-                                                alt={`${slot} frame`}
-                                                className="w-full rounded-md object-cover cursor-zoom-in"
-                                                style={{ aspectRatio: (currentDisplayRatio || aspectRatio || '9:16').replace(':', '/') }}
-                                                onClick={() => setZoomedImages((p) => ({ ...p, [`segframe_${i}_${slot}`]: !p[`segframe_${i}_${slot}`] }))}
-                                              />
-                                              <button
-                                                onClick={() => handleDownloadHD(url, idx)}
-                                                className="w-full mt-1.5 py-1.5 rounded-md text-[10px] font-bold bg-[#143e4f] text-[#38bdf8] hover:bg-[#1e4d5f] transition-all"
-                                              >
-                                                ⬇ Download
-                                              </button>
-                                            </>
-                                          ) : (
-                                            <div
-                                              className="w-full rounded-md border border-dashed border-[#1e4d5f] flex items-center justify-center text-[9px] text-gray-600 text-center px-2"
-                                              style={{ aspectRatio: (currentDisplayRatio || aspectRatio || '9:16').replace(':', '/') }}
-                                            >
-                                              {slot === 'End' ? 'Biar kosong dalam Flow' : 'Belum ada gambar'}
-                                            </div>
-                                          )}
-                                        </div>
-                                      ))}
+                                    <div className="flex gap-3">
+                                      <img
+                                        src={startFrameUrl}
+                                        alt="Start frame"
+                                        className="w-24 shrink-0 rounded-md object-cover cursor-zoom-in border border-[#1e4d5f]"
+                                        style={{ aspectRatio: (currentDisplayRatio || aspectRatio || '9:16').replace(':', '/') }}
+                                        onClick={() => setZoomedImages((p) => ({ ...p, [`segframe_${i}`]: !p[`segframe_${i}`] }))}
+                                      />
+                                      <div className="flex-1 min-w-0">
+                                        <p className="text-[10px] text-gray-400 mb-2">
+                                          Scene <span className="text-sky-300 font-bold">{seg.startSceneNum}</span> — gambar ni masuk kotak <span className="text-sky-400 font-bold">Start</span> dalam Flow.
+                                        </p>
+                                        <button
+                                          onClick={() => handleDownloadHD(startFrameUrl, startSceneIdx)}
+                                          className="w-full py-2 rounded-md text-[10px] font-bold bg-[#143e4f] text-[#38bdf8] hover:bg-[#1e4d5f] transition-all"
+                                        >
+                                          ⬇ Download Start Frame
+                                        </button>
+                                        <p className="text-[9px] text-gray-500 mt-2 leading-relaxed">
+                                          Dalam Flow: <span className="text-sky-400 font-bold">Frames</span> → letak gambar ni kat <span className="text-sky-400 font-bold">Start</span> → biarkan <span className="text-sky-400 font-bold">End</span> kosong (Omni Flash tak support End) → pilih <span className="text-sky-400 font-bold">{seg.clipLen}s</span> → paste prompt bawah.
+                                        </p>
+                                      </div>
                                     </div>
-                                    <p className="text-[9px] text-gray-500 mt-2 leading-relaxed">
-                                      Dalam Flow: pilih <span className="text-sky-400 font-bold">Frames</span>, letak gambar Start dalam kotak <span className="text-sky-400 font-bold">Start</span>, End dalam kotak <span className="text-sky-400 font-bold">End</span>, pilih <span className="text-sky-400 font-bold">{seg.clipLen}s</span>, lepas tu paste prompt bawah ni.
-                                    </p>
                                   </div>
                                 )}
 
