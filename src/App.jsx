@@ -2761,6 +2761,7 @@ const CHANGELOG = [
       'fix: dialogue Re-Gen syncs per-scene back to generatedOutput.scenes',
       'fix: gender default auto-select Female (Wanita)',
       'fix: Re-Gen dialogue syncs immediately to Script Timeline (no stale closure)',
+      'fix: remove false-positive semantic continuity check from validator',
     ]
   },
   {

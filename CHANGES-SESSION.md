@@ -1299,3 +1299,20 @@ src/App.jsx
 1. TEST PHASE: ROG Ally multi-angle + gaming room — verify POV logic + dialogue fix
 2. Optional: 45s/60s → 3.3s clips (one line in sceneLadder)
 3. Optional: auto-select product angle per scene
+
+---
+
+## Session Changes — 2026-07-28
+
+### 1. Validator False Positive Fix ✅
+- **Problem:** Check #6 (semantic continuity) flagged every consecutive scene pair — too strict, storyboard scenes naturally cover different points
+- **Fix:** Removed check #6 entirely — checks 1-5 (duplicate, same opening word, dangling question, filler overuse, dead-end CTA) sufficient
+
+| Commit | Description |
+|--------|-------------|
+| e50d07b | fix: remove false-positive semantic continuity check from validator |
+
+## Current File State (2026-07-28)
+- **Lines:** ~9070
+- **Build:** ✅ esbuild zero errors
+- **Latest commit:** e50d07b
