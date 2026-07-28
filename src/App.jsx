@@ -1938,12 +1938,25 @@ const sceneCountForVideoDuration = (totalSec) => {
   return 6;
 };
 
+// ponytail: the identity bible is written for the SCRIPT-writing model, so it carries
+// rules Flow AI can only be confused by (Flow performs dialogue, it never writes it).
+// Strip those before pasting into a video model.
+const flowSafeBible = (bible = '') => String(bible)
+  .split('\n')
+  .filter((line) => !/^\s*\[DIALOG DENSITY/i.test(line))
+  .join('\n')
+  .trim();
+
 const generateFlowSegments = (scenes, durationStr, options = {}) => {
   const {
     identityBible = '',
     aspectRatio = '9:16',
     segSize = 10,
-    title = ''
+    title = '',
+    // When the storyboard stills exist we send them to Flow as Start/End frames.
+    // Pixels beat prose: the frames carry identity/wardrobe/room/orientation, so the
+    // long text bible becomes redundant bloat and is dropped from the paste.
+    hasFrames = false
   } = options;
 
   const totalSec = parseDurationToSeconds(durationStr) || 30;
@@ -2015,15 +2028,22 @@ const generateFlowSegments = (scenes, durationStr, options = {}) => {
       const a = +(segStart + idx * per).toFixed(1);
       const b = +(segStart + (idx + 1) * per).toFixed(1);
       sc.timecode = `${a}s–${b}s`;
-      // rebuild the time-coded i2v against the corrected window
-      const t1 = +(a + (b - a) * 0.3).toFixed(1);
-      const t2 = +(a + (b - a) * 0.7).toFixed(1);
+      // ponytail: Flow generates each segment as its OWN clip starting at 0s.
+      // Absolute times ("10s–13.3s") mean nothing inside a clip whose timeline is
+      // 0–10s, so we also carry a CLIP-LOCAL timecode used by the Flow paste.
+      const ra = +(idx * per).toFixed(1);
+      const rb = +((idx + 1) * per).toFixed(1);
+      sc.clip_timecode = `${ra}s–${rb}s`;
+      // rebuild the time-coded i2v against the CLIP-LOCAL window.
+      // Locks are NOT appended per scene any more — they live once at segment level
+      // (they used to repeat 4x inside a single paste, drowning the real signal).
+      const t1 = +(ra + (rb - ra) * 0.3).toFixed(1);
+      const t2 = +(ra + (rb - ra) * 0.7).toFixed(1);
       const cam = String(sc.camera || 'static shot').trim();
       const act = String(sc.action || sc.visual || 'subject holds pose').trim().replace(/\.$/, '');
-      sc.i2v_prompt = `${a}s–${t1}s: establish (${cam}), subject in starting pose. `
+      sc.i2v_prompt = `${ra}s–${t1}s: establish (${cam}), subject in starting pose. `
         + `${t1}s–${t2}s: ${act} — camera ${cam.toLowerCase()}. `
-        + `${t2}s–${b}s: hold final pose, ready to lead into next scene. `
-        + `ONE continuous motion, no cuts. Keep face, wardrobe, product, lighting, and background locked. [DEVICE ORIENTATION LOCK]: The product/device keeps the EXACT orientation shown in the keyframe for the ENTIRE clip — if the back is visible, the back STAYS visible; if the screen is visible, the screen STAYS visible. NEVER rotate, flip, or turn the device to reveal its other side mid-motion. [DIALOGUE ONCE RULE]: Each dialogue line is spoken exactly ONCE inside its own scene window — never repeat a line or phrase from an earlier scene. [BACKGROUND LOCK]: The background/environment from the keyframe reference image MUST remain identical throughout — same walls, same room, same lighting direction, same time of day. Do NOT change location between frames.`;
+        + `${t2}s–${rb}s: hold final pose.`;
     });
   }
 
@@ -2033,52 +2053,85 @@ const generateFlowSegments = (scenes, durationStr, options = {}) => {
     const e = Math.min(s + segSize, totalSec);
     const segScenes = buckets[i] || [];
 
+    const clipLen = e - s;
+    // ponytail: pace must never contradict energy_level (see SCENE_JSON_CONTRACT).
+    const paceOf = (sc) => {
+      const p = String(sc.pace || '').toUpperCase();
+      if (p) return p;
+      const en = String(sc.energy_level || '').toUpperCase();
+      return en === 'HIGH' || en === 'PEAK' ? 'FAST' : en === 'LOW' ? 'SLOW' : 'MEDIUM';
+    };
+
+    // SHOT SEQUENCE: the old paste listed several scenes with different cameras while
+    // every scene's i2v ended with "ONE continuous motion, no cuts" — a direct
+    // contradiction, so the model blended the scenes into one mushy shot. Now the cuts
+    // are declared up front and each cut owns its own clip-local window.
+    const cutBoundaries = segScenes.slice(1).map((sc) => String(sc.clip_timecode || '').split('–')[0]).filter(Boolean);
+    const sequenceHeader = segScenes.length > 1
+      ? `SHOT SEQUENCE — ${segScenes.length} shots in this ${clipLen}s clip, joined by HARD CUTS at ${cutBoundaries.join(' and ')}. Each shot below is one continuous move; cut cleanly between them — do NOT morph, dissolve, or blend one shot into the next unless a TRANSITION says so.`
+      : `SINGLE SHOT — one continuous ${clipLen}s move, no cuts.`;
+
     const visuals = segScenes.length
-      ? segScenes.map((sc) => {
-          const vis = sc.visual || sc.action || '';
-          const cam = sc.camera || '';
-          const i2v = sc.i2v_prompt || '';
+      ? segScenes.map((sc, ci) => {
           // NOTE: 'Still prompt' (image_prompt) is intentionally omitted here.
           // It is for still-image generation, not video. Including it bloats the
           // Flow AI prompt past its input limit and confuses the video model
           // (it reads image instructions inside a video prompt). Flow AI only
           // needs the scene description, camera, and time-coded motion.
           return [
-            `Scene ${sc.scene_num}: ${vis}`,
-            cam ? `Camera: ${cam}` : '',
-            i2v ? `I2V: ${i2v}` : ''
+            `${segScenes.length > 1 ? `SHOT ${ci + 1}` : 'SHOT'} · ${sc.clip_timecode || ''} · pace ${paceOf(sc)}${sc.camera ? ` · ${sc.camera}` : ''}   [storyboard scene ${sc.scene_num}]`,
+            `  VISUAL: ${sc.visual || sc.action || ''}`,
+            sc.emotion ? `  EXPRESSION: ${sc.emotion}` : '',
+            sc.i2v_prompt ? `  MOTION: ${sc.i2v_prompt}` : '',
+            sc.bridge_to_next ? `  END ON: ${sc.bridge_to_next}` : '',
+            sc.transition && ci < segScenes.length - 1 ? `  → CUT TO NEXT VIA: ${sc.transition}` : ''
           ].filter(Boolean).join('\n');
         }).join('\n\n')
-      : `Hold continuity frame for ${s}s–${e}s. Same character, product, lighting. Subtle natural motion only.`;
+      : `Hold continuity frame for the full ${clipLen}s. Same character, product, lighting. Subtle natural motion only.`;
 
-    // ponytail: time-anchor each line so Flow AI cannot smear/repeat a line across scenes
+    // ponytail: time-anchor each line to its CLIP-LOCAL window so Flow AI cannot
+    // smear/repeat a line across shots (absolute times don't exist inside the clip).
     const dialogues = segScenes
-      .filter((sc) => sc.dialogue && String(sc.dialogue).trim())
-      .map((sc) => `[Scene ${sc.scene_num} · ${sc.timecode}] "${sc.dialogue}"`)
+      .filter((sc) => sc.dialogue && String(sc.dialogue).trim() && String(sc.dialogue).trim() !== '—')
+      .map((sc, di) => `[${sc.clip_timecode || ''}] "${sc.dialogue}"`)
       .join('\n');
 
-    // WARM-UP REFERENCE: point Flow AI at the strongest scene in this segment as the
-    // identity anchor, so the other (text-only) scenes match its face/product/lighting.
-    // Reuses pickBestKeyframe — no new picking logic.
-    const anchor = segScenes.length ? segScenes[pickBestKeyframe(segScenes).index] : null;
-    const anchorNote = anchor
-      ? `\nKEYFRAME ANCHOR: Scene ${anchor.scene_num} is the identity reference for this segment. Match its EXACT face, wardrobe, product layout, and lighting in every other scene here — keep one consistent person and product throughout.`
+    // FRAMES MODE: the Start/End stills carry identity, wardrobe, background and device
+    // orientation as PIXELS, which always beats describing them in text. Reference them
+    // explicitly so the model treats them as the source of truth.
+    const firstScene = segScenes[0] || null;
+    const lastScene = segScenes.length ? segScenes[segScenes.length - 1] : null;
+    const framesNote = hasFrames && firstScene
+      ? `\nFRAMES: Start frame = storyboard scene ${firstScene.scene_num}. End frame = storyboard scene ${lastScene.scene_num}.`
+        + ` Both stills are supplied as images — they are the SOURCE OF TRUTH for the person's face, hair, hijab, outfit, the product's design and orientation, the room, and the lighting.`
+        + ` Do not restyle, recolour, or redesign anything visible in them. Begin exactly on the Start frame and land exactly on the End frame.`
       : '';
 
     const prompt = [
-      `🎬 FLOW AI SEGMENT ${s}s–${e}s  (full video ${totalSec}s · part ${i + 1}/${numSegments})`,
+      `🎬 FLOW AI — PART ${i + 1}/${numSegments}  ·  ${clipLen}s clip  ·  covers ${s}s–${e}s of the ${totalSec}s video`,
       title ? `TITLE: ${title}` : '',
-      `FORMAT: ${aspectRatio} | WINDOW: ${s}s to ${e}s | DURATION: ${e - s}s`,
-      identityBible ? `\n${identityBible}` : '',
-      anchorNote,
-      `\nVISUAL:\n${visuals}`,
+      `FORMAT: ${aspectRatio}  ·  CLIP LENGTH: ${clipLen}s  ·  all times below are LOCAL to this clip (it starts at 0s)`,
+      framesNote,
+      // No stills yet (text-only / Ingredients run) — the bible is the only identity
+      // source Flow has, so it must stay. With frames it is dropped as redundant.
+      !hasFrames && identityBible ? `\n${flowSafeBible(identityBible)}` : '',
+      `\n${sequenceHeader}`,
+      `\n${visuals}`,
       dialogues ? `\nDIALOGUE (BM):\n${dialogues}` : '',
-      `\nCONTINUITY: Same character, product, wardrobe, environment across ALL segments of this ${totalSec}s video. PRODUCT SIZE LOCK: maintain real-world accurate product size — do NOT oversize or shrink the product. Keep exact scale ratio vs human hands/body as shown in reference.`,
-      `DEVICE ORIENTATION LOCK — CRITICAL: The device/product keeps the orientation shown in the keyframe for the WHOLE segment. If the keyframe shows the BACK of the device (person playing), the back stays toward camera for the entire segment — NEVER rotate or flip mid-motion to reveal the screen. Orientation may only change at a scene boundary IF that scene's action explicitly says so.`,
-      `DIALOGUE TIMING LOCK — CRITICAL: Each dialogue line above is anchored to its scene timecode. Speak each line EXACTLY ONCE, inside its own window. NEVER repeat a sentence or phrase from an earlier scene — if scene 1 says a line, scenes 2+ must NOT say it again. The full segment must read as one continuous flowing speech with zero repeated lines.`,
-      `BACKGROUND LOCK — CRITICAL: The background/environment established in the keyframe reference image MUST remain IDENTICAL across every scene and every segment. Same room, same walls, same furniture placement, same lighting direction, same time of day. Do NOT change location between scenes. Do NOT invent new rooms, windows, or outdoor areas. Any re-framing must stay within the SAME physical space already shown.`,
-      `VOICE & TONE LOCK — CRITICAL: The model/creator voice tone, energy level, and speaking style MUST remain CONSISTENT across ALL scenes and ALL segments. If creator speaks casual BM (e.g. "weh korang, sumpah best gila"), maintain that EXACT tone throughout. Do NOT shift to formal, robotic, or corporate language in later scenes. Same personality, same energy, same BM slang level, same sentence rhythm from scene 1 to last scene. Dialogue must feel like ONE person talking throughout.`,
-      `INSTRUCTIONS: Generate only the ${s}s–${e}s portion. Match prior segment identity if extending. Product must appear in its REAL original size — never artificially enlarged.`
+      // ponytail: ONE consolidated lock block. These five rules used to be five separate
+      // CRITICAL paragraphs AND were repeated inside every scene's i2v — the same text
+      // appeared up to 4x in a single paste, which dilutes rather than reinforces.
+      `\nCONTINUITY: Everything not explicitly moving stays locked for the whole clip —`
+        + ` same person (face, hair, hijab), same outfit, same product, same room, same furniture placement, same lighting direction, same time of day.`
+        + ` Do NOT invent new rooms, windows, doorways, props or people. Any re-framing must stay inside the SAME physical space shown in the frames.`
+        + ` Keep the product at its real-world size relative to hands and body — never enlarge or shrink it.`
+        + ` Keep the product/device in the orientation shown in the Start frame: if its back faces camera, the back STAYS facing camera — never rotate or flip it mid-shot to reveal the other side.`
+        + (segScenes.length > 1 ? ` Orientation may only change at a cut, and only if that shot's motion explicitly calls for it.` : ''),
+      dialogues
+        ? `DIALOGUE: Speak each line EXACTLY ONCE, inside its own time window above. Never repeat a line or phrase from an earlier window.`
+          + ` Keep one consistent casual Malay speaking voice — same tone, same energy, same slang level, same sentence rhythm throughout. It must sound like ONE person talking, never shifting to formal or corporate delivery.`
+        : `AUDIO: No spoken dialogue in this clip — ambient/natural sound only.`,
+      `INSTRUCTIONS: Generate ONLY this ${clipLen}s clip. Follow the shot list in order and respect each window's timing. Nothing outside the storyboard above.`
     ].filter(Boolean).join('\n');
 
     results.push({
@@ -2088,6 +2141,9 @@ const generateFlowSegments = (scenes, durationStr, options = {}) => {
       scenes: segScenes,
       start: s,
       end: e,
+      clipLen,
+      startSceneNum: firstScene ? firstScene.scene_num : null,
+      endSceneNum: lastScene ? lastScene.scene_num : null,
       totalSec,
       part: i + 1,
       parts: numSegments
@@ -5174,6 +5230,22 @@ ${aspectStr}`;
     }
   };
 
+  // ponytail: resolve a scene index to its generated still. When Smart Keyframe is on,
+  // imageUrls slots are anchor scenes (keyframeSceneMap[slot] = sceneIdx), so a plain
+  // imageUrls[sceneIdx] lookup would return the wrong picture. Scenes without their own
+  // keyframe fall back to the anchor that covers them.
+  const sceneImageUrl = (sceneIdx) => {
+    if (sceneIdx == null || sceneIdx < 0) return null;
+    if (!Array.isArray(keyframeSceneMap)) return imageUrls[sceneIdx] || null;
+    const exact = keyframeSceneMap.indexOf(sceneIdx);
+    if (exact >= 0) return imageUrls[exact] || null;
+    let bestSlot = -1, bestSceneIdx = -1;
+    keyframeSceneMap.forEach((sIdx, slot) => {
+      if (sIdx <= sceneIdx && sIdx > bestSceneIdx) { bestSceneIdx = sIdx; bestSlot = slot; }
+    });
+    return bestSlot >= 0 ? (imageUrls[bestSlot] || null) : (imageUrls[0] || null);
+  };
+
   const getDownloadName = () => {
     // Try to get a meaningful name from generated output or active tab fields
     const fromOutput = generatedOutput?.topic || generatedOutput?.title || '';
@@ -5327,7 +5399,8 @@ ${aspectStr}`;
       const segs = generateFlowSegments(fallbackScenes, String(totalSec), {
         identityBible: generatedOutput?.identityBible || editedValues.identityBible || '',
         aspectRatio: currentDisplayRatio || aspectRatio || '9:16',
-        title: generatedOutput?.title || generatedOutput?.caption || productName || cinematicTopic || ''
+        title: generatedOutput?.title || generatedOutput?.caption || productName || cinematicTopic || '',
+        hasFrames: imageUrls.filter(Boolean).length > 0
       });
       const originalPrompt = segs[idx]?.prompt || '';
       const segScenes = segs[idx]?.scenes || [];
@@ -7925,7 +7998,8 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                 const segs = generateFlowSegments(fallbackScenes, String(totalSec), {
                   identityBible: generatedOutput.identityBible || editedValues.identityBible || '',
                   aspectRatio: currentDisplayRatio || aspectRatio || '9:16',
-                  title: generatedOutput.title || generatedOutput.caption || productName || cinematicTopic || ''
+                  title: generatedOutput.title || generatedOutput.caption || productName || cinematicTopic || '',
+                  hasFrames: imageUrls.filter(Boolean).length > 0
                 });
                 if (!segs.length) return null;
 
@@ -7960,6 +8034,14 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                         
                         const currentPromptVal = editedValues[segPromptKey] !== undefined ? editedValues[segPromptKey] : seg.prompt;
                         const currentDialogueVal = editedValues[segDialogueKey] !== undefined ? editedValues[segDialogueKey] : segDialogue;
+
+                        // ponytail: Frames mode needs a Start + End still per clip. Both come
+                        // from the already-generated scene images, so identity/background/outfit
+                        // are consistent by construction — no drift between segments.
+                        const startSceneIdx = normScenes.findIndex((sc) => sc.scene_num === seg.startSceneNum);
+                        const endSceneIdx = normScenes.findIndex((sc) => sc.scene_num === seg.endSceneNum);
+                        const startFrameUrl = sceneImageUrl(startSceneIdx);
+                        const endFrameUrl = endSceneIdx !== startSceneIdx ? sceneImageUrl(endSceneIdx) : null;
 
                         return (
                           <div key={`${seg.label}_${i}`} className={`rounded-xl border overflow-hidden transition-all ${isSegExpanded ? 'bg-[#0c1e27] border-[#1e4d5f]' : 'bg-[#0c1e27] border-[#143e4f]'}`}>
@@ -7996,7 +8078,9 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                                     scenes: segScenes.map(s => {
                                       const o = {
                                         scene_num: s.scene_num,
-                                        timecode: s.timecode,
+                                        // clip-local time — the generated clip starts at 0s,
+                                        // absolute times from the full video mean nothing to Flow
+                                        timecode: s.clip_timecode || s.timecode,
                                         visual: s.visual,
                                         camera: s.camera,
                                         action: s.action,
@@ -8045,6 +8129,56 @@ ABSOLUTE RULES:
 
                             {isSegExpanded && (
                               <div className="px-4 pb-4 space-y-3 border-t border-[#143e4f] pt-3 animate-fade-in">
+                                {/* Frames mode: Start + End stills for this clip */}
+                                {(startFrameUrl || endFrameUrl) && (
+                                  <div className="bg-sky-950/20 border border-sky-500/20 rounded-xl p-3">
+                                    <div className="flex items-center justify-between mb-2">
+                                      <span className="text-[9px] font-bold uppercase tracking-widest text-sky-300 flex items-center gap-1">🎞️ Frames — Flow AI</span>
+                                      <span className="text-[9px] text-gray-500">Klip {seg.clipLen}s</span>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2">
+                                      {[
+                                        { slot: 'Start', url: startFrameUrl, sceneNum: seg.startSceneNum, idx: startSceneIdx },
+                                        { slot: 'End', url: endFrameUrl, sceneNum: seg.endSceneNum, idx: endSceneIdx }
+                                      ].map(({ slot, url, sceneNum, idx }) => (
+                                        <div key={slot} className="rounded-lg border border-[#1e4d5f] bg-[#09151c] p-2">
+                                          <div className="flex items-center justify-between mb-1.5">
+                                            <span className="text-[9px] font-black uppercase tracking-widest text-sky-400">{slot}</span>
+                                            {sceneNum ? <span className="text-[9px] text-gray-500">Scene {sceneNum}</span> : null}
+                                          </div>
+                                          {url ? (
+                                            <>
+                                              <img
+                                                src={url}
+                                                alt={`${slot} frame`}
+                                                className="w-full rounded-md object-cover cursor-zoom-in"
+                                                style={{ aspectRatio: (currentDisplayRatio || aspectRatio || '9:16').replace(':', '/') }}
+                                                onClick={() => setZoomedImages((p) => ({ ...p, [`segframe_${i}_${slot}`]: !p[`segframe_${i}_${slot}`] }))}
+                                              />
+                                              <button
+                                                onClick={() => handleDownloadHD(url, idx)}
+                                                className="w-full mt-1.5 py-1.5 rounded-md text-[10px] font-bold bg-[#143e4f] text-[#38bdf8] hover:bg-[#1e4d5f] transition-all"
+                                              >
+                                                ⬇ Download
+                                              </button>
+                                            </>
+                                          ) : (
+                                            <div
+                                              className="w-full rounded-md border border-dashed border-[#1e4d5f] flex items-center justify-center text-[9px] text-gray-600 text-center px-2"
+                                              style={{ aspectRatio: (currentDisplayRatio || aspectRatio || '9:16').replace(':', '/') }}
+                                            >
+                                              {slot === 'End' ? 'Biar kosong dalam Flow' : 'Belum ada gambar'}
+                                            </div>
+                                          )}
+                                        </div>
+                                      ))}
+                                    </div>
+                                    <p className="text-[9px] text-gray-500 mt-2 leading-relaxed">
+                                      Dalam Flow: pilih <span className="text-sky-400 font-bold">Frames</span>, letak gambar Start dalam kotak <span className="text-sky-400 font-bold">Start</span>, End dalam kotak <span className="text-sky-400 font-bold">End</span>, pilih <span className="text-sky-400 font-bold">{seg.clipLen}s</span>, lepas tu paste prompt bawah ni.
+                                    </p>
+                                  </div>
+                                )}
+
                                 {/* Editable Prompt */}
                                 <div className="bg-amber-950/20 border border-amber-500/20 rounded-xl p-3">
                                   <div className="flex items-center justify-between mb-1.5">
