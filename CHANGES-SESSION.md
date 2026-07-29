@@ -19,6 +19,36 @@ Read this file completely before touching any code.
 
 ---
 
+## Session Changes — 2026-07-29
+
+### Auto-Fix Dialogue — Filler Overuse Client-Side
+
+**Problem:**
+- Auto-Fix button sent ALL dialogue to AI for rewrite when filler overuse detected (e.g., "ah berulang 4 kali")
+- AI sometimes returned malformed JSON → `parseModelJson` failed → error toast
+- Wasted API tokens for simple string replacement task
+
+**Fix:**
+- Split fix logic: filler overuse = client-side (no API), other issues = AI rewrite
+- Extract filler word from issue message via regex: `/Filler "([^"]+)"/`
+- Keep first occurrence per scene, remove the rest via `.split()` + `.join()`
+- Skip AI call entirely if only filler issues detected
+- Success toast shows filler fix count
+
+**Implementation:**
+- Modified `handleAutoFixDialogue` (line ~3908)
+- Filter `fillerIssues` vs `nonFillerIssues` (continuity + 'berulang' check)
+- Client-side fix loop: extract filler → split dialogue → keep first + join rest
+- Early return if no non-filler issues
+
+**Commits:**
+| SHA | Message |
+|-----|---------|
+| `145dd45` | fix: Auto-Fix filler overuse now client-side (no API) |
+| `df8a5e5` | docs: update CHANGELOG v2.9 |
+
+---
+
 ## Session Changes — 2026-07-23
 
 ### 1. Sound Effects (Web Audio API)
