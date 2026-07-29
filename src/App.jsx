@@ -2782,6 +2782,7 @@ const CHANGELOG = [
       'feat: validator check 5 — continuity chain mismatch detection',
       'fix: i2v_prompt animates FROM neutral INTO keyframe peak — Flow AI no longer starts mid-action',
       'fix: remove excess blank lines in Flow AI segment prompt (strip leading \\n + collapse 3+ to 2)',
+      'feat: Start Frame generator per scene — neutral approach pose for Flow AI frame 0, download + thumbnail',
     ]
   },
   {

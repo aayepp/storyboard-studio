@@ -1394,3 +1394,33 @@ src/App.jsx
 - **Lines:** ~9144
 - **Build:** ✅ esbuild zero errors
 - **Latest commit:** e3278df
+
+### 3. Start Frame Generator — NEW FEATURE ✅
+- **Problem:** Flow AI uses keyframe as frame 0 — starts mid-action, looks jarring
+- **Solution (Option 1+3 combined):**
+  - `generateStartFrame(index)` — generates neutral approach pose for scene
+  - Same identity/outfit/background locked via identityBible + continuityDataUrl (keyframe as style ref)
+  - Prompt forces: "natural relaxed STARTING position, BEFORE main action begins, NOT mid-action"
+  - User downloads start frame → uploads as Flow AI frame 0
+  - Keyframe becomes IDENTITY REFERENCE ONLY in segment prompt text
+- **UI:**
+  - `▶ START FRAME` button per scene (green, shows after keyframe generated)
+  - `▶ FLOW START` thumbnail with download button when ready
+  - Label: "Upload ini sebagai frame 0 ke Flow AI. Keyframe = identity reference sahaja."
+- **States:** `startFrameUrls{}` + `generatingStartFrames{}`
+- On-demand — user picks which scenes need start frame (not auto-all)
+
+| Commit | Description |
+|--------|-------------|
+| 05f8400 | feat: add Start Frame generator per scene — neutral approach pose for Flow AI frame 0, download button + FLOW START thumbnail |
+
+## Current File State (2026-07-29 Part 3)
+- **Lines:** ~9230
+- **Build:** ✅ esbuild zero errors
+- **Latest commit:** 05f8400
+- **Start Frame:** ✅ On-demand per scene, download, FLOW START label
+
+## Pending Work (updated)
+1. TEST PHASE: test Start Frame with ROG Ally — verify Flow AI no longer starts mid-action
+2. Optional: 45s/60s → 3.3s clips
+3. Optional: auto-select product angle per scene
