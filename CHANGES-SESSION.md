@@ -1352,3 +1352,30 @@ src/App.jsx
 1. TEST PHASE: generate with new arc planner — verify setup-payoff lands
 2. Optional: 45s/60s → 3.3s clips
 3. Optional: auto-select product angle per scene
+
+---
+
+## Session Changes — 2026-07-29
+
+### 1. Flow AI Keyframe Start Fix — FIXED ✅
+- **Problem:** Flow AI uses keyframe as frame 0 — starts mid-action, looks jarring
+- **Root cause:** `toTimeCodedI2V` + `generateFlowSegments` i2v rebuild both described the peak moment as the start position
+- **Fix (2 sites):**
+  - `toTimeCodedI2V` (line ~709): first beat now "begin from natural relaxed position APPROACHING the key action — do NOT start mid-action, animate INTO it"
+  - `generateFlowSegments` inline rebuild (line ~2019): same instruction
+  - Mid-beat: "[KEYFRAME REFERENCE IS THE PEAK MOMENT — not the start frame. Begin 0.5–1s before this moment and animate naturally into it.]"
+- Both `toTimeCodedI2V` and `generateFlowSegments` updated (same pattern, both needed)
+
+| Commit | Description |
+|--------|-------------|
+| 0ea153a | fix: i2v_prompt animates FROM neutral INTO keyframe peak — Flow AI no longer starts mid-action (toTimeCodedI2V + generateFlowSegments both updated) |
+
+## Current File State (2026-07-29)
+- **Lines:** ~9143
+- **Build:** ✅ esbuild zero errors
+- **Latest commit:** 0ea153a
+
+## Pending Work (updated)
+1. TEST PHASE: generate with new arc planner + keyframe start fix
+2. Optional: 45s/60s → 3.3s clips
+3. Optional: auto-select product angle per scene
