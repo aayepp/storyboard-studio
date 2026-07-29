@@ -2065,17 +2065,17 @@ const generateFlowSegments = (scenes, durationStr, options = {}) => {
       `🎬 FLOW AI SEGMENT ${s}s–${e}s  (full video ${totalSec}s · part ${i + 1}/${numSegments})`,
       title ? `TITLE: ${title}` : '',
       `FORMAT: ${aspectRatio} | WINDOW: ${s}s to ${e}s | DURATION: ${e - s}s`,
-      identityBible ? `\n${identityBible}` : '',
+      identityBible ? identityBible : '',
       anchorNote,
-      `\nVISUAL:\n${visuals}`,
-      dialogues ? `\nDIALOGUE (BM):\n${dialogues}` : '',
-      `\nCONTINUITY: Same character, product, wardrobe, environment across ALL segments of this ${totalSec}s video. PRODUCT SIZE LOCK: maintain real-world accurate product size — do NOT oversize or shrink the product. Keep exact scale ratio vs human hands/body as shown in reference.`,
+      `VISUAL:\n${visuals}`,
+      dialogues ? `DIALOGUE (BM):\n${dialogues}` : '',
+      `CONTINUITY: Same character, product, wardrobe, environment across ALL segments of this ${totalSec}s video. PRODUCT SIZE LOCK: maintain real-world accurate product size — do NOT oversize or shrink the product. Keep exact scale ratio vs human hands/body as shown in reference.`,
       `DEVICE ORIENTATION LOCK — CRITICAL: The device/product keeps the orientation shown in the keyframe for the WHOLE segment. If the keyframe shows the BACK of the device (person playing), the back stays toward camera for the entire segment — NEVER rotate or flip mid-motion to reveal the screen. Orientation may only change at a scene boundary IF that scene's action explicitly says so.`,
       `DIALOGUE TIMING LOCK — CRITICAL: Each dialogue line above is anchored to its scene timecode. Speak each line EXACTLY ONCE, inside its own window. NEVER repeat a sentence or phrase from an earlier scene — if scene 1 says a line, scenes 2+ must NOT say it again. The full segment must read as one continuous flowing speech with zero repeated lines.`,
       `BACKGROUND LOCK — CRITICAL: The background/environment established in the keyframe reference image MUST remain IDENTICAL across every scene and every segment. Same room, same walls, same furniture placement, same lighting direction, same time of day. Do NOT change location between scenes. Do NOT invent new rooms, windows, or outdoor areas. Any re-framing must stay within the SAME physical space already shown.`,
       `VOICE & TONE LOCK — CRITICAL: The model/creator voice tone, energy level, and speaking style MUST remain CONSISTENT across ALL scenes and ALL segments. If creator speaks casual BM (e.g. "weh korang, sumpah best gila"), maintain that EXACT tone throughout. Do NOT shift to formal, robotic, or corporate language in later scenes. Same personality, same energy, same BM slang level, same sentence rhythm from scene 1 to last scene. Dialogue must feel like ONE person talking throughout.`,
       `INSTRUCTIONS: Generate only the ${s}s–${e}s portion. Match prior segment identity if extending. Product must appear in its REAL original size — never artificially enlarged.`
-    ].filter(Boolean).join('\n');
+    ].filter(Boolean).join('\n').replace(/\n{3,}/g, '\n\n').trim();
 
     results.push({
       label: `${s}S–${e}S`,
