@@ -706,9 +706,9 @@ const toTimeCodedI2V = (scene) => {
   const camera = String(scene.camera || 'static shot').trim();
   const action = String(scene.action || raw || 'subject holds pose').trim().replace(/\.$/, '');
 
-  return `${start}s–${t1}s: establish (${camera}), subject in starting pose. `
-    + `${t1}s–${t2}s: ${action} — camera ${camera.toLowerCase()}. `
-    + `${t2}s–${end}s: hold final pose, ready to lead into next scene. `
+  return `${start}s–${t1}s: character/subject begins from a natural relaxed position APPROACHING the key action — do NOT start mid-action, animate INTO it. `
+    + `${t1}s–${t2}s: ${action} — camera ${camera.toLowerCase()}. [KEYFRAME REFERENCE IS THE PEAK MOMENT — not the start frame. Begin 0.5–1s before this moment and animate naturally into it.] `
+    + `${t2}s–${end}s: hold final pose, transition naturally into next scene. `
     + `ONE continuous motion, no cuts. Keep face, wardrobe, product, lighting, and background locked. [DEVICE ORIENTATION LOCK]: The product/device keeps the EXACT orientation shown in the keyframe for the ENTIRE clip — if the back is visible, the back STAYS visible; if the screen is visible, the screen STAYS visible. NEVER rotate, flip, or turn the device to reveal its other side mid-motion. [DIALOGUE ONCE RULE]: Each dialogue line is spoken exactly ONCE inside its own scene window — never repeat a line or phrase from an earlier scene. [BACKGROUND LOCK]: The background/environment from the keyframe reference image MUST remain identical throughout — same walls, same room, same lighting direction, same time of day. Do NOT change location between frames.`;
 };
 
@@ -2016,9 +2016,9 @@ const generateFlowSegments = (scenes, durationStr, options = {}) => {
       const t2 = +(a + (b - a) * 0.7).toFixed(1);
       const cam = String(sc.camera || 'static shot').trim();
       const act = String(sc.action || sc.visual || 'subject holds pose').trim().replace(/\.$/, '');
-      sc.i2v_prompt = `${a}s–${t1}s: establish (${cam}), subject in starting pose. `
-        + `${t1}s–${t2}s: ${act} — camera ${cam.toLowerCase()}. `
-        + `${t2}s–${b}s: hold final pose, ready to lead into next scene. `
+      sc.i2v_prompt = `${a}s–${t1}s: character/subject begins from a natural relaxed position APPROACHING the key action — do NOT start mid-action, animate INTO it. `
+        + `${t1}s–${t2}s: ${act} — camera ${cam.toLowerCase()}. [KEYFRAME REFERENCE IS THE PEAK MOMENT — not the start frame. Begin 0.5–1s before this moment and animate naturally into it.] `
+        + `${t2}s–${b}s: hold final pose, transition naturally into next scene. `
         + `ONE continuous motion, no cuts. Keep face, wardrobe, product, lighting, and background locked. [DEVICE ORIENTATION LOCK]: The product/device keeps the EXACT orientation shown in the keyframe for the ENTIRE clip — if the back is visible, the back STAYS visible; if the screen is visible, the screen STAYS visible. NEVER rotate, flip, or turn the device to reveal its other side mid-motion. [DIALOGUE ONCE RULE]: Each dialogue line is spoken exactly ONCE inside its own scene window — never repeat a line or phrase from an earlier scene. [BACKGROUND LOCK]: The background/environment from the keyframe reference image MUST remain identical throughout — same walls, same room, same lighting direction, same time of day. Do NOT change location between frames.`;
     });
   }
