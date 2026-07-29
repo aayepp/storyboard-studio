@@ -2490,6 +2490,8 @@ export default function App() {
   const [isGeneratingAll, setIsGeneratingAll] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [regeneratingIndexes, setRegeneratingIndexes] = useState({});
+  const [startFrameUrls, setStartFrameUrls] = useState({});
+  const [generatingStartFrames, setGeneratingStartFrames] = useState({});
   const [loadingText, setLoadingText] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [progressStage, setProgressStage] = useState(0);
@@ -2780,7 +2782,6 @@ const CHANGELOG = [
       'feat: validator check 5 — continuity chain mismatch detection',
       'fix: i2v_prompt animates FROM neutral INTO keyframe peak — Flow AI no longer starts mid-action',
       'fix: remove excess blank lines in Flow AI segment prompt (strip leading \\n + collapse 3+ to 2)',
-      'fix: Auto-Fix filler overuse now client-side — no API, keep 1 occurrence, skip AI if filler-only',
     ]
   },
   {
@@ -3934,7 +3935,6 @@ return parsed;
         playSound('success');
         return;
       }
-
       const issueList = nonFillerIssues.map(iss => `- [${iss.type}] ${iss.msg}`).join('\n');
       const sceneList = scenes.map(s => `Scene ${s.scene_num} (${s.timecode || ''}): "${s.dialogue || ''}"`).join('\n');
       const totalSec = parseDurationToSeconds(generatedOutput.duration) || 30;
@@ -4491,6 +4491,52 @@ Keep the subject person, face reference, background layout, and clothes identica
   // ponytail: story arc planner — 1 lightweight AI call before storyboard gen
   // Plans ending FIRST so Scene 1 setup pays off at Scene N — no more linear drift
   // Returns arc object or null (graceful fallback — storyboard still generates without arc)
+  // ponytail: generate neutral "start frame" for Flow AI — same identity/bg/outfit
+  // but relaxed natural pose (NOT mid-action). User uploads this as Flow AI frame 0.
+  // Keyframe stays as IDENTITY REFERENCE ONLY in segment prompt text.
+  const generateStartFrame = async (index) => {
+    const scenes = generatedOutput?.scenes || generatedOutput?.productScenes || generatedOutput?.ootdScenes || [];
+    const scene = scenes[index];
+    if (!scene) return;
+    playSound('start');
+    setGeneratingStartFrames(prev => ({ ...prev, [index]: true }));
+    const signal = new AbortController().signal;
+    const lockedRatio = currentDisplayRatio || aspectRatio;
+    const identityBible = generatedOutput?.identityBible || '';
+    const topicLock = generatedOutput?.topic || productName || cinematicTopic || '';
+    const allowWhite = activeTab === 'character';
+    try {
+      // Build a prompt that locks identity but forces neutral starting pose
+      const startPrompt = [
+        `[FLOW AI START FRAME — BEGINNING OF SCENE ${scene.scene_num}]`,
+        `Generate the FIRST FRAME of this scene — character/subject in a natural, relaxed STARTING position, BEFORE the main action begins.`,
+        `This is frame 0 for video generation. Character should look natural and ready to move, NOT mid-action.`,
+        `Scene context: ${scene.visual || ''}`,
+        `Camera: ${scene.camera || 'medium shot'}`,
+        `The character is ABOUT TO: ${scene.action || 'begin the scene action'}`,
+        `CRITICAL: Neutral starting pose — hands relaxed, body at rest, expression calm but engaged. NOT the peak moment.`,
+        `Same location, lighting, outfit, and background as the storyboard. Same face and identity.`,
+        `[KEYFRAME REFERENCE IS FOR IDENTITY/STYLE ONLY — generate a NEW natural starting pose]`
+      ].filter(Boolean).join('\n');
+      addToast(`Generating start frame for Scene ${scene.scene_num}...`, 'info', 3000);
+      const url = await fetchSingleImage(startPrompt, lockedRatio, signal, index, {
+        identityBible,
+        continuityDataUrl: imageUrls[index] || null,
+        negative: withEnvNegative(DEFAULT_NEGATIVE, allowWhite),
+        topicLock
+      });
+      if (url) {
+        setStartFrameUrls(prev => ({ ...prev, [index]: url }));
+        addToast(`✅ Start frame Scene ${scene.scene_num} siap!`, 'success', 3000);
+        playSound('success');
+      }
+    } catch (err) {
+      addToast('Start frame failed: ' + String(err.message || ''), 'error', 3000);
+    } finally {
+      setGeneratingStartFrames(prev => ({ ...prev, [index]: false }));
+    }
+  };
+
   const planStoryArc = async (topic, durationSec, genre = 'general', signal = null) => {
     const sec = parseInt(durationSec) || 30;
     const seg1End = Math.round(sec * 0.27);
@@ -7580,6 +7626,39 @@ Pick the ONE that best fits. No explanation, just the tag.`;
                             >
                               <I name="RefreshCw" size={14} className={`${regeneratingIndexes[index] ? "animate-spin" : ""} ${(timelineMode !== 'on' && keyframeMode !== 'off') ? 'text-white' : 'text-gray-400'}`} /> {(timelineMode !== 'on' && keyframeMode !== 'off') ? 'REGENERATE KEYFRAME' : 'ALTERNATIVE 2K'}
                             </button>
+
+                            {/* Start Frame button — generates neutral approach frame for Flow AI */}
+                            {url && (
+                              <button
+                                onClick={() => generateStartFrame(index)}
+                                disabled={generatingStartFrames[index]}
+                                className={`w-full py-3.5 rounded-xl border text-[10px] font-black flex items-center justify-center gap-2 transition-all tracking-widest uppercase shadow-sm disabled:opacity-50 ${t('bg-emerald-950/30 border-emerald-800/50 text-emerald-400 hover:border-emerald-500 hover:bg-emerald-900/30', 'bg-emerald-50 border-emerald-200 text-emerald-600 hover:border-emerald-400')}`}
+                              >
+                                <I name={generatingStartFrames[index] ? 'RefreshCw' : 'Play'} size={14} className={`${generatingStartFrames[index] ? 'animate-spin' : ''} text-emerald-400`} />
+                                {generatingStartFrames[index] ? 'GENERATING...' : '▶ START FRAME'}
+                              </button>
+                            )}
+
+                            {/* Start Frame thumbnail — download when ready */}
+                            {startFrameUrls[index] && (
+                              <div className={`rounded-xl border overflow-hidden ${t('border-emerald-800/50', 'border-emerald-200')}`}>
+                                <div className="relative">
+                                  <img src={startFrameUrls[index]} alt={`Start frame ${index + 1}`} className="w-full object-cover" style={{ maxHeight: '120px' }} />
+                                  <div className={`absolute top-1 left-1 px-1.5 py-0.5 rounded text-[8px] font-black ${t('bg-emerald-900/80 text-emerald-300', 'bg-emerald-100 text-emerald-700')}`}>▶ FLOW START</div>
+                                  <a
+                                    href={startFrameUrls[index]}
+                                    download={`start-frame-scene-${index + 1}.jpg`}
+                                    className="absolute bottom-1 right-1 w-6 h-6 rounded-full bg-black/60 flex items-center justify-center hover:bg-emerald-600 transition-colors"
+                                    title="Download start frame"
+                                  >
+                                    <I name="Download" size={10} className="text-white" />
+                                  </a>
+                                </div>
+                                <div className={`px-2 py-1 text-[8px] ${t('bg-emerald-950/50 text-emerald-400', 'bg-emerald-50 text-emerald-600')}`}>
+                                  Upload ini sebagai frame 0 ke Flow AI. Keyframe = identity reference sahaja.
+                                </div>
+                              </div>
+                            )}
 
                             <button
                               onClick={() => toggleMagicBox(index)}
