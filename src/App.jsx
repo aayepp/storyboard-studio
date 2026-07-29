@@ -2774,6 +2774,10 @@ const CHANGELOG = [
       'fix: gender default auto-select Female (Wanita)',
       'fix: Re-Gen dialogue syncs immediately to Script Timeline (no stale closure)',
       'fix: remove false-positive semantic continuity check from validator',
+      'feat: story arc planner — plan ending first before writing scenes',
+      'feat: arc injected into cinematic/narrative/ugc prompts (3 tabs)',
+      'feat: continuityIn/continuityOut fields in SCENE_JSON_CONTRACT',
+      'feat: validator check 5 — continuity chain mismatch detection',
     ]
   },
   {

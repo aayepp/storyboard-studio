@@ -1316,3 +1316,39 @@ src/App.jsx
 - **Lines:** ~9070
 - **Build:** ✅ esbuild zero errors
 - **Latest commit:** e50d07b
+
+---
+
+## Session Changes — 2026-07-28 (Part 2)
+
+### 2. Story Arc Planner — NEW FEATURE ✅
+- **`planStoryArc(topic, durationSec, genre, signal)`** — 1 lightweight AI call before storyboard gen
+- Plans ending FIRST: centralQuestion, endingType, setupSeed, payoff, finalLine, hook, causeChain
+- Graceful fallback — returns null on error, storyboard still generates without arc
+- Applied to 3 story-driven tabs: **Cinematic Pro, Narrative Arc, UGC**
+- Arc injected as `[STORY ARC PLAN — FOLLOW EXACTLY]` block appended to prompt
+- Loading text: "Planning story arc..." sebelum "Building JSON sequence array..."
+
+### 3. continuityIn / continuityOut Fields — NEW ✅
+- Added to `SCENE_JSON_CONTRACT` — every scene declares how it enters + exits
+- `[CONTINUITY CHAIN RULE]`: continuityOut[N] MUST match continuityIn[N+1]
+- Eliminates teleport cuts between scenes
+
+### 4. Validator Check 5 — Continuity Chain ✅
+- New check in `runStoryValidator` — flag mismatch between continuityOut[N] and continuityIn[N+1]
+- Only runs when scenes have continuity fields (no false positives on old storyboards)
+
+| Commit | Description |
+|--------|-------------|
+| 363abe2 | feat: story arc planner + continuityIn/Out chain validation |
+
+## Current File State (2026-07-28 Part 2)
+- **Lines:** ~9140
+- **Build:** ✅ esbuild zero errors
+- **Story Arc Planner:** ✅ 3 tabs (cinematic, narrative, ugc)
+- **continuityIn/Out:** ✅ In contract + validator
+
+## Pending Work (updated)
+1. TEST PHASE: generate with new arc planner — verify setup-payoff lands
+2. Optional: 45s/60s → 3.3s clips
+3. Optional: auto-select product angle per scene
