@@ -1379,3 +1379,18 @@ src/App.jsx
 1. TEST PHASE: generate with new arc planner + keyframe start fix
 2. Optional: 45s/60s → 3.3s clips
 3. Optional: auto-select product angle per scene
+
+### 2. Flow AI Segment Prompt — Excess Blank Lines Fix ✅
+- **Problem:** Segment prompt copy had many blank lines between sections (DIALOGUE, CONTINUITY, DEVICE ORIENTATION LOCK, etc.)
+- **Root cause:** Array items had `\n` prefix + `.join('\n')` added another → result was `\n\n\n` gaps
+- **Fix:** Removed leading `\n` from all array items + added `.replace(/\n{3,}/g, '\n\n').trim()` after join
+- Prompt now clean, compact, no wasted whitespace
+
+| Commit | Description |
+|--------|-------------|
+| e3278df | fix: remove excess blank lines in Flow AI segment prompt — strip leading newlines from items + collapse 3+ newlines to max 2 |
+
+## Current File State (2026-07-29 Part 2)
+- **Lines:** ~9144
+- **Build:** ✅ esbuild zero errors
+- **Latest commit:** e3278df
