@@ -1454,3 +1454,20 @@ src/App.jsx
 1. TEST PHASE: test Start Frame with ROG Ally — verify Flow AI no longer starts mid-action
 2. Optional: 45s/60s → 3.3s clips
 3. Optional: auto-select product angle per scene
+
+### Start Frame — Restored After Accidental Overwrite
+
+**Problem:** `cp src/App.jsx.bak` tadi overwrite file yang ada Start Frame feature (commit `05f8400`). Start Frame hilang dari local file walaupun masih ada dalam remote.
+
+**Fix:** `git checkout 05f8400 -- src/App.jsx` restore file, then re-apply filler autofix patch on top.
+
+| SHA | Message |
+|-----|---------|
+| `fe03f47` | fix: restore Start Frame feature + apply Auto-Fix filler client-side patch |
+
+## Current File State (2026-07-29 Final)
+- **Lines:** ~9226
+- **Build:** ✅ esbuild zero errors
+- **Latest commit:** fe03f47
+- **Start Frame:** ✅ Button per scene, FLOW START thumbnail, download
+- **Auto-Fix Filler:** ✅ Client-side, no API
