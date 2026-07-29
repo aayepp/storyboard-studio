@@ -341,9 +341,21 @@ const runStoryValidator = (scenes, totalSec) => {
     seenDlg.add(d);
   });
 
-  // Check 4: Dialogue continuity (reuse existing checker — dangling questions, fillers, semantic jump)
+  // Check 4: Dialogue continuity (reuse existing checker — dangling questions, fillers)
   const continuity = verifyDialogueContinuity(scenes);
   continuity.issues.forEach(msg => issues.push({ scene: null, type: 'continuity', msg }));
+
+  // Check 5: continuityOut[N] ≠ continuityIn[N+1] (chain mismatch)
+  const hasContinuityFields = scenes.some(s => s.continuityOut || s.continuityIn);
+  if (hasContinuityFields) {
+    for (let i = 0; i < scenes.length - 1; i++) {
+      const out = String(scenes[i].continuityOut || '').trim().toLowerCase();
+      const nextIn = String(scenes[i + 1].continuityIn || '').trim().toLowerCase();
+      if (out && nextIn && out !== nextIn) {
+        issues.push({ scene: scenes[i].scene_num || (i + 1), type: 'continuity', msg: `Scene ${scenes[i].scene_num || (i + 1)}→${scenes[i + 1].scene_num || (i + 2)}: continuityOut "${scenes[i].continuityOut}" ≠ continuityIn "${scenes[i + 1].continuityIn}" — transition tak match` });
+      }
+    }
+  }
 
   return issues;
 };
@@ -483,7 +495,7 @@ const DEFAULT_NEGATIVE = 'no text overlay, no subtitles, no captions, no speech 
 const SCENE_ENVIRONMENT_RULES = `
 ENV RULES: Every scene MUST take place in the EXACT SAME core location/set. If the action changes, just change the CAMERA ANGLE of the same room/environment. Do not invent new locations. FORBIDDEN plain white/empty studio. image_prompt must name the location, lighting, props. Keep character, product, and background architecture locked across all scenes.`;
 
-const SCENE_JSON_CONTRACT = `Each scene MUST include: scene_num, timecode, visual (EN — must describe LOCATION + lighting + background props), camera, action, emotion, dialogue (BM or ""), image_prompt (EN still — must include full environment, NOT white background), i2v_prompt (EN motion), negative (must ban plain white background), angle_used (ONLY if product reference sheet is provided — write the exact panel label e.g. "FRONT", "BACK", "IN_HAND", "LEFT_SIDE" that you are copying the product from for this scene; omit if no product sheet), b_roll (optional: 1 short B-roll shot suggestion for editor e.g. "close-up hands unboxing", "macro product texture", "reaction shot face"), sound_note (optional: audio cue for editor e.g. "bass drop", "whoosh", "silence", "snap cut"). [ANGLE CONSISTENCY RULE]: Within the same 10s segment, keep the same product angle — do NOT switch between FRONT/BACK/SIDE within one segment. Only change angle at segment boundaries. Keep camera distance consistent within a segment (don't mix wide and macro in the same segment). [SCREEN ORIENTATION RULE — CRITICAL]: If a character holds/uses a device with a screen (phone, tablet, handheld console, laptop), the screen MUST face TOWARD the character — the BACK of the device faces the camera/viewer. NEVER show the screen facing the camera while the person is looking at the camera or talking — that is physically impossible and looks uncanny. A person cannot watch their own screen AND face the camera at the same time. Choose ONE: either (a) she looks DOWN at the screen while playing (screen tilted toward her face, back visible to camera), OR (b) she looks at the camera and talks with the device held at chest level, screen facing her, back toward camera. Screen may face the camera ONLY in a dedicated product-showcase shot where NO one is looking at the camera. [PRODUCT ORIENTATION RULE — CRITICAL]: Any product held or shown MUST be in its correct real-world orientation. Handheld consoles/devices: joysticks and buttons on TOP HALF facing up, thumbs resting on the controls, never upside-down or rotated 180°. Bottles/tubes: cap up (or cap down ONLY if that is how it is actually used). Logos and label text MUST read correctly — never inverted or mirrored. In every visual, action, and image_prompt that shows the product being held, explicitly state the correct grip (e.g. "held with both hands, thumbs on the joysticks, screen facing her"). [DIALOGUE EYE-CONTACT RULE — IMPORTANT]: When a scene has spoken dialogue (the character is talking to the audience/viewer), the character SHOULD make direct eye contact with the camera — this is how creators address viewers and it feels natural and engaging. In the visual, action, and image_prompt for any scene that has non-empty dialogue, explicitly state that the character looks directly at the camera / makes eye contact with the viewer while speaking (unless the scene is deliberately a B-roll cutaway with a voiceover, in which case no face is needed). Avoid the uncanny look of a person speaking while staring off to the side for no reason. Silent/visual-only scenes (empty dialogue) do NOT need camera eye contact — they can look at the product, environment, or action naturally. [ENERGY LEVEL FIELD — REQUIRED]: Each scene MUST include energy_level field: HIGH (fast, exciting, punchy), MED (steady, building, conversational), LOW (intimate, slow, emotional), or PEAK (climax, payoff, best moment — use ONCE, usually last scene). Follow this energy SHAPE across however many scenes this storyboard has (do NOT copy a fixed-length list — map the shape onto your actual scene count): scene 1 = HIGH (hook must grab instantly), the middle scenes alternate MED and HIGH so the video never flatlines (never place two LOW scenes back to back), and the FINAL scene = PEAK. For very short videos (3-4 scenes) stay HIGH throughout and end on PEAK. For longer videos (8+ scenes) you may use one LOW scene for an intimate/emotional beat, but only in the middle third, never in the first or last two scenes. [PACE-ENERGY CONSISTENCY]: If the scene JSON also has a pace field, it MUST agree with energy_level — HIGH or PEAK -> pace "FAST", MED -> pace "MEDIUM", LOW -> pace "SLOW". Never output a contradicting pair like pace SLOW with energy HIGH. [UNIVERSAL STORY FLOW RULES — APPLY TO EVERY SCENE]:
+const SCENE_JSON_CONTRACT = `Each scene MUST include: scene_num, timecode, visual (EN — must describe LOCATION + lighting + background props), camera, action, emotion, dialogue (BM or ""), image_prompt (EN still — must include full environment, NOT white background), i2v_prompt (EN motion), negative (must ban plain white background), angle_used (ONLY if product reference sheet is provided — write the exact panel label e.g. "FRONT", "BACK", "IN_HAND", "LEFT_SIDE" that you are copying the product from for this scene; omit if no product sheet), b_roll (optional: 1 short B-roll shot suggestion for editor e.g. "close-up hands unboxing", "macro product texture", "reaction shot face"), sound_note (optional: audio cue for editor e.g. "bass drop", "whoosh", "silence", "snap cut"), continuityIn (short phrase: how subject/camera enters this scene from previous — e.g. "walks through door", "turns to face camera", "product held up"; Scene 1 = ""), continuityOut (short phrase: action/movement that leads INTO next scene — e.g. "picks up product", "looks offscreen right", "camera pulls back"; last scene = ""). [CONTINUITY CHAIN RULE]: continuityOut of Scene N MUST match continuityIn of Scene N+1 — they describe the SAME physical transition from both sides. Never teleport between scenes. [ANGLE CONSISTENCY RULE]: Within the same 10s segment, keep the same product angle — do NOT switch between FRONT/BACK/SIDE within one segment. Only change angle at segment boundaries. Keep camera distance consistent within a segment (don't mix wide and macro in the same segment). [SCREEN ORIENTATION RULE — CRITICAL]: If a character holds/uses a device with a screen (phone, tablet, handheld console, laptop), the screen MUST face TOWARD the character — the BACK of the device faces the camera/viewer. NEVER show the screen facing the camera while the person is looking at the camera or talking — that is physically impossible and looks uncanny. A person cannot watch their own screen AND face the camera at the same time. Choose ONE: either (a) she looks DOWN at the screen while playing (screen tilted toward her face, back visible to camera), OR (b) she looks at the camera and talks with the device held at chest level, screen facing her, back toward camera. Screen may face the camera ONLY in a dedicated product-showcase shot where NO one is looking at the camera. [PRODUCT ORIENTATION RULE — CRITICAL]: Any product held or shown MUST be in its correct real-world orientation. Handheld consoles/devices: joysticks and buttons on TOP HALF facing up, thumbs resting on the controls, never upside-down or rotated 180°. Bottles/tubes: cap up (or cap down ONLY if that is how it is actually used). Logos and label text MUST read correctly — never inverted or mirrored. In every visual, action, and image_prompt that shows the product being held, explicitly state the correct grip (e.g. "held with both hands, thumbs on the joysticks, screen facing her"). [DIALOGUE EYE-CONTACT RULE — IMPORTANT]: When a scene has spoken dialogue (the character is talking to the audience/viewer), the character SHOULD make direct eye contact with the camera — this is how creators address viewers and it feels natural and engaging. In the visual, action, and image_prompt for any scene that has non-empty dialogue, explicitly state that the character looks directly at the camera / makes eye contact with the viewer while speaking (unless the scene is deliberately a B-roll cutaway with a voiceover, in which case no face is needed). Avoid the uncanny look of a person speaking while staring off to the side for no reason. Silent/visual-only scenes (empty dialogue) do NOT need camera eye contact — they can look at the product, environment, or action naturally. [ENERGY LEVEL FIELD — REQUIRED]: Each scene MUST include energy_level field: HIGH (fast, exciting, punchy), MED (steady, building, conversational), LOW (intimate, slow, emotional), or PEAK (climax, payoff, best moment — use ONCE, usually last scene). Follow this energy SHAPE across however many scenes this storyboard has (do NOT copy a fixed-length list — map the shape onto your actual scene count): scene 1 = HIGH (hook must grab instantly), the middle scenes alternate MED and HIGH so the video never flatlines (never place two LOW scenes back to back), and the FINAL scene = PEAK. For very short videos (3-4 scenes) stay HIGH throughout and end on PEAK. For longer videos (8+ scenes) you may use one LOW scene for an intimate/emotional beat, but only in the middle third, never in the first or last two scenes. [PACE-ENERGY CONSISTENCY]: If the scene JSON also has a pace field, it MUST agree with energy_level — HIGH or PEAK -> pace "FAST", MED -> pace "MEDIUM", LOW -> pace "SLOW". Never output a contradicting pair like pace SLOW with energy HIGH. [UNIVERSAL STORY FLOW RULES — APPLY TO EVERY SCENE]:
 1. Every scene advances the story — zero filler, zero repetition. Scene N must naturally motivate Scene N+1.
 2. NEVER repeat the same camera angle in consecutive scenes.
 3. Dialogue across all scenes = ONE continuous conversation, not disconnected slogans. Read scene 1 to the last scene out loud — it must sound like one person talking without restarting. EVERY dialogue line MUST be UNIQUE — NEVER repeat the same sentence, phrase, hook, or claim in more than one scene. If a scene has nothing NEW to say, give it empty dialogue ("") instead of repeating.
@@ -4443,6 +4455,37 @@ Keep the subject person, face reference, background layout, and clothes identica
       setBoxEdits(prev => ({ ...prev, caption: newCap }));
   };
 
+  // ponytail: story arc planner — 1 lightweight AI call before storyboard gen
+  // Plans ending FIRST so Scene 1 setup pays off at Scene N — no more linear drift
+  // Returns arc object or null (graceful fallback — storyboard still generates without arc)
+  const planStoryArc = async (topic, durationSec, genre = 'general', signal = null) => {
+    const sec = parseInt(durationSec) || 30;
+    const seg1End = Math.round(sec * 0.27);
+    const seg2End = Math.round(sec * 0.70);
+    const prompt = `You are a short-form video story architect. Plan the ENDING FIRST, then design the setup that makes it land.
+
+TOPIC: "${topic}"
+GENRE: ${genre}
+DURATION: ${sec}s
+
+Return ONLY valid JSON — no markdown, no explanation:
+{
+  "centralQuestion": "one question driving the whole video (e.g. 'Will she find out who ate the cake?')",
+  "endingType": "comedic_reveal|emotional_payoff|product_result|transformation|loop_back|shocking_twist",
+  "setupSeed": "ONE specific visual/prop/line planted in Scene 1 that the ending resolves",
+  "payoff": "exactly how the ending uses setupSeed to close the loop",
+  "finalLine": "last dialogue line — punchy, max 8 words BM",
+  "hook": "Scene 1 first image — scroll-stopping, mid-action, no greeting",
+  "causeChain": "Seg1(0-${seg1End}s): [who] wants X but Y. Seg2(${seg1End}-${seg2End}s): Because Y, does Z discovers R. Seg3(${seg2End}-${sec}s): Because R, resolves/fails X."
+}`;
+    try {
+      const data = await callTextApi(prompt, signal, { temperature: 0.8 });
+      const text = extractGeminiText(data).trim();
+      const arc = parseModelJson(text);
+      return (arc && arc.centralQuestion) ? arc : null;
+    } catch { return null; }
+  };
+
   const generateNewMode = async (mode) => {
     const validators = {
       cinematic_pro: () => cinematicTopic.trim(),
@@ -4564,6 +4607,20 @@ Keep the subject person, face reference, background layout, and clothes identica
       else if (mode === 'stopmotion') promptText = getStopMotionPrompt(smProduct, smDuration, smStyle, aspectRatio, smAudience, refCount, finalIdentityBible, assetAnalysis, smEasingMode);
       else if (mode === 'grafix') promptText = getGrafixPrompt(topicText, gfDuration, aspectRatio, gfStyle, gfAudience, refCount, finalIdentityBible, assetAnalysis, gfBrandColor, gfDataInput);
       else if (mode === 'ugc') promptText = getUgcStoryboardPrompt(productName.trim(), duration, category, ugcEnvironment, gender, hijabMode, ugcAngle, refCount, finalIdentityBible, assetAnalysis, ugcPrice);
+
+      // ponytail: story arc plan — cinematic, narrative, ugc only (story-driven tabs)
+      // Plan ending first so Scene 1 setup pays off at Scene N
+      if (['cinematic_pro', 'narrativearc', 'ugc'].includes(mode)) {
+        const arcTopic = mode === 'cinematic_pro' ? cinematicTopic : mode === 'narrativearc' ? narrativeArcTopic : productName.trim();
+        const arcDur = mode === 'ugc' ? duration : mode === 'narrativearc' ? '30' : cinematicDuration;
+        const arcGenre = mode === 'narrativearc' ? narrativeGenre : 'general';
+        setLoadingText('Planning story arc...');
+        const arc = await planStoryArc(arcTopic, arcDur, arcGenre, signal);
+        if (arc && !signal.aborted) {
+          const arcBlock = `\n\n[STORY ARC PLAN — FOLLOW EXACTLY]\nCentral Question: ${arc.centralQuestion}\nEnding Type: ${arc.endingType}\nScene 1 Setup Seed: ${arc.setupSeed}\nEnding Payoff: ${arc.payoff}\nFinal Line (last scene dialogue): "${arc.finalLine}"\nScene 1 Hook: ${arc.hook}\nCause Chain: ${arc.causeChain}\n\nINSTRUCTION: You ALREADY know the ending. Write Scene 1 to plant the setupSeed. Write middle scenes to build toward payoff. Final scene MUST deliver the payoff and use finalLine as last dialogue. Every scene causes the next.`;
+          promptText += arcBlock;
+        }
+      }
 
       setLoadingText(isGrafix ? 'Generating Grafix framework series...' : 'Building JSON sequence array...');
       setGenerationStep(2);
